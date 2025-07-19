@@ -13,12 +13,18 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserSignupForm() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleSignup = (event: React.FormEvent) => {
     event.preventDefault();
+    toast({
+        title: "Account Created!",
+        description: "Welcome! We're redirecting you to your dashboard.",
+    });
     // In a real app, you'd have registration logic here.
     // We'll simulate a successful signup and redirect.
     router.push('/dashboard');

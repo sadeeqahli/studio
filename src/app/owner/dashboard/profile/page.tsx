@@ -11,17 +11,16 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast"
 
-export default function UserProfile() {
+export default function OwnerProfile() {
   const { toast } = useToast();
 
   const handleSaveChanges = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     toast({
       title: "Success!",
-      description: "Your personal information has been updated.",
-      variant: "default",
+      description: "Your profile information has been updated.",
     });
   };
 
@@ -30,33 +29,26 @@ export default function UserProfile() {
     toast({
       title: "Success!",
       description: "Your password has been changed. You will be logged out shortly.",
-      variant: "default",
     });
   };
 
   return (
     <div>
-        <h1 className="text-lg font-semibold md:text-2xl mb-4">User Profile</h1>
+        <h1 className="text-lg font-semibold md:text-2xl mb-4">Owner Profile</h1>
         <div className="grid gap-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details here.</CardDescription>
+                    <CardTitle>Your Information</CardTitle>
+                    <CardDescription>Update your personal and business details here.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" defaultValue="Max" />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" defaultValue="Robinson" />
-                        </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="owner-name">Full Name</Label>
+                        <Input id="owner-name" defaultValue="Tunde Ojo" />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="m@example.com" />
+                        <Input id="email" type="email" defaultValue="tunde.ojo@example.com" />
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">

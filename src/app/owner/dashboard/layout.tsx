@@ -8,7 +8,7 @@ import {
   LogOut,
   Settings,
   UserCircle,
-  SoccerBall,
+  Goal,
   CalendarCheck2,
   List,
 } from "lucide-react"
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Logo } from "@/components/icons"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export default function OwnerDashboardLayout({
@@ -33,6 +33,12 @@ export default function OwnerDashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // In a real app, you would clear the user's session here
+    router.push('/login');
+  };
 
   const navItems = [
     { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -69,7 +75,7 @@ export default function OwnerDashboardLayout({
             </nav>
           </div>
           <div className="mt-auto p-4">
-             <Button size="sm" className="w-full">
+             <Button size="sm" className="w-full" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4"/> Logout
             </Button>
           </div>
@@ -84,7 +90,7 @@ export default function OwnerDashboardLayout({
                 size="icon"
                 className="shrink-0 md:hidden"
               >
-                <SoccerBall className="h-5 w-5" />
+                <Goal className="h-5 w-5" />
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
@@ -112,7 +118,7 @@ export default function OwnerDashboardLayout({
                 ))}
               </nav>
               <div className="mt-auto">
-                <Button size="sm" className="w-full">
+                <Button size="sm" className="w-full" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4"/> Logout
                 </Button>
               </div>
@@ -131,10 +137,10 @@ export default function OwnerDashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => router.push('/owner/dashboard/profile')}>Settings</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>

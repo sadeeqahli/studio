@@ -1,3 +1,6 @@
+"use client"
+
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -23,20 +26,81 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPitches } from "@/lib/placeholder-data"
+import { placeholderPitches as initialPitches } from "@/lib/placeholder-data"
+import { Pitch } from "@/lib/types"
+import { AddPitchDialog } from "@/components/add-pitch-dialog"
+import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function OwnerPitches() {
+  const [pitches, setPitches] = React.useState<Pitch[]>(initialPitches);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
+  const { toast } = useToast();
+
+  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageUrl' | 'imageHint' | 'availableSlots'>) => {
+    const newPitch: Pitch = {
+      ...newPitchData,
+      id: (pitches.length + 1).toString(),
+      imageUrl: 'https://placehold.co/600x400.png',
+      imageHint: 'football field',
+      availableSlots: [],
+    };
+    setPitches(prev => [...prev, newPitch]);
+    toast({ title: "Success!", description: "New pitch has been added." });
+    setIsDialogOpen(false);
+  };
+
+  const handleEditPitch = (updatedPitch: Pitch) => {
+    setPitches(prev => prev.map(p => p.id === updatedPitch.id ? updatedPitch : p));
+    toast({ title: "Success!", description: "Pitch details have been updated." });
+    setEditingPitch(null);
+    setIsDialogOpen(false);
+  };
+  
+  const openEditDialog = (pitch: Pitch) => {
+    setEditingPitch(pitch);
+    setIsDialogOpen(true);
+  }
+
+  const handleDeactivate = (pitchId: string) => {
+    // In a real app, this would likely be a soft delete or status change
+    setPitches(prev => prev.filter(p => p.id !== pitchId));
+    toast({ 
+        title: "Pitch Deactivated", 
+        description: "The pitch has been removed from your active list.",
+        variant: "destructive"
+     });
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold md:text-2xl">My Pitches</h1>
-        <Button size="sm" className="h-8 gap-1">
+        <Button size="sm" className="h-8 gap-1" onClick={() => { setEditingPitch(null); setIsDialogOpen(true); }}>
             <PlusCircle className="h-3.5 w-3.5" />
             <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                 Add Pitch
             </span>
         </Button>
       </div>
+      <AddPitchDialog 
+        isOpen={isDialogOpen}
+        setIsOpen={setIsDialogOpen}
+        onAddPitch={handleAddPitch}
+        onEditPitch={handleEditPitch}
+        pitch={editingPitch}
+      />
       <Card>
         <CardHeader>
           <CardTitle>Your Listed Pitches</CardTitle>
@@ -58,7 +122,7 @@ export default function OwnerPitches() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {placeholderPitches.map((pitch) => (
+              {pitches.map((pitch) => (
                 <TableRow key={pitch.id}>
                   <TableCell className="hidden sm:table-cell">
                     <img
@@ -90,11 +154,27 @@ export default function OwnerPitches() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                        <DropdownMenuItem>Manage Availability</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Deactivate
-                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openEditDialog(pitch)}>Edit Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => alert('Manage Availability clicked for ' + pitch.name)}>Manage Availability</DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                              Deactivate
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

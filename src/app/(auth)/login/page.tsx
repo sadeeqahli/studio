@@ -13,12 +13,18 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
+    toast({
+        title: "Login Successful",
+        description: "Welcome back! Redirecting you to your dashboard.",
+    });
     // In a real app, you'd have authentication logic here.
     // We'll simulate a successful login and redirect.
     router.push('/dashboard');
@@ -58,7 +64,7 @@ export default function LoginForm() {
           <Button type="submit" className="w-full">
             Login
           </Button>
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" onClick={(e) => {e.preventDefault(); alert("Login with Google clicked!")}}>
             Login with Google
           </Button>
         </form>
