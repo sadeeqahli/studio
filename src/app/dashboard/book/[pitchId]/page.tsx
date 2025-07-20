@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 export default function BookingPage() {
@@ -23,6 +24,7 @@ export default function BookingPage() {
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
+    const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     
     React.useEffect(() => {
@@ -37,6 +39,14 @@ export default function BookingPage() {
             toast({
                 title: "Selection required",
                 description: "Please select a time slot before confirming.",
+                variant: "destructive",
+            });
+            return;
+        }
+        if (!agreedToTerms) {
+            toast({
+                title: "Agreement required",
+                description: "You must agree to the terms and conditions.",
                 variant: "destructive",
             });
             return;
@@ -149,13 +159,19 @@ export default function BookingPage() {
                                     </TabsContent>
                                 </Tabs>
                             </div>
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="terms" onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
+                                <Label htmlFor="terms" className="text-sm text-muted-foreground">
+                                    I agree to the <Link href="#" className="underline hover:text-primary">terms and conditions</Link>.
+                                </Label>
+                            </div>
                         </CardContent>
                         <CardFooter>
                             <Button 
                                 className="w-full" 
                                 size="lg" 
                                 onClick={handleConfirmBooking} 
-                                disabled={!selectedSlot || isLoading}
+                                disabled={!selectedSlot || isLoading || !agreedToTerms}
                             >
                                 {isLoading ? (
                                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
