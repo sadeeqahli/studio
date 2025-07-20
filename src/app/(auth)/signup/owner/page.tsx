@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link"
@@ -67,7 +68,7 @@ export default function OwnerSignupForm() {
         </form>
         <div className="mt-4 text-center text-sm">
           Already have an account?{" "}
-          <Link href="/login" className="underline">
+          <Link href="/login?type=owner" className="underline">
             Sign in
           </Link>
         </div>

@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from "next/link"
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -17,23 +18,32 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const userType = searchParams.get('type');
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
+    
+    const isOwner = userType === 'owner';
+    const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
+    const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting you to your dashboard." : "Welcome back! Redirecting you to your dashboard.";
+
     toast({
         title: "Login Successful",
-        description: "Welcome back! Redirecting you to your dashboard.",
+        description: welcomeMessage,
     });
     // In a real app, you'd have authentication logic here.
     // We'll simulate a successful login and redirect.
-    router.push('/dashboard');
+    router.push(redirectPath);
   };
+
+  const signupLink = userType === 'owner' ? '/signup/owner' : '/signup/user';
 
   return (
     <Card className="mx-auto max-w-sm w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
+        <CardTitle className="text-2xl">{userType === 'owner' ? 'Owner Login' : 'Player Login'}</CardTitle>
         <CardDescription>
           Enter your email below to login to your account
         </CardDescription>
@@ -70,7 +80,7 @@ export default function LoginForm() {
         </form>
         <div className="mt-4 text-center text-sm">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="underline">
+          <Link href={signupLink} className="underline">
             Sign up
           </Link>
         </div>
