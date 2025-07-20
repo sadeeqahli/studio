@@ -15,14 +15,8 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { ownerBookings } from "@/lib/placeholder-data"
 
-const ownerBookings = [
-    { id: 'BK1', customer: 'Ade Williams', pitch: 'Lekki AstroTurf', date: '2024-07-28', time: '4:00 PM', amount: 25000, status: 'Paid'},
-    { id: 'BK2', customer: 'Chioma Nwosu', pitch: 'Lekki AstroTurf', date: '2024-07-28', time: '5:00 PM', amount: 25000, status: 'Paid'},
-    { id: 'BK3', customer: 'Femi Adebayo', pitch: 'Ikeja 5-a-side', date: '2024-07-29', time: '6:00 PM', amount: 18000, status: 'Pending'},
-    { id: 'BK4', customer: 'Aisha Bello', pitch: 'Asokoro Green', date: '2024-07-30', time: '3:00 PM', amount: 22000, status: 'Paid'},
-    { id: 'BK5', customer: 'Emeka Okafor', pitch: 'Lekki AstroTurf', date: '2024-08-01', time: '7:00 PM', amount: 25000, status: 'Cancelled'},
-]
 
 export default function OwnerBookings() {
   return (

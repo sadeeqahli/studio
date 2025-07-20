@@ -15,6 +15,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ownerBookings } from '@/lib/placeholder-data';
+import { cn } from '@/lib/utils';
 
 function CommissionCalculatorCard() {
     const [bookingAmount, setBookingAmount] = React.useState<number | string>("");
@@ -95,6 +98,51 @@ function CommissionCalculatorCard() {
     )
 }
 
+function RecentBookingsCard() {
+    return (
+        <Card className="xl:col-span-2">
+            <CardHeader>
+                <CardTitle>Recent Bookings</CardTitle>
+                <CardDescription>A quick look at your latest customer bookings.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead className="hidden sm:table-cell">Pitch</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Amount</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {ownerBookings.slice(0, 5).map((booking) => (
+                             <TableRow key={booking.id}>
+                                <TableCell>
+                                    <div className="font-medium">{booking.customer}</div>
+                                </TableCell>
+                                <TableCell className="hidden sm:table-cell">{booking.pitch}</TableCell>
+                                <TableCell>
+                                     <Badge variant={booking.status === 'Paid' ? 'default' : 'secondary'} 
+                                        className={cn(
+                                            'text-xs',
+                                            booking.status === 'Paid' && 'bg-green-100 text-green-800 border-green-200',
+                                            booking.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                            booking.status === 'Cancelled' && 'bg-red-100 text-red-800 border-red-200'
+                                        )}>
+                                        {booking.status}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function OwnerDashboard() {
   const stats = [
@@ -126,14 +174,7 @@ export default function OwnerDashboard() {
             ))}
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-8">
-            <Card className="xl:col-span-2">
-                <CardHeader>
-                    <CardTitle>Recent Bookings</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">Recent bookings list will be displayed here.</p>
-                </CardContent>
-            </Card>
+            <RecentBookingsCard />
             <SubscriptionStatusCard />
             <div className="lg:col-span-2 xl:col-span-3">
                <CommissionCalculatorCard />
