@@ -1,3 +1,7 @@
+
+"use client";
+
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -5,7 +9,91 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, Users, Calendar, BarChart3 } from "lucide-react"
+import { DollarSign, Users, Calendar, BarChart3, Calculator } from "lucide-react"
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+
+function CommissionCalculatorCard() {
+    const [bookingAmount, setBookingAmount] = React.useState<number | string>("");
+    const [plan, setPlan] = React.useState("starter");
+
+    const commissionRates = {
+        starter: 10,
+        plus: 5,
+        pro: 3,
+    };
+
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setBookingAmount(value === '' ? '' : parseFloat(value));
+    };
+
+    const amount = typeof bookingAmount === 'number' ? bookingAmount : 0;
+    const commissionRate = commissionRates[plan as keyof typeof commissionRates];
+    const commissionFee = (amount * commissionRate) / 100;
+    const netPayout = amount - commissionFee;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Commission Calculator
+                </CardTitle>
+                <CardDescription>
+                    Estimate your earnings based on your plan's commission rate.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="booking-amount">Booking Amount (₦)</Label>
+                        <Input 
+                            id="booking-amount" 
+                            type="number" 
+                            placeholder="e.g., 25000"
+                            value={bookingAmount}
+                            onChange={handleAmountChange}
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="plan-select">Your Plan</Label>
+                         <Select value={plan} onValueChange={setPlan}>
+                            <SelectTrigger id="plan-select">
+                                <SelectValue placeholder="Select plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="starter">Starter (10%)</SelectItem>
+                                <SelectItem value="plus">Plus (5%)</SelectItem>
+                                <SelectItem value="pro">Pro (3%)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                {amount > 0 && (
+                    <div className="space-y-3 rounded-lg border p-4">
+                         <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Booking Amount</span>
+                            <span className="font-semibold">₦{amount.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Commission ({commissionRate}%)</span>
+                            <span className="font-semibold text-destructive">- ₦{commissionFee.toLocaleString()}</span>
+                        </div>
+                         <div className="flex justify-between items-center text-lg">
+                            <span className="font-bold">Net Payout</span>
+                            <span className="font-bold text-primary">₦{netPayout.toLocaleString()}</span>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
 
 export default function OwnerDashboard() {
   const stats = [
@@ -53,6 +141,9 @@ export default function OwnerDashboard() {
                     <p className="text-muted-foreground">A chart showing pitch occupancy will be here.</p>
                 </CardContent>
             </Card>
+            <div className="xl:col-span-3">
+               <CommissionCalculatorCard />
+            </div>
         </div>
     </div>
   )

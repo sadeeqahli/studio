@@ -1,9 +1,14 @@
 
+"use client";
+
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/icons";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 const pricingTiers = [
     {
@@ -18,7 +23,8 @@ const pricingTiers = [
         ],
         cta: "Get Started",
         href: "/signup/owner",
-        popular: false
+        popular: false,
+        paid: false,
     },
     {
         name: "Plus",
@@ -34,7 +40,8 @@ const pricingTiers = [
         ],
         cta: "Choose Plus",
         href: "/signup/owner",
-        popular: true
+        popular: true,
+        paid: true,
     },
     {
         name: "Pro",
@@ -51,11 +58,14 @@ const pricingTiers = [
         ],
         cta: "Go Pro",
         href: "/signup/owner",
-        popular: false
+        popular: false,
+        paid: true,
     }
 ];
 
 export default function PricingPage() {
+  const [agreedToTerms, setAgreedToTerms] = React.useState(false);
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background/95 backdrop-blur-sm sticky top-0 z-50">
@@ -88,9 +98,9 @@ export default function PricingPage() {
         
         <section className="w-full py-12 md:py-24 lg:py-32">
             <div className="container px-4 md:px-6">
-                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 md:gap-12">
+                 <div className="mx-auto max-w-5xl grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
                     {pricingTiers.map(tier => (
-                        <Card key={tier.name} className={`flex flex-col ${tier.popular ? 'border-primary shadow-2xl scale-105' : ''}`}>
+                        <Card key={tier.name} className={`flex flex-col ${tier.popular ? 'border-primary shadow-2xl lg:scale-105' : ''}`}>
                             {tier.popular && (
                                 <div className="absolute top-0 -translate-y-1/2 w-full flex justify-center">
                                     <div className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">Most Popular</div>
@@ -104,21 +114,27 @@ export default function PricingPage() {
                             <CardContent className="flex-1">
                                 <ul className="space-y-3">
                                     {tier.features.map(feature => (
-                                        <li key={feature} className="flex items-center">
-                                            <Check className="h-5 w-5 text-primary mr-2" />
+                                        <li key={feature} className="flex items-start">
+                                            <Check className="h-5 w-5 text-primary mr-2 mt-1 flex-shrink-0" />
                                             <span className="text-muted-foreground">{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </CardContent>
                             <CardFooter>
-                                <Button asChild className="w-full" variant={tier.popular ? 'default' : 'outline'}>
+                                <Button asChild className="w-full" variant={tier.popular ? 'default' : 'outline'} disabled={tier.paid && !agreedToTerms}>
                                     <Link href={tier.href}>{tier.cta}</Link>
                                 </Button>
                             </CardFooter>
                         </Card>
                     ))}
                  </div>
+                 <div className="flex items-center justify-center space-x-2 mt-12">
+                    <Checkbox id="terms" onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
+                    <Label htmlFor="terms" className="text-sm text-muted-foreground">
+                        I agree to the <Link href="#" className="underline hover:text-primary">terms of service</Link> and subscription policy.
+                    </Label>
+                </div>
             </div>
         </section>
       </main>
