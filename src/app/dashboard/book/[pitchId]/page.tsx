@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, CreditCard, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, CreditCard, Info, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
 
 export default function BookingPage() {
@@ -30,6 +31,8 @@ export default function BookingPage() {
     const [paymentMethod, setPaymentMethod] = React.useState('card');
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
+    
+    const SERVICE_FEE = 500;
     
     React.useEffect(() => {
         const foundPitch = placeholderPitches.find(p => p.id === params.pitchId);
@@ -62,12 +65,13 @@ export default function BookingPage() {
             setIsLoading(false);
             
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
+            const totalAmount = pitch!.price + SERVICE_FEE;
             const newBooking = {
                 id: newBookingId,
                 pitchName: pitch!.name,
                 date: new Date().toISOString().split('T')[0], // Use today's date for simplicity
                 time: selectedSlot,
-                amount: pitch!.price,
+                amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
                 userName: 'Max Robinson', // Hardcoded for now
@@ -112,6 +116,8 @@ export default function BookingPage() {
             </div>
         );
     }
+
+    const totalPrice = pitch.price + SERVICE_FEE;
     
     return (
         <Dialog>
@@ -138,14 +144,34 @@ export default function BookingPage() {
                                 <CardDescription>{pitch.location}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-2xl font-bold text-primary">₦{pitch.price.toLocaleString()}<span className="text-base font-normal text-muted-foreground">/hr</span></p>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Pitch Price</span>
+                                        <span className="font-semibold">₦{pitch.price.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Service Fee</span>
+                                        <span className="font-semibold">₦{SERVICE_FEE.toLocaleString()}</span>
+                                    </div>
+                                    <Separator />
+                                    <div className="flex justify-between">
+                                        <span className="text-lg font-bold">Total</span>
+                                        <span className="text-lg font-bold text-primary">₦{totalPrice.toLocaleString()}</span>
+                                    </div>
+                                    <Alert className="mt-4">
+                                        <Info className="h-4 w-4" />
+                                        <AlertDescription className="text-xs">
+                                            A service charge is added for any payment made online. These fees cover the technical costs, bank charges, and customer service to provide you with the best possible experience!
+                                        </AlertDescription>
+                                    </Alert>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
                     <div>
                         <Card>
                             <CardHeader>
-                                <CardTitle>Booking Summary</CardTitle>
+                                <CardTitle>Booking Details</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div>
@@ -261,7 +287,7 @@ export default function BookingPage() {
                                     {isLoading ? (
                                         <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
                                     ) : (
-                                        `Confirm & Pay ₦${pitch.price.toLocaleString()}`
+                                        `Confirm & Pay ₦${totalPrice.toLocaleString()}`
                                     )}
                                 </Button>
                             </CardFooter>
@@ -349,3 +375,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    
