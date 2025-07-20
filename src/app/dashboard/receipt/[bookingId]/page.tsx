@@ -6,37 +6,61 @@ import { useParams, useRouter } from 'next/navigation';
 import { Booking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CheckCircle, Download, Loader2, MapPin, Printer, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { placeholderBookings } from '@/lib/placeholder-data';
 
 // Extended Booking type for receipt page
 type ReceiptBooking = Booking & {
     pitchLocation: string;
     userName: string;
-    paymentMethod: string;
+    paymentMethod: 'Card' | 'Bank Transfer';
 };
 
 export default function ReceiptPage() {
     const params = useParams();
-    const router = useRouter();
-    const { toast } = useToast();
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
     React.useEffect(() => {
-        // In a real app, you would fetch this from your database using the bookingId.
-        // For this demo, we retrieve it from localStorage.
+        const bookingId = params.bookingId;
+        if (!bookingId) {
+            setIsLoading(false);
+            return;
+        }
+
+        // In a real app, you'd fetch this from your database.
+        // For this demo, we check localStorage first (for just-completed bookings)
+        // and then the main placeholder data (for history).
         const storedBooking = localStorage.getItem('latestBooking');
+        let foundBooking: ReceiptBooking | null = null;
+
         if (storedBooking) {
             const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
-            if (parsedBooking.id === params.bookingId) {
-                setBooking(parsedBooking);
+            if (parsedBooking.id === bookingId) {
+                foundBooking = parsedBooking;
             }
         }
+        
+        if (!foundBooking) {
+            const historyBooking = placeholderBookings.find(b => b.id === bookingId);
+            if (historyBooking) {
+                // We need to augment the history booking with the extra details for the receipt.
+                // In a real app, this data would already be part of the booking object from the DB.
+                foundBooking = {
+                    ...historyBooking,
+                    pitchLocation: 'Location from DB', // Placeholder
+                    userName: 'Max Robinson', // Placeholder
+                    paymentMethod: 'Card', // Placeholder
+                };
+            }
+        }
+        
+        setBooking(foundBooking);
         setIsLoading(false);
+
     }, [params.bookingId]);
 
     const handlePrint = () => {
@@ -78,8 +102,8 @@ export default function ReceiptPage() {
         <div className="max-w-2xl mx-auto">
             <div className="flex justify-between items-center mb-4 print:hidden">
                 <Button asChild variant="ghost">
-                    <Link href="/dashboard">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+                    <Link href="/dashboard/history">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to History
                     </Link>
                 </Button>
                 <div className="flex gap-2">
@@ -167,5 +191,3 @@ export default function ReceiptPage() {
         </div>
     );
 }
-
-    
