@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 
 function CommissionCalculatorCard() {
     const [bookingAmount, setBookingAmount] = React.useState<number | string>("");
@@ -133,15 +134,8 @@ export default function OwnerDashboard() {
                     <p className="text-muted-foreground">Recent bookings list will be displayed here.</p>
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Pitch Occupancy</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">A chart showing pitch occupancy will be here.</p>
-                </CardContent>
-            </Card>
-            <div className="xl:col-span-3">
+            <SubscriptionStatusCard />
+            <div className="lg:col-span-2 xl:col-span-3">
                <CommissionCalculatorCard />
             </div>
         </div>
