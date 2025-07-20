@@ -4,11 +4,10 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Logo } from "@/components/icons";
-import Link from "next/link";
 import { Check } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 const pricingTiers = [
     {
@@ -25,6 +24,7 @@ const pricingTiers = [
         href: "/signup/owner",
         popular: false,
         paid: false,
+        planId: "starter"
     },
     {
         name: "Plus",
@@ -39,9 +39,10 @@ const pricingTiers = [
             "Basic analytics dashboard",
         ],
         cta: "Choose Plus",
-        href: "/signup/owner",
+        href: "/pricing/subscribe?plan=plus",
         popular: true,
         paid: true,
+        planId: "plus"
     },
     {
         name: "Pro",
@@ -57,9 +58,10 @@ const pricingTiers = [
             "Featured listing placement"
         ],
         cta: "Go Pro",
-        href: "/signup/owner",
+        href: "/pricing/subscribe?plan=pro",
         popular: false,
         paid: true,
+        planId: "pro"
     }
 ];
 
@@ -67,26 +69,7 @@ export default function PricingPage() {
   const [agreedToTerms, setAgreedToTerms] = React.useState(false);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-16 flex items-center bg-background/95 backdrop-blur-sm sticky top-0 z-50">
-        <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
-          <Logo className="h-8 w-8" />
-          <span className="text-xl font-bold text-primary">Naija Pitch Connect</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button asChild variant="ghost">
-            <Link href="/login" prefetch={false}>
-              Login
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup" prefetch={false}>
-              Sign Up
-            </Link>
-          </Button>
-        </nav>
-      </header>
-      <main className="flex-1">
+    <>
         <section className="w-full py-12 md:py-24 lg:py-32 bg-primary/5">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center space-y-4 text-center">
@@ -137,27 +120,6 @@ export default function PricingPage() {
                 </div>
             </div>
         </section>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Naija Pitch Connect. All rights reserved.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="/about" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            About Us
-          </Link>
-          <Link href="/how-it-works" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            How It Works
-          </Link>
-          <Link href="/contact" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Contact
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Terms of Service
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacy
-          </Link>
-        </nav>
-      </footer>
-    </div>
+    </>
   )
 }
