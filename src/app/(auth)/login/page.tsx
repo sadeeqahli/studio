@@ -26,9 +26,10 @@ export default function LoginForm() {
     event.preventDefault();
     
     const isOwner = userType === 'owner';
-    // If owner, redirect to pricing. If player, redirect to dashboard.
-    const redirectPath = isOwner ? '/owner/dashboard/pricing' : '/dashboard';
-    const welcomeMessage = isOwner ? "Welcome back, Owner! Please confirm your subscription to proceed." : "Welcome back! Redirecting you to your dashboard.";
+    // If owner, redirect to dashboard. If player, redirect to dashboard.
+    // New owners are sent to pricing from signup, existing owners go to their dashboard.
+    const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
+    const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting you to your dashboard." : "Welcome back! Redirecting you to your dashboard.";
 
     toast({
         title: "Login Successful",
