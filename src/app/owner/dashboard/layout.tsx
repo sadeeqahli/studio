@@ -46,8 +46,8 @@ export default function OwnerDashboardLayout({
     { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/owner/dashboard/pitches", label: "My Pitches", icon: List },
     { href: "/owner/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
+    { href: "/owner/dashboard/pricing", label: "Pricing", icon: DollarSign },
     { href: "/owner/dashboard/profile", label: "Profile", icon: UserCircle },
-    { href: "/pricing", label: "Pricing", icon: DollarSign },
   ];
 
   return (
