@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Zap } from 'lucide-react';
 import type { Pitch } from '@/lib/types';
 import { Badge } from './ui/badge';
+import Link from 'next/link';
 
 interface PitchCardProps {
   pitch: Pitch;
@@ -39,9 +40,11 @@ export function PitchCard({ pitch }: PitchCardProps) {
           ₦{pitch.price.toLocaleString()}
           <span className="text-sm font-normal text-muted-foreground">/hr</span>
         </div>
-        <Button>
-          <Zap className="w-4 h-4 mr-2" />
-          Book Now
+        <Button asChild>
+          <Link href={`/dashboard/book/${pitch.id}`}>
+            <Zap className="w-4 h-4 mr-2" />
+            Book Now
+          </Link>
         </Button>
       </CardFooter>
     </Card>
