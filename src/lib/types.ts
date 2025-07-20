@@ -17,3 +17,10 @@ export type Booking = {
     amount: number;
     status: 'Paid' | 'Pending' | 'Cancelled';
 };
+
+// Extended type for receipt page
+export type ReceiptBooking = Booking & {
+  pitchLocation: string;
+  userName: string;
+  paymentMethod: string;
+};

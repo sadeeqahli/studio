@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { placeholderPitches } from '@/lib/placeholder-data';
+import { placeholderPitches, placeholderBookings } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,7 @@ export default function BookingPage() {
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
+    const [paymentMethod, setPaymentMethod] = React.useState('card');
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     
@@ -59,11 +60,34 @@ export default function BookingPage() {
         // Simulate payment processing
         setTimeout(() => {
             setIsLoading(false);
+            
+            const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
+            const newBooking = {
+                id: newBookingId,
+                pitchName: pitch!.name,
+                date: new Date().toISOString().split('T')[0], // Use today's date for simplicity
+                time: selectedSlot,
+                amount: pitch!.price,
+                status: 'Paid' as const,
+                paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
+                userName: 'Max Robinson', // Hardcoded for now
+                pitchLocation: pitch!.location,
+            };
+
+            // This is where you would typically save the booking to a database.
+            // For this demo, we'll store it in localStorage to make it accessible on the receipt page.
+            localStorage.setItem('latestBooking', JSON.stringify(newBooking));
+            
+            // For the history page, we can push to the placeholder data array (in a real app, this would be a state update)
+            placeholderBookings.unshift(newBooking as any);
+
+
             toast({
                 title: "Booking Confirmed!",
                 description: `Your booking for ${pitch?.name} at ${selectedSlot} is successful.`,
             });
-            router.push('/dashboard/history');
+
+            router.push(`/dashboard/receipt/${newBookingId}`);
         }, 2000);
     };
 
@@ -150,7 +174,7 @@ export default function BookingPage() {
                                 
                                 <div>
                                     <h3 className="font-semibold mb-2">Payment Method</h3>
-                                    <Tabs defaultValue="card">
+                                    <Tabs defaultValue="card" onValueChange={setPaymentMethod}>
                                         <TabsList className="grid w-full grid-cols-2">
                                             <TabsTrigger value="card"><CreditCard className="mr-2 h-4 w-4" />Card</TabsTrigger>
                                             <TabsTrigger value="transfer"><Banknote className="mr-2 h-4 w-4" />Transfer</TabsTrigger>
@@ -300,8 +324,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-
-
-
-    
