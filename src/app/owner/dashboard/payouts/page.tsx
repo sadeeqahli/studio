@@ -74,18 +74,7 @@ export default function OwnerPayouts() {
             </div>
             
             <div className="grid gap-6">
-                <div className="grid md:grid-cols-3 gap-6">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Total Payouts</CardDescription>
-                            <CardTitle className="text-3xl">₦1,154,500</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-xs text-muted-foreground">
-                                +18.7% from last month
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="grid md:grid-cols-2 gap-6">
                     <Card>
                         <CardHeader className="pb-2">
                             <CardDescription>Pending Payout</CardDescription>
