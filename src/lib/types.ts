@@ -1,3 +1,4 @@
+
 export type Pitch = {
   id: string;
   name: string;
@@ -23,4 +24,15 @@ export type ReceiptBooking = Booking & {
   pitchLocation: string;
   userName: string;
   paymentMethod: string;
+};
+
+export type Payout = {
+    bookingId: string;
+    customerName: string;
+    grossAmount: number;
+    commissionRate: number;
+    commissionFee: number;
+    netPayout: number;
+    date: string;
+    status: 'Paid Out' | 'Pending';
 };
