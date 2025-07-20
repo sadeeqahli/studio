@@ -1,3 +1,7 @@
+
+"use client";
+
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -10,6 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { placeholderBookings } from "@/lib/placeholder-data"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 export default function BookingHistory() {
   return (
@@ -29,6 +35,7 @@ export default function BookingHistory() {
                         <TableHead>Time</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -48,6 +55,15 @@ export default function BookingHistory() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">
+                                    {booking.status === 'Paid' && (
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/dashboard/receipt/${booking.id}`}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Receipt
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
