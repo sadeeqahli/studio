@@ -24,11 +24,11 @@ export default function OwnerSignupForm() {
         event.preventDefault();
         toast({
             title: "Account Created!",
-            description: "Welcome! We're redirecting you to your owner dashboard.",
+            description: "Welcome! Please select a subscription plan to continue.",
         });
         // In a real app, you'd have registration logic here.
-        // We'll simulate a successful signup and redirect.
-        router.push('/owner/dashboard');
+        // Redirect to the pricing page to choose a plan.
+        router.push('/owner/dashboard/pricing');
     };
 
   return (

@@ -42,13 +42,34 @@ export default function OwnerDashboardLayout({
     router.push('/login');
   };
 
+  const isSubscriptionPage = pathname.includes('/pricing') || pathname.includes('/subscribe');
+
   const navItems = [
     { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/owner/dashboard/pitches", label: "My Pitches", icon: List },
     { href: "/owner/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
-    { href: "/owner/dashboard/pricing", label: "Pricing", icon: DollarSign },
+    { href: "/owner/dashboard/pricing", label: "Subscription", icon: DollarSign },
     { href: "/owner/dashboard/profile", label: "Profile", icon: UserCircle },
   ];
+
+  if (isSubscriptionPage) {
+    return (
+        <div className="flex flex-col min-h-screen bg-primary/5">
+             <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between">
+                 <Link href="/" className="flex items-center gap-2 font-semibold">
+                    <Logo className="h-8 w-8" />
+                    <span className="text-lg text-primary">Naija Pitch Connect</span>
+                </Link>
+                <Button variant="ghost" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
+            </header>
+            <main className="flex-1 flex flex-col justify-center items-center p-4 lg:p-6">
+                {children}
+            </main>
+        </div>
+    )
+  }
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">

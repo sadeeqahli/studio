@@ -21,8 +21,8 @@ const pricingTiers = [
             "Standard support",
             "10% booking commission",
         ],
-        cta: "Get Started",
-        href: "/signup/owner",
+        cta: "Continue for Free",
+        href: "/owner/dashboard",
         popular: false,
         paid: false,
         planId: "starter"
@@ -74,17 +74,14 @@ export default function OwnerPricingPage() {
     if (paid && !agreedToTerms) {
         return;
     }
-    // For free plan, it should ideally check if user is already owner.
-    // For now we assume they are on this page because they want to upgrade or start.
-    // The signup link will handle creation if needed.
     router.push(href);
   }
 
   return (
     <>
         <div className="flex flex-col items-center space-y-4 text-center mb-12">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">Subscription Plans</h1>
-            <p className="max-w-[700px] text-muted-foreground md:text-xl">Choose a plan that fits your business. No hidden fees, ever.</p>
+            <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">Choose Your Plan</h1>
+            <p className="max-w-[700px] text-muted-foreground md:text-xl">Select a subscription to unlock your dashboard and start managing your pitches.</p>
         </div>
         
         <div className="mx-auto max-w-5xl grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-3 md:gap-8">
