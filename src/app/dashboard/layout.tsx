@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -55,6 +56,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/dashboard/shop", label: "Shop", icon: ShoppingCart },
     { href: "/dashboard/history", label: "Booking History", icon: History },
     { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ];
@@ -149,7 +151,7 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>Settings</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>Profile & Settings</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
