@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -11,6 +12,7 @@ import {
   Goal,
   CalendarCheck2,
   List,
+  DollarSign,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -45,6 +47,7 @@ export default function OwnerDashboardLayout({
     { href: "/owner/dashboard/pitches", label: "My Pitches", icon: List },
     { href: "/owner/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
     { href: "/owner/dashboard/profile", label: "Profile", icon: UserCircle },
+    { href: "/pricing", label: "Pricing", icon: DollarSign },
   ];
 
   return (
