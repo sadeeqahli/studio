@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
 
 
 export default function BookingPage() {
@@ -154,8 +155,33 @@ export default function BookingPage() {
                                             <TabsTrigger value="card"><CreditCard className="mr-2 h-4 w-4" />Card</TabsTrigger>
                                             <TabsTrigger value="transfer"><Banknote className="mr-2 h-4 w-4" />Transfer</TabsTrigger>
                                         </TabsList>
-                                        <TabsContent value="card" className="mt-4 p-4 border rounded-md">
-                                            <p className="text-sm text-muted-foreground">You will be redirected to a secure payment gateway to complete your transaction with a credit/debit card.</p>
+                                        <TabsContent value="card" className="mt-4">
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle>Credit/Debit Card</CardTitle>
+                                                    <CardDescription>Enter your card details. Payment is secure.</CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="card-number">Card Number</Label>
+                                                        <Input id="card-number" placeholder="0000 0000 0000 0000" />
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-4">
+                                                        <div className="space-y-2 col-span-2">
+                                                            <Label htmlFor="expiry">Expiry Date</Label>
+                                                            <Input id="expiry" placeholder="MM / YY" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="cvc">CVC</Label>
+                                                            <Input id="cvc" placeholder="123" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="name-on-card">Name on Card</Label>
+                                                        <Input id="name-on-card" placeholder="Full Name" />
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
                                         </TabsContent>
                                         <TabsContent value="transfer" className="mt-4 p-4 border rounded-md">
                                             <p className="text-sm text-muted-foreground">Account details for bank transfer will be shown on the next page. Your booking will be confirmed upon receipt of payment.</p>
@@ -276,3 +302,6 @@ const TermsDialogContent = () => (
 );
 
 
+
+
+    
