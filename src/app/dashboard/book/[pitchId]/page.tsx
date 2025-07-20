@@ -261,7 +261,7 @@ const TermsDialogContent = () => (
                 <p>For questions, complaints, or support, contact us at:
                     <ul>
                         <li>Email: support@naijapitchconnect.com</li>
-                        <li>Phone: +234 (0) 801 234 5678</li>
+                        <li>Phone: +234 913 047 4356</li>
                         <li>Website: <a href="https://naijapitchconnect.com" target="_blank" rel="noopener noreferrer">www.naijapitchconnect.com</a></li>
                     </ul>
                 </p>
@@ -274,4 +274,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
 
