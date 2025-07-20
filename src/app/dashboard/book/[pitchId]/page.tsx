@@ -207,8 +207,33 @@ export default function BookingPage() {
                                                 </CardContent>
                                             </Card>
                                         </TabsContent>
-                                        <TabsContent value="transfer" className="mt-4 p-4 border rounded-md">
-                                            <p className="text-sm text-muted-foreground">Account details for bank transfer will be shown on the next page. Your booking will be confirmed upon receipt of payment.</p>
+                                        <TabsContent value="transfer" className="mt-4">
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle>Bank Transfer Details</CardTitle>
+                                                    <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Bank Name:</span>
+                                                        <span className="font-semibold">GTBank</span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Account Name:</span>
+                                                        <span className="font-semibold">Naija Pitch Connect Ltd.</span>
+                                                    </div>
+                                                     <div className="flex justify-between">
+                                                        <span className="text-muted-foreground">Account Number:</span>
+                                                        <span className="font-semibold">0123456789</span>
+                                                    </div>
+                                                    <Alert className="mt-4">
+                                                        <AlertCircle className="h-4 w-4" />
+                                                        <AlertDescription>
+                                                          Please use your Booking ID as the payment reference.
+                                                        </AlertDescription>
+                                                    </Alert>
+                                                </CardContent>
+                                            </Card>
                                         </TabsContent>
                                     </Tabs>
                                 </div>
