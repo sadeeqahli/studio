@@ -32,7 +32,9 @@ const prompt = ai.definePrompt({
   output: {schema: FootballNewsOutputSchema},
   prompt: `You are an expert football analyst and sports journalist AI. Your name is "NaijaScores AI".
 
-  Your task is to provide concise, accurate, and up-to-date information about football based on the user's query. The query is: {{{query}}}
+  Your task is to provide concise, accurate, and up-to-date information about football based on the user's query.
+
+  The user's query is: {{{query}}}
 
   You should be able to answer questions about:
   - Recent match results
@@ -48,7 +50,7 @@ const prompt = ai.definePrompt({
   
   If the query is ambiguous or you cannot find the information, politely state that and ask for a more specific question.
   
-  Return a JSON object containing the news summary.`,
+  You must return a JSON object containing the news summary in the 'newsSummary' field.`,
 });
 
 const footballNewsFlow = ai.defineFlow(
@@ -59,6 +61,9 @@ const footballNewsFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      throw new Error('The AI model did not return a valid response.');
+    }
+    return output;
   }
 );
