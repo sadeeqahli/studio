@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ownerBookings } from '@/lib/placeholder-data';
+import { placeholderBookings } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 
 function CommissionCalculatorCard() {
@@ -116,12 +116,12 @@ function RecentBookingsCard() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {ownerBookings.slice(0, 5).map((booking) => (
+                        {placeholderBookings.slice(0, 5).map((booking) => (
                              <TableRow key={booking.id}>
                                 <TableCell>
-                                    <div className="font-medium">{booking.customer}</div>
+                                    <div className="font-medium">{booking.id}</div>
                                 </TableCell>
-                                <TableCell className="hidden sm:table-cell">{booking.pitch}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
                                 <TableCell>
                                      <Badge variant={booking.status === 'Paid' ? 'default' : 'secondary'} 
                                         className={cn(
