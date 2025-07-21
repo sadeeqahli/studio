@@ -1,6 +1,8 @@
+
 'use server';
 
 import { pitchRecommendation, type PitchRecommendationInput, type PitchRecommendationOutput } from '@/ai/flows/pitch-recommendation';
+import { footballNews, type FootballNewsInput, type FootballNewsOutput } from '@/ai/flows/football-news-flow';
 
 export async function getPitchRecommendation(
   input: PitchRecommendationInput
@@ -16,3 +18,17 @@ export async function getPitchRecommendation(
     return { error: 'Failed to get recommendation. Please try again.' };
   }
 }
+
+
+export async function getFootballNews(
+    query: string
+  ): Promise<{ data?: FootballNewsOutput; error?: string }> {
+    try {
+      const input: FootballNewsInput = { query };
+      const news = await footballNews(input);
+      return { data: news };
+    } catch (error) {
+      console.error('Error getting football news:', error);
+      return { error: 'Failed to get news from the AI assistant. Please try again.' };
+    }
+  }

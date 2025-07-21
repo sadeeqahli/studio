@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import Link from "next/link"
@@ -16,6 +17,7 @@ import {
   UserCircle,
   LayoutDashboard,
   Goal,
+  Sparkles,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -58,6 +60,7 @@ export default function DashboardLayout({
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/shop", label: "Shop", icon: ShoppingCart },
     { href: "/dashboard/history", label: "Booking History", icon: History },
+    { href: "/dashboard/ai-news", label: "AI Assistant", icon: Sparkles },
     { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ];
 
