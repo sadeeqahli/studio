@@ -327,13 +327,12 @@ const TermsDialogContent = () => (
                 <p><strong>2.1 Account Creation:</strong> To book a pitch, you must create an account with accurate information (e.g., name, phone number, email). You are responsible for maintaining the confidentiality of your account credentials and all activities under your account.</p>
                 <p><strong>2.2 Accurate Information:</strong> You agree to provide truthful and complete information when booking a pitch. Misrepresentation may result in booking cancellation or account suspension.</p>
                 <p><strong>2.3 Compliance with Venue Rules:</strong> You must adhere to the rules and regulations of the booked pitch, as set by the pitch owner. Naija Pitch Connect is not responsible for disputes arising from non-compliance with venue policies.</p>
-                <p><strong>2.4 Prohibited Conduct:</strong> You may not use the app to:
-                    <ul>
-                        <li>Engage in illegal activities or violate any laws.</li>
-                        <li>Book pitches for commercial purposes without prior approval from Naija Pitch Connect.</li>
-                        <li>Misuse the platform, including making fraudulent bookings or payments.</li>
-                    </ul>
-                </p>
+                <p><strong>2.4 Prohibited Conduct:</strong> You may not use the app to:</p>
+                <ul>
+                    <li>Engage in illegal activities or violate any laws.</li>
+                    <li>Book pitches for commercial purposes without prior approval from Naija Pitch Connect.</li>
+                    <li>Misuse the platform, including making fraudulent bookings or payments.</li>
+                </ul>
 
                 <h4>3. Booking and Payment</h4>
                 <p><strong>3.1 Booking Process:</strong> Bookings are made through the Naija Pitch Connect app by selecting a pitch, date, time, and duration. Availability is displayed in real-time, subject to confirmation by the pitch owner. You must review booking details (e.g., pitch location, price, duration) before proceeding to payment.</p>
@@ -363,13 +362,12 @@ const TermsDialogContent = () => (
                 <p><strong>9.1 Governing Law:</strong> These Terms are governed by the laws of the Federal Republic of Nigeria. Disputes will be subject to the jurisdiction of courts in Lagos, Nigeria.</p>
 
                 <h4>10. Contact Information</h4>
-                <p>For questions, complaints, or support, contact us at:
+                <p>For questions, complaints, or support, contact us at:</p>
                     <ul>
                         <li>Email: support@naijapitchconnect.com</li>
                         <li>Phone: +234 913 047 4356</li>
                         <li>Website: <a href="https://naijapitchconnect.com" target="_blank" rel="noopener noreferrer">www.naijapitchconnect.com</a></li>
                     </ul>
-                </p>
 
                 <h4>11. Acknowledgment</h4>
                 <p>
@@ -379,5 +377,7 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    
 
     
