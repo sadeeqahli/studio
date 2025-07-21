@@ -57,7 +57,7 @@ const footballNewsFlow = ai.defineFlow(
     inputSchema: FootballNewsInputSchema,
     outputSchema: FootballNewsOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await prompt(input);
     return output!;
   }
