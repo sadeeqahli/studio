@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { ownerBookings } from "@/lib/placeholder-data"
+import { placeholderBookings } from "@/lib/placeholder-data"
 
 
 export default function OwnerBookings() {
@@ -31,7 +31,7 @@ export default function OwnerBookings() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Customer</TableHead>
+                            <TableHead>Booking ID</TableHead>
                             <TableHead className="hidden sm:table-cell">Pitch</TableHead>
                             <TableHead className="hidden sm:table-cell">Date</TableHead>
                             <TableHead className="hidden md:table-cell">Time</TableHead>
@@ -40,12 +40,13 @@ export default function OwnerBookings() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {ownerBookings.map((booking) => (
+                        {placeholderBookings.map((booking) => (
                             <TableRow key={booking.id}>
                                 <TableCell>
-                                    <div className="font-medium">{booking.customer}</div>
+                                    <div className="font-medium">{booking.id}</div>
+                                    <div className="text-xs text-muted-foreground">Sample Customer</div>
                                 </TableCell>
-                                <TableCell className="hidden sm:table-cell">{booking.pitch}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{booking.date}</TableCell>
                                 <TableCell className="hidden md:table-cell">{booking.time}</TableCell>
                                 <TableCell>
