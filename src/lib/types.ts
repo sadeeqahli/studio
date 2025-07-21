@@ -36,3 +36,13 @@ export type Payout = {
     date: string;
     status: 'Paid Out' | 'Pending';
 };
+
+export type OwnerBooking = {
+  id: string;
+  customer: string;
+  pitch: string;
+  date: string;
+  time: string;
+  amount: number;
+  status: 'Paid' | 'Pending' | 'Cancelled';
+}

@@ -80,7 +80,11 @@ export default function BookingPage() {
 
             // This is where you would typically save the booking to a database.
             // For this demo, we'll store it in localStorage to make it accessible on the receipt page.
-            localStorage.setItem('latestBooking', JSON.stringify(newBooking));
+            try {
+                localStorage.setItem('latestBooking', JSON.stringify(newBooking));
+            } catch (error) {
+                console.error("Could not save to localStorage", error);
+            }
             
             // For the history page, we can push to the placeholder data array (in a real app, this would be a state update)
             placeholderBookings.unshift(newBooking as any);
