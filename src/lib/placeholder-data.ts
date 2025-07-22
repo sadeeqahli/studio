@@ -1,5 +1,5 @@
 
-import type { Pitch, Booking, Payout, OwnerBooking } from './types';
+import type { Pitch, Booking, Payout, OwnerBooking, User } from './types';
 
 export const placeholderPitches: Pitch[] = [
   {
@@ -67,3 +67,13 @@ export const ownerBookings: OwnerBooking[] = [
     { id: 'BK4', customer: 'Aisha Bello', pitch: 'Asokoro Green', date: '2024-07-30', time: '3:00 PM', amount: 22000, status: 'Paid'},
     { id: 'BK5', customer: 'Emeka Okafor', pitch: 'Lekki AstroTurf', date: '2024-08-01', time: '7:00 PM', amount: 25000, status: 'Cancelled'},
 ]
+
+export const placeholderUsers: User[] = [
+  { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', role: 'Player', registeredDate: '2024-07-15', status: 'Active' },
+  { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', role: 'Owner', registeredDate: '2024-07-16', status: 'Active' },
+  { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', role: 'Player', registeredDate: '2024-07-18', status: 'Active' },
+  { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', role: 'Player', registeredDate: '2024-07-20', status: 'Active' },
+  { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended' },
+  { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', role: 'Player', registeredDate: '2024-07-22', status: 'Active' },
+  { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', role: 'Player', registeredDate: '2024-07-25', status: 'Active' },
+];

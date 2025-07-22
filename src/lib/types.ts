@@ -46,3 +46,12 @@ export type OwnerBooking = {
   amount: number;
   status: 'Paid' | 'Pending' | 'Cancelled';
 }
+
+export type User = {
+    id: string;
+    name: string;
+    email: string;
+    role: 'Player' | 'Owner' | 'Admin';
+    registeredDate: string;
+    status: 'Active' | 'Suspended';
+}
