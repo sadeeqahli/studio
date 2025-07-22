@@ -125,7 +125,7 @@ export default function SubscribePage() {
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Account Name:</span>
-                                            <span className="font-semibold">Naija Pitch Connect Ltd.</span>
+                                            <span className="font-semibold">9ja Pitch Connect Ltd.</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-muted-foreground">Account Number:</span>

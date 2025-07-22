@@ -64,7 +64,7 @@ export default function WelcomePage() {
              >
                 <Logo className="h-16 w-16" />
                 <h1 className="text-4xl md:text-6xl font-bold tracking-tighter text-primary">
-                    Naija Pitch Connect
+                    9ja Pitch Connect
                 </h1>
             </motion.div>
             
@@ -90,7 +90,7 @@ export default function WelcomePage() {
             </motion.div>
         </main>
          <footer className="absolute bottom-6 text-xs text-muted-foreground z-10">
-            &copy; {new Date().getFullYear()} Naija Pitch Connect. All rights reserved.
+            &copy; {new Date().getFullYear()} 9ja Pitch Connect. All rights reserved.
         </footer>
     </div>
   );

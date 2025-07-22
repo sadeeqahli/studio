@@ -24,7 +24,7 @@ export default function HowItWorksPage() {
        <header className="px-4 lg:px-6 h-16 flex items-center bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <Logo className="h-8 w-8" />
-          <span className="text-xl font-bold text-primary">Naija Pitch Connect</span>
+          <span className="text-xl font-bold text-primary">9ja Pitch Connect</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Button asChild variant="ghost">
@@ -88,7 +88,7 @@ export default function HowItWorksPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Naija Pitch Connect. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/about" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             About Us

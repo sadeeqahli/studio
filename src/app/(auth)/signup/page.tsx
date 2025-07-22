@@ -14,7 +14,7 @@ export default function SignupPage() {
   return (
     <Card className="mx-auto max-w-md w-full">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Join Naija Pitch Connect</CardTitle>
+        <CardTitle className="text-2xl">Join 9ja Pitch Connect</CardTitle>
         <CardDescription>
           Are you here to play or to list a pitch?
         </CardDescription>
