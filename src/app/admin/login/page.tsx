@@ -3,6 +3,7 @@
 
 import Link from "next/link"
 import { useRouter } from 'next/navigation';
+import * as React from 'react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -20,15 +21,27 @@ import { Logo } from "@/components/icons";
 export default function AdminLoginForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
     
-    toast({
-        title: "Admin Login Successful",
-        description: "Welcome back, Admin! Redirecting you to the dashboard.",
-    });
-    router.push('/admin/dashboard');
+    // In a real app, use a proper authentication provider.
+    // For this prototype, we'll use hardcoded credentials.
+    if (email === 'admin@9japitchconnect.com' && password === 'admin123') {
+        toast({
+            title: "Admin Login Successful",
+            description: "Welcome back, Admin! Redirecting you to the dashboard.",
+        });
+        router.push('/admin/dashboard');
+    } else {
+        toast({
+            title: "Login Failed",
+            description: "Invalid credentials. Please try again.",
+            variant: "destructive",
+        });
+    }
   };
 
   return (
@@ -54,13 +67,21 @@ export default function AdminLoginForm() {
                 <Input
                 id="email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="admin@9japitchconnect.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  required 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
             </div>
             <Button type="submit" className="w-full">
                 Login
