@@ -137,6 +137,9 @@ export default function HomePage() {
           <Link href="/contact" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Contact
           </Link>
+          <Link href="/admin/login" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+            Admin
+          </Link>
           <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             Terms of Service
           </Link>
