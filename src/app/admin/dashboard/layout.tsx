@@ -8,9 +8,10 @@ import {
   Goal,
   Users,
   LayoutDashboard,
-  BarChart,
   CalendarCheck,
-  List
+  List,
+  BarChart3,
+  Landmark
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -44,6 +45,8 @@ export default function AdminDashboardLayout({
     { href: "/admin/dashboard/users", label: "Users", icon: Users },
     { href: "/admin/dashboard/pitches", label: "Pitches", icon: List },
     { href: "/admin/dashboard/bookings", label: "Bookings", icon: CalendarCheck },
+    { href: "/admin/dashboard/revenue", label: "Analytics", icon: BarChart3 },
+    { href: "/admin/dashboard/wallet", label: "Wallet", icon: Landmark },
   ];
 
   return (
