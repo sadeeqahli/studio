@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { placeholderPitches, placeholderBookings, placeholderTransactions } from '@/lib/placeholder-data';
+import { placeholderPitches, placeholderBookings, placeholderPayouts } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ export default function BookingPage() {
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     
-    const SERVICE_FEE = 500;
+    const SERVICE_FEE = 50;
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
     React.useEffect(() => {
@@ -94,22 +94,18 @@ export default function BookingPage() {
             // For the history page, we can push to the placeholder data array
             placeholderBookings.unshift(newBooking as any);
 
-            // Simulate wallet transaction for owner
+            // Simulate payout record for owner & platform revenue
             const commissionAmount = pitch!.price * COMMISSION_RATE;
-            placeholderTransactions.unshift({
-                id: `COMM${Math.floor(Math.random() * 90000) + 10000}`,
+            placeholderPayouts.unshift({
+                bookingId: newBookingId,
+                customerName: userName,
+                grossAmount: pitch!.price,
+                commissionRate: COMMISSION_RATE * 100,
+                // The service fee is added to the platform's commission
+                commissionFee: commissionAmount + SERVICE_FEE, 
+                netPayout: pitch!.price - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
-                description: `Commission for booking ${newBookingId}`,
-                amount: -commissionAmount,
-                type: 'Commission',
-            });
-
-             placeholderTransactions.unshift({
-                id: `CRED${Math.floor(Math.random() * 90000) + 10000}`,
-                date: new Date().toISOString().split('T')[0],
-                description: `Booking payment from ${userName}`,
-                amount: pitch!.price,
-                type: 'Credit',
+                status: 'Paid Out',
             });
 
 
@@ -188,7 +184,7 @@ export default function BookingPage() {
                                     <Alert className="mt-4">
                                         <Info className="h-4 w-4" />
                                         <AlertDescription className="text-xs">
-                                            A service charge is added for any payment made online. These fees cover the technical costs, bank charges, and customer service to provide you with the best possible experience!
+                                            A small service fee is added to cover app maintenance and bank charges, ensuring we can provide you with the best experience.
                                         </AlertDescription>
                                     </Alert>
                                 </div>
@@ -404,3 +400,4 @@ const TermsDialogContent = () => (
     
 
     
+
