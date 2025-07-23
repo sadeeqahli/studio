@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderTransactions } from "@/lib/placeholder-data"
+import { placeholderTransactions, placeholderPayouts } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Banknote, Landmark, Loader2, Download, Building, ArrowDown, ArrowUp, Copy } from "lucide-react"
@@ -156,6 +156,18 @@ export default function OwnerWalletPage() {
         });
     }
 
+    const getTransactionDetails = (txId: string) => {
+        const payout = placeholderPayouts.find(p => p.bookingId === txId.replace('Commission for booking ', ''));
+        if (payout) {
+            return `On booking of ₦${payout.grossAmount.toLocaleString()} at ${payout.commissionRate}% rate`;
+        }
+        const creditPayout = placeholderPayouts.find(p => p.bookingId === txId.replace('Booking payment from ', ''));
+         if (creditPayout) {
+            return `From customer: ${creditPayout.customerName}`;
+        }
+        return `To GTBank Account ending in 6789`;
+    };
+
     return (
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -221,6 +233,9 @@ export default function OwnerWalletPage() {
                                     <TableCell className="hidden md:table-cell">{tx.date}</TableCell>
                                     <TableCell>
                                         <div className="font-medium">{tx.description}</div>
+                                        <div className="text-xs text-muted-foreground">
+                                            {getTransactionDetails(tx.description)}
+                                        </div>
                                         <div className="text-xs text-muted-foreground md:hidden">{tx.date}</div>
                                     </TableCell>
                                     <TableCell className="text-right font-mono">
