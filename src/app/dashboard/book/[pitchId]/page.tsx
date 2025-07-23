@@ -32,7 +32,6 @@ export default function BookingPage() {
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     
-    const SERVICE_FEE = 50;
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
     React.useEffect(() => {
@@ -66,7 +65,7 @@ export default function BookingPage() {
             setIsLoading(false);
             
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-            const totalAmount = pitch!.price + SERVICE_FEE;
+            const totalAmount = pitch!.price;
 
             // In a real app, you'd get user details from context/session
             const userName = 'Max Robinson';
@@ -102,7 +101,6 @@ export default function BookingPage() {
                 grossAmount: pitch!.price,
                 commissionRate: COMMISSION_RATE * 100,
                 commissionFee: commissionAmount,
-                serviceFee: SERVICE_FEE,
                 netPayout: pitch!.price - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
                 status: 'Paid Out',
@@ -140,7 +138,7 @@ export default function BookingPage() {
         );
     }
 
-    const totalPrice = pitch.price + SERVICE_FEE;
+    const totalPrice = pitch.price;
     
     return (
         <Dialog>
@@ -172,21 +170,11 @@ export default function BookingPage() {
                                         <span className="text-muted-foreground">Pitch Price</span>
                                         <span className="font-semibold">₦{pitch.price.toLocaleString()}</span>
                                     </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Service Fee</span>
-                                        <span className="font-semibold">₦{SERVICE_FEE.toLocaleString()}</span>
-                                    </div>
                                     <Separator />
                                     <div className="flex justify-between">
                                         <span className="text-lg font-bold">Total</span>
                                         <span className="text-lg font-bold text-primary">₦{totalPrice.toLocaleString()}</span>
                                     </div>
-                                    <Alert className="mt-4">
-                                        <Info className="h-4 w-4" />
-                                        <AlertDescription className="text-xs">
-                                            A small service fee is added to cover app maintenance and bank charges, ensuring we can provide you with the best experience.
-                                        </AlertDescription>
-                                    </Alert>
                                 </div>
                             </CardContent>
                         </Card>
@@ -402,3 +390,6 @@ const TermsDialogContent = () => (
     
 
 
+
+
+    

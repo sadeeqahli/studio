@@ -171,16 +171,10 @@ export default function ReceiptPage() {
                     
                     <Separator className="my-6" />
 
-                    <div className="flex justify-between items-center bg-muted/50 p-4 rounded-lg">
-                        <div>
-                            <p className="text-sm text-muted-foreground">Pitch Price</p>
-                            <p className="text-sm text-muted-foreground">Service Fee</p>
-                            <p className="text-lg font-semibold mt-2">Total Paid</p>
-                        </div>
+                    <div className="flex justify-end items-center bg-muted/50 p-4 rounded-lg">
                          <div className="text-right">
-                            <p className="text-sm font-mono">₦{(booking.amount - 500).toLocaleString()}</p>
-                            <p className="text-sm font-mono">₦500</p>
-                            <p className="text-2xl font-bold text-primary mt-2">₦{booking.amount.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Total Paid</p>
+                            <p className="text-2xl font-bold text-primary mt-1">₦{booking.amount.toLocaleString()}</p>
                         </div>
                     </div>
                 </CardContent>
@@ -191,3 +185,5 @@ export default function ReceiptPage() {
         </div>
     );
 }
+
+    

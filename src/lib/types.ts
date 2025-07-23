@@ -32,7 +32,6 @@ export type Payout = {
     grossAmount: number;
     commissionRate: number;
     commissionFee: number;
-    serviceFee?: number;
     netPayout: number;
     date: string;
     status: 'Paid Out' | 'Pending';
@@ -66,3 +65,5 @@ export type Transaction = {
   amount: number; // Positive for credit, negative for debit
   type: 'Credit' | 'Commission' | 'Withdrawal' | 'Deposit';
 }
+
+    

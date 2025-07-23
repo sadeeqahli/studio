@@ -105,7 +105,7 @@ function WithdrawDialog() {
 export default function AdminWalletPage() {
     const totalBalance = placeholderPayouts.reduce((acc, payout) => {
         if (payout.status === 'Paid Out') {
-            return acc + payout.commissionFee + (payout.serviceFee || 0);
+            return acc + payout.commissionFee;
         }
         return acc;
     }, 0);
@@ -126,7 +126,7 @@ export default function AdminWalletPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            Total commission & service fees received.
+                            Total commission fees received.
                         </p>
                     </CardContent>
                 </Card>
@@ -146,9 +146,9 @@ export default function AdminWalletPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Revenue History</CardTitle>
+                    <CardTitle>Commission History</CardTitle>
                     <CardDescription>
-                        A record of all commissions and fees earned by the platform.
+                        A record of all commissions earned by the platform.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -170,12 +170,10 @@ export default function AdminWalletPage() {
                                         <div className="text-xs text-muted-foreground">From {payout.customerName}</div>
                                     </TableCell>
                                     <TableCell className="hidden sm:table-cell">
-                                        <p>Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()}</p>
-                                        {payout.serviceFee && <p className="text-xs text-muted-foreground">Service Fee</p>}
+                                        Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()} booking
                                     </TableCell>
                                     <TableCell className="font-mono font-semibold text-primary">
-                                       <p>+ ₦{payout.commissionFee.toLocaleString()}</p>
-                                       {payout.serviceFee && <p className="text-xs">+ ₦{payout.serviceFee.toLocaleString()}</p>}
+                                       + ₦{payout.commissionFee.toLocaleString()}
                                     </TableCell>
                                     <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
                                     <TableCell className="text-right">
@@ -197,3 +195,5 @@ export default function AdminWalletPage() {
         </div>
     )
 }
+
+    

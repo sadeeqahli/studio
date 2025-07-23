@@ -26,7 +26,7 @@ import { DollarSign } from "lucide-react"
 // Aggregate data for the chart
 const chartData = placeholderPayouts.reduce((acc, payout) => {
     const date = new Date(payout.date).toLocaleDateString('en-CA'); // Format to YYYY-MM-DD for grouping
-    const dailyRevenue = payout.commissionFee + (payout.serviceFee || 0);
+    const dailyRevenue = payout.commissionFee;
     const existing = acc.find(item => item.date === date);
     if (existing) {
         existing.revenue += dailyRevenue;
@@ -38,8 +38,8 @@ const chartData = placeholderPayouts.reduce((acc, payout) => {
 
 
 export default function AdminRevenuePage() {
-  const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee + (payout.serviceFee || 0), 0);
-  const pendingCommission = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee + (p.serviceFee || 0), 0);
+  const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
+  const pendingCommission = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee, 0);
 
   return (
     <div className="grid gap-6">
@@ -56,7 +56,7 @@ export default function AdminRevenuePage() {
                 <CardContent>
                     <div className="text-2xl font-bold">₦{totalRevenue.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
-                        All-time commission & service fees earned.
+                        All-time commission fees earned.
                     </p>
                 </CardContent>
             </Card>
@@ -77,7 +77,7 @@ export default function AdminRevenuePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Revenue Over Time</CardTitle>
-                <CardDescription>Commission and service fee revenue earned per day.</CardDescription>
+                <CardDescription>Commission revenue earned per day.</CardDescription>
             </CardHeader>
             <CardContent className="h-[350px]">
                  <ResponsiveContainer width="100%" height="100%">
@@ -103,9 +103,9 @@ export default function AdminRevenuePage() {
 
         <Card>
             <CardHeader>
-            <CardTitle>Revenue History</CardTitle>
+            <CardTitle>Commission History</CardTitle>
             <CardDescription>
-                A detailed record of all commissions and service fees from owner bookings.
+                A detailed record of all commissions from owner bookings.
             </CardDescription>
             </CardHeader>
             <CardContent>
@@ -114,7 +114,7 @@ export default function AdminRevenuePage() {
                 <TableRow>
                     <TableHead>Booking ID</TableHead>
                     <TableHead className="hidden sm:table-cell">Gross Booking</TableHead>
-                    <TableHead className="hidden sm:table-cell">Revenue Earned</TableHead>
+                    <TableHead className="hidden sm:table-cell">Commission Earned</TableHead>
                     <TableHead className="hidden md:table-cell">Owner</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Status</TableHead>
@@ -128,8 +128,7 @@ export default function AdminRevenuePage() {
                             ₦{payout.grossAmount.toLocaleString()}
                         </TableCell>
                          <TableCell className="hidden sm:table-cell font-mono text-primary font-semibold">
-                            <p>+ ₦{payout.commissionFee.toLocaleString()} (Commission)</p>
-                            {payout.serviceFee && <p className="text-xs font-normal text-muted-foreground">+ ₦{payout.serviceFee.toLocaleString()} (Service Fee)</p>}
+                            + ₦{payout.commissionFee.toLocaleString()} (Commission)
                         </TableCell>
                         <TableCell className="hidden md:table-cell">{payout.customerName}</TableCell>
                         <TableCell>{payout.date}</TableCell>
@@ -152,3 +151,5 @@ export default function AdminRevenuePage() {
     </div>
   )
 }
+
+    
