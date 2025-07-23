@@ -26,28 +26,24 @@ export default function LoginForm() {
     event.preventDefault();
     
     const isOwner = userType === 'owner';
-    // If owner, redirect to dashboard. If player, redirect to dashboard.
-    // New owners are sent to pricing from signup, existing owners go to their dashboard.
     const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
-    const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting you to your dashboard." : "Welcome back! Redirecting you to your dashboard.";
+    const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
 
     toast({
         title: "Login Successful",
         description: welcomeMessage,
     });
-    // In a real app, you'd have authentication logic here.
-    // We'll simulate a successful login and redirect.
     router.push(redirectPath);
   };
 
-  const signupLink = userType === 'owner' ? '/signup/owner' : '/signup/user';
+  const isOwnerLogin = userType === 'owner';
 
   return (
     <Card className="mx-auto max-w-sm w-full">
       <CardHeader>
-        <CardTitle className="text-2xl">{userType === 'owner' ? 'Owner Login' : 'Player Login'}</CardTitle>
+        <CardTitle className="text-2xl">{isOwnerLogin ? 'Owner Login' : 'Player Login'}</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account
+          Enter your email below to login to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -76,15 +72,34 @@ export default function LoginForm() {
           <Button type="submit" className="w-full">
             Login
           </Button>
-          <Button variant="outline" className="w-full" onClick={(e) => {e.preventDefault(); alert("Login with Google clicked!")}}>
-            Login with Google
-          </Button>
         </form>
         <div className="mt-4 text-center text-sm">
-          Don&apos;t have an account?{" "}
-          <Link href={signupLink} className="underline">
-            Sign up
-          </Link>
+          {isOwnerLogin ? (
+            <>
+              Don't have an owner account?{" "}
+              <Link href="/signup/owner" className="underline">
+                Sign up
+              </Link>
+            </>
+          ) : (
+            <>
+              Don't have an account?{" "}
+              <Link href="/signup" className="underline">
+                Sign up
+              </Link>
+            </>
+          )}
+        </div>
+         <div className="mt-2 text-center text-sm">
+            {isOwnerLogin ? (
+                 <Link href="/login" className="text-muted-foreground hover:underline">
+                    Are you a player? Login here.
+                </Link>
+            ) : (
+                 <Link href="/login?type=owner" className="text-muted-foreground hover:underline">
+                    Are you a pitch owner? Login here.
+                </Link>
+            )}
         </div>
       </CardContent>
     </Card>
