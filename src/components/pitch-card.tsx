@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Zap } from 'lucide-react';
+import { MapPin, Zap, ExternalLink } from 'lucide-react';
 import type { Pitch } from '@/lib/types';
 import { Badge } from './ui/badge';
 import Link from 'next/link';
@@ -11,8 +11,10 @@ interface PitchCardProps {
 }
 
 export function PitchCard({ pitch }: PitchCardProps) {
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pitch.location)}`;
+
   return (
-    <Card className="w-full overflow-hidden transition-transform duration-300 ease-in-out hover:scale-105 hover:shadow-xl">
+    <Card className="w-full overflow-hidden flex flex-col">
       <CardHeader className="p-0">
         <Image
           src={pitch.imageUrl}
@@ -23,11 +25,14 @@ export function PitchCard({ pitch }: PitchCardProps) {
           className="object-cover w-full aspect-video"
         />
       </CardHeader>
-      <CardContent className="p-4 space-y-2">
+      <CardContent className="p-4 space-y-2 flex-grow">
         <CardTitle className="text-lg font-semibold">{pitch.name}</CardTitle>
         <div className="flex items-center text-sm text-muted-foreground">
-          <MapPin className="w-4 h-4 mr-1.5" />
+          <MapPin className="w-4 h-4 mr-1.5 flex-shrink-0" />
           <span>{pitch.location}</span>
+           <a href={googleMapsUrl} target="_blank" rel="noopener noreferrer" className="ml-2 text-xs text-primary hover:underline flex items-center">
+              (Directions <ExternalLink className="h-3 w-3 ml-1" />)
+            </a>
         </div>
         <div className="flex flex-wrap gap-2 pt-2">
             {pitch.amenities.map(amenity => (
@@ -35,7 +40,7 @@ export function PitchCard({ pitch }: PitchCardProps) {
             ))}
         </div>
       </CardContent>
-      <CardFooter className="p-4 flex justify-between items-center bg-secondary/30">
+      <CardFooter className="p-4 flex justify-between items-center bg-secondary/30 mt-auto">
         <div className="text-lg font-bold text-primary">
           ₦{pitch.price.toLocaleString()}
           <span className="text-sm font-normal text-muted-foreground">/hr</span>
