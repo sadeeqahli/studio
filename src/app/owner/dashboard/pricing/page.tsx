@@ -5,8 +5,6 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -24,8 +22,7 @@ const pricingTiers = [
         cta: "Continue for Free",
         href: "/owner/dashboard",
         popular: false,
-        paid: false,
-        planId: "starter"
+        isAvailable: true,
     },
     {
         name: "Plus",
@@ -39,11 +36,10 @@ const pricingTiers = [
             "5% booking commission",
             "Basic analytics dashboard",
         ],
-        cta: "Choose Plus",
-        href: "/owner/dashboard/subscribe?plan=plus",
+        cta: "Coming Soon",
+        href: "#",
         popular: true,
-        paid: true,
-        planId: "plus"
+        isAvailable: false,
     },
     {
         name: "Pro",
@@ -58,24 +54,15 @@ const pricingTiers = [
             "Advanced analytics & reporting",
             "Featured listing placement"
         ],
-        cta: "Go Pro",
-        href: "/owner/dashboard/subscribe?plan=pro",
+        cta: "Coming Soon",
+        href: "#",
         popular: false,
-        paid: true,
-        planId: "pro"
+        isAvailable: false,
     }
 ];
 
 export default function OwnerPricingPage() {
-  const [agreedToTerms, setAgreedToTerms] = React.useState(false);
   const router = useRouter();
-
-  const handleChoosePlan = (href: string, paid: boolean) => {
-    if (paid && !agreedToTerms) {
-        return;
-    }
-    router.push(href);
-  }
 
   return (
     <>
@@ -109,22 +96,19 @@ export default function OwnerPricingPage() {
                     </CardContent>
                     <CardFooter>
                         <Button 
-                            onClick={() => handleChoosePlan(tier.href, tier.paid)}
+                            onClick={() => tier.isAvailable && router.push(tier.href)}
                             className="w-full" 
-                            variant={tier.popular ? 'default' : 'outline'} 
-                            disabled={tier.paid && !agreedToTerms}
+                            variant={tier.popular && tier.isAvailable ? 'default' : 'outline'} 
+                            disabled={!tier.isAvailable}
                         >
                            {tier.cta}
                         </Button>
                     </CardFooter>
                 </Card>
             ))}
-            </div>
-            <div className="flex items-center justify-center space-x-2 mt-12">
-            <Checkbox id="terms" onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
-            <Label htmlFor="terms" className="text-sm text-muted-foreground">
-                I agree to the <Link href="#" className="underline hover:text-primary">terms of service</Link> and subscription policy.
-            </Label>
+        </div>
+        <div className="text-center mt-8">
+            <p className="text-sm text-muted-foreground">By continuing, you agree to our <Link href="#" className="underline">Terms of Service</Link>.</p>
         </div>
     </>
   )
