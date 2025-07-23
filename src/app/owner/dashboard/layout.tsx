@@ -14,6 +14,7 @@ import {
   List,
   DollarSign,
   BarChartHorizontalBig,
+  Wallet,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -49,6 +50,7 @@ export default function OwnerDashboardLayout({
     { href: "/owner/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/owner/dashboard/pitches", label: "My Pitches", icon: List },
     { href: "/owner/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
+    { href: "/owner/dashboard/wallet", label: "Wallet", icon: Wallet },
     { href: "/owner/dashboard/payouts", label: "Payouts", icon: BarChartHorizontalBig },
     { href: "/owner/dashboard/pricing", label: "Subscription", icon: DollarSign },
     { href: "/owner/dashboard/profile", label: "Profile", icon: UserCircle },

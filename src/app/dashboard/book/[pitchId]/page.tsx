@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { placeholderPitches, placeholderBookings } from '@/lib/placeholder-data';
+import { placeholderPitches, placeholderBookings, placeholderTransactions } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ export default function BookingPage() {
     const [isLoading, setIsLoading] = React.useState(false);
     
     const SERVICE_FEE = 500;
+    const COMMISSION_RATE = 0.05; // 5% commission for this example
     
     React.useEffect(() => {
         const foundPitch = placeholderPitches.find(p => p.id === params.pitchId);
@@ -66,6 +67,10 @@ export default function BookingPage() {
             
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
             const totalAmount = pitch!.price + SERVICE_FEE;
+
+            // In a real app, you'd get user details from context/session
+            const userName = 'Max Robinson';
+
             const newBooking = {
                 id: newBookingId,
                 pitchName: pitch!.name,
@@ -74,7 +79,7 @@ export default function BookingPage() {
                 amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
-                userName: 'Max Robinson', // Hardcoded for now
+                userName: userName,
                 pitchLocation: pitch!.location,
             };
 
@@ -86,8 +91,26 @@ export default function BookingPage() {
                 console.error("Could not save to localStorage", error);
             }
             
-            // For the history page, we can push to the placeholder data array (in a real app, this would be a state update)
+            // For the history page, we can push to the placeholder data array
             placeholderBookings.unshift(newBooking as any);
+
+            // Simulate wallet transaction for owner
+            const commissionAmount = pitch!.price * COMMISSION_RATE;
+            placeholderTransactions.unshift({
+                id: `COMM${Math.floor(Math.random() * 90000) + 10000}`,
+                date: new Date().toISOString().split('T')[0],
+                description: `Commission for booking ${newBookingId}`,
+                amount: -commissionAmount,
+                type: 'Commission',
+            });
+
+             placeholderTransactions.unshift({
+                id: `CRED${Math.floor(Math.random() * 90000) + 10000}`,
+                date: new Date().toISOString().split('T')[0],
+                description: `Booking payment from ${userName}`,
+                amount: pitch!.price,
+                type: 'Credit',
+            });
 
 
             toast({
@@ -240,26 +263,26 @@ export default function BookingPage() {
                                         <TabsContent value="transfer" className="mt-4">
                                             <Card>
                                                 <CardHeader>
-                                                    <CardTitle>Bank Transfer Details</CardTitle>
+                                                    <CardTitle>Owner's Virtual Account</CardTitle>
                                                     <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
                                                 </CardHeader>
                                                 <CardContent className="space-y-3 text-sm">
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Bank Name:</span>
-                                                        <span className="font-semibold">GTBank</span>
+                                                        <span className="font-semibold">Providus Bank (Virtual)</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Account Name:</span>
-                                                        <span className="font-semibold">9ja Pitch Connect Ltd.</span>
+                                                        <span className="font-semibold">9ja Pitch Connect - Tunde Ojo</span>
                                                     </div>
                                                      <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Account Number:</span>
-                                                        <span className="font-semibold">0123456789</span>
+                                                        <span className="font-semibold font-mono">9988776655</span>
                                                     </div>
                                                     <Alert className="mt-4">
                                                         <AlertCircle className="h-4 w-4" />
                                                         <AlertDescription>
-                                                          Please use your Booking ID as the payment reference.
+                                                          Use your Booking ID as the payment reference to confirm your booking instantly.
                                                         </AlertDescription>
                                                     </Alert>
                                                 </CardContent>

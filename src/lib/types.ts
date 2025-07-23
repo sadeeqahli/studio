@@ -55,3 +55,11 @@ export type User = {
     registeredDate: string;
     status: 'Active' | 'Suspended';
 }
+
+export type Transaction = {
+  id: string;
+  date: string;
+  description: string;
+  amount: number; // Positive for credit, negative for debit
+  type: 'Credit' | 'Commission' | 'Withdrawal' | 'Deposit';
+}

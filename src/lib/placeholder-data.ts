@@ -1,5 +1,5 @@
 
-import type { Pitch, Booking, Payout, OwnerBooking, User } from './types';
+import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction } from './types';
 
 export const placeholderPitches: Pitch[] = [
   {
@@ -76,4 +76,14 @@ export const placeholderUsers: User[] = [
   { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended' },
   { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', role: 'Player', registeredDate: '2024-07-22', status: 'Active' },
   { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', role: 'Player', registeredDate: '2024-07-25', status: 'Active' },
+];
+
+
+export const placeholderTransactions: Transaction[] = [
+    { id: 'TRN001', date: '2024-07-28', description: 'Weekly Payout', amount: -85000, type: 'Withdrawal' },
+    { id: 'TRN002', date: '2024-07-28', description: 'Commission for booking BK1', amount: -1250, type: 'Commission' },
+    { id: 'TRN003', date: '2024-07-28', description: 'Booking payment from Ade Williams', amount: 25000, type: 'Credit' },
+    { id: 'TRN004', date: '2024-07-27', description: 'Commission for booking BK2', amount: -1250, type: 'Commission' },
+    { id: 'TRN005', date: '2024-07-27', description: 'Booking payment from Chioma Nwosu', amount: 25000, type: 'Credit' },
+    { id: 'TRN006', date: '2024-07-26', description: 'Wallet Deposit', amount: 50000, type: 'Deposit' },
 ];
