@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { Button } from '@/components/ui/button';
@@ -49,8 +48,8 @@ export default function WelcomePage() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
-                    <Link href="/signup" prefetch={false}>
-                      Find a Pitch
+                    <Link href="/home" prefetch={false}>
+                      Get Started
                     </Link>
                   </Button>
                   <Button asChild variant="secondary" size="lg">
