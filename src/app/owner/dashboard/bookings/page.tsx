@@ -16,6 +16,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { placeholderBookings } from "@/lib/placeholder-data"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { Eye } from "lucide-react"
 
 
 export default function OwnerBookings() {
@@ -34,9 +37,9 @@ export default function OwnerBookings() {
                             <TableHead>Booking ID</TableHead>
                             <TableHead className="hidden sm:table-cell">Pitch</TableHead>
                             <TableHead className="hidden sm:table-cell">Date</TableHead>
-                            <TableHead className="hidden md:table-cell">Time</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -47,8 +50,7 @@ export default function OwnerBookings() {
                                     <div className="text-xs text-muted-foreground">Sample Customer</div>
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
-                                <TableCell className="hidden sm:table-cell">{booking.date}</TableCell>
-                                <TableCell className="hidden md:table-cell">{booking.time}</TableCell>
+                                <TableCell className="hidden sm:table-cell">{booking.date} at {booking.time}</TableCell>
                                 <TableCell>
                                      <Badge variant={booking.status === 'Paid' ? 'default' : 'secondary'} 
                                         className={cn(
@@ -61,6 +63,15 @@ export default function OwnerBookings() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">
+                                    {booking.status === 'Paid' && (
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/dashboard/receipt/${booking.id}`}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Receipt
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
