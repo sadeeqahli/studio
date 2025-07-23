@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderTransactions } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building, ArrowDown, ArrowUp } from "lucide-react"
+import { Banknote, Landmark, Loader2, Download, Building, ArrowDown, ArrowUp, Copy } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -145,6 +145,16 @@ function DepositDialog() {
 
 export default function OwnerWalletPage() {
     const totalBalance = placeholderTransactions.reduce((acc, transaction) => acc + transaction.amount, 0);
+    const { toast } = useToast();
+    const VIRTUAL_ACCOUNT_NUMBER = "9988776655";
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(VIRTUAL_ACCOUNT_NUMBER);
+        toast({
+            title: "Copied!",
+            description: "Account number copied to clipboard."
+        });
+    }
 
     return (
         <div className="grid gap-6">
@@ -175,7 +185,13 @@ export default function OwnerWalletPage() {
                         <Building className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-xl font-semibold font-mono">9988776655</div>
+                        <div className="flex items-center justify-between">
+                            <div className="text-xl font-semibold font-mono">{VIRTUAL_ACCOUNT_NUMBER}</div>
+                            <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8">
+                                <span className="sr-only">Copy</span>
+                                <Copy className="h-4 w-4" />
+                            </Button>
+                        </div>
                         <p className="text-xs text-muted-foreground">
                             Providus Bank - For receiving booking payments.
                         </p>
