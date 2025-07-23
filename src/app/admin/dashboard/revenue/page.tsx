@@ -26,19 +26,20 @@ import { DollarSign } from "lucide-react"
 // Aggregate data for the chart
 const chartData = placeholderPayouts.reduce((acc, payout) => {
     const date = new Date(payout.date).toLocaleDateString('en-CA'); // Format to YYYY-MM-DD for grouping
+    const dailyRevenue = payout.commissionFee + (payout.serviceFee || 0);
     const existing = acc.find(item => item.date === date);
     if (existing) {
-        existing.revenue += payout.commissionFee;
+        existing.revenue += dailyRevenue;
     } else {
-        acc.push({ date, revenue: payout.commissionFee });
+        acc.push({ date, revenue: dailyRevenue });
     }
     return acc;
 }, [] as {date: string, revenue: number}[]).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
 
 export default function AdminRevenuePage() {
-  const totalCommissionRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
-  const pendingCommission = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee, 0);
+  const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee + (payout.serviceFee || 0), 0);
+  const pendingCommission = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee + (p.serviceFee || 0), 0);
 
   return (
     <div className="grid gap-6">
@@ -49,19 +50,19 @@ export default function AdminRevenuePage() {
          <div className="grid gap-4 md:grid-cols-2">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Commission Revenue</CardTitle>
+                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">₦{totalCommissionRevenue.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">₦{totalRevenue.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
-                        All-time commission earned from bookings.
+                        All-time commission & service fees earned.
                     </p>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Pending Commission</CardTitle>
+                    <CardTitle className="text-sm font-medium">Pending Revenue</CardTitle>
                      <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -76,7 +77,7 @@ export default function AdminRevenuePage() {
         <Card>
             <CardHeader>
                 <CardTitle>Revenue Over Time</CardTitle>
-                <CardDescription>Commission revenue earned per day.</CardDescription>
+                <CardDescription>Commission and service fee revenue earned per day.</CardDescription>
             </CardHeader>
             <CardContent className="h-[350px]">
                  <ResponsiveContainer width="100%" height="100%">
@@ -102,9 +103,9 @@ export default function AdminRevenuePage() {
 
         <Card>
             <CardHeader>
-            <CardTitle>Commission History</CardTitle>
+            <CardTitle>Revenue History</CardTitle>
             <CardDescription>
-                A detailed record of all commissions deducted from owner bookings.
+                A detailed record of all commissions and service fees from owner bookings.
             </CardDescription>
             </CardHeader>
             <CardContent>
@@ -113,7 +114,7 @@ export default function AdminRevenuePage() {
                 <TableRow>
                     <TableHead>Booking ID</TableHead>
                     <TableHead className="hidden sm:table-cell">Gross Booking</TableHead>
-                    <TableHead className="hidden sm:table-cell">Commission Earned</TableHead>
+                    <TableHead className="hidden sm:table-cell">Revenue Earned</TableHead>
                     <TableHead className="hidden md:table-cell">Owner</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Status</TableHead>
@@ -127,7 +128,8 @@ export default function AdminRevenuePage() {
                             ₦{payout.grossAmount.toLocaleString()}
                         </TableCell>
                          <TableCell className="hidden sm:table-cell font-mono text-primary font-semibold">
-                            + ₦{payout.commissionFee.toLocaleString()} ({payout.commissionRate}%)
+                            <p>+ ₦{payout.commissionFee.toLocaleString()} (Commission)</p>
+                            {payout.serviceFee && <p className="text-xs font-normal text-muted-foreground">+ ₦{payout.serviceFee.toLocaleString()} (Service Fee)</p>}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">{payout.customerName}</TableCell>
                         <TableCell>{payout.date}</TableCell>
