@@ -101,8 +101,8 @@ export default function BookingPage() {
                 customerName: userName,
                 grossAmount: pitch!.price,
                 commissionRate: COMMISSION_RATE * 100,
-                // The service fee is added to the platform's commission
-                commissionFee: commissionAmount + SERVICE_FEE, 
+                commissionFee: commissionAmount,
+                serviceFee: SERVICE_FEE,
                 netPayout: pitch!.price - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
                 status: 'Paid Out',
@@ -400,4 +400,5 @@ const TermsDialogContent = () => (
     
 
     
+
 

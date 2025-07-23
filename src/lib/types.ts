@@ -32,6 +32,7 @@ export type Payout = {
     grossAmount: number;
     commissionRate: number;
     commissionFee: number;
+    serviceFee?: number;
     netPayout: number;
     date: string;
     status: 'Paid Out' | 'Pending';
