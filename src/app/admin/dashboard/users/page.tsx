@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,13 +29,23 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderUsers } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
+import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
+import type { User } from "@/lib/types"
 
 export default function AdminUsersPage() {
     const [searchTerm, setSearchTerm] = React.useState("");
+    const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+
     const filteredUsers = placeholderUsers.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleViewDetails = (user: User) => {
+        setSelectedUser(user);
+        setIsDetailsOpen(true);
+    };
 
   return (
     <div>
@@ -95,7 +105,7 @@ export default function AdminUsersPage() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleViewDetails(user)}>View Details</DropdownMenuItem>
                                         <DropdownMenuItem>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
                                     </DropdownMenuContent>
                                     </DropdownMenu>
@@ -106,6 +116,13 @@ export default function AdminUsersPage() {
                 </Table>
             </CardContent>
         </Card>
+        {selectedUser && (
+            <UserDetailsDialog
+                user={selectedUser}
+                isOpen={isDetailsOpen}
+                setIsOpen={setIsDetailsOpen}
+            />
+        )}
     </div>
   )
 }

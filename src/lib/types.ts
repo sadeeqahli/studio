@@ -54,6 +54,8 @@ export type User = {
     role: 'Player' | 'Owner' | 'Admin';
     registeredDate: string;
     status: 'Active' | 'Suspended';
+    totalBookings?: number;
+    pitchesListed?: number;
 }
 
 export type Transaction = {

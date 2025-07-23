@@ -69,13 +69,13 @@ export const ownerBookings: OwnerBooking[] = [
 ]
 
 export const placeholderUsers: User[] = [
-  { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', role: 'Player', registeredDate: '2024-07-15', status: 'Active' },
-  { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', role: 'Owner', registeredDate: '2024-07-16', status: 'Active' },
-  { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', role: 'Player', registeredDate: '2024-07-18', status: 'Active' },
-  { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', role: 'Player', registeredDate: '2024-07-20', status: 'Active' },
-  { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended' },
-  { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', role: 'Player', registeredDate: '2024-07-22', status: 'Active' },
-  { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', role: 'Player', registeredDate: '2024-07-25', status: 'Active' },
+  { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
+  { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2 },
+  { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 1 },
+  { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', role: 'Player', registeredDate: '2024-07-20', status: 'Active', totalBookings: 1 },
+  { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended', pitchesListed: 1 },
+  { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', role: 'Player', registeredDate: '2024-07-22', status: 'Active', totalBookings: 1 },
+  { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', role: 'Player', registeredDate: '2024-07-25', status: 'Active', totalBookings: 1 },
 ];
 
 

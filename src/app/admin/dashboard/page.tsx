@@ -17,16 +17,16 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderUsers, placeholderPitches, placeholderBookings } from "@/lib/placeholder-data"
+import { placeholderUsers, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
 
 export default function AdminDashboard() {
   const totalUsers = placeholderUsers.length;
   const totalPitches = placeholderPitches.length;
   const totalBookings = placeholderBookings.length;
-  const totalRevenue = placeholderBookings.reduce((acc, booking) => booking.status === 'Paid' ? acc + booking.amount : acc, 0);
+  const totalRevenue = placeholderPayouts.reduce((acc, payout) => payout.status === 'Paid Out' ? acc + payout.commissionFee : acc, 0);
 
   const stats = [
-    { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time gross revenue" },
+    { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time commission earned" },
     { title: "Total Users", value: totalUsers.toString(), icon: <Users className="h-4 w-4 text-muted-foreground" />, description: "Players and Owners" },
     { title: "Total Pitches", value: totalPitches.toString(), icon: <List className="h-4 w-4 text-muted-foreground" />, description: "Across all owners" },
     { title: "Total Bookings", value: totalBookings.toString(), icon: <CalendarCheck className="h-4 w-4 text-muted-foreground" />, description: "All-time bookings" },
