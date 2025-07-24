@@ -30,18 +30,23 @@ export default function BookingHistory() {
                 <Table>
                     <TableHeader>
                         <TableRow>
+                        <TableHead>Booking ID</TableHead>
                         <TableHead>Pitch Name</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Time</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {placeholderBookings.map((booking) => (
                             <TableRow key={booking.id}>
-                                <TableCell className="font-medium">{booking.pitchName}</TableCell>
+                                <TableCell className="font-medium">
+                                    <Link href={`/dashboard/receipt/${booking.id}`} className="hover:underline">
+                                        {booking.id}
+                                    </Link>
+                                </TableCell>
+                                <TableCell>{booking.pitchName}</TableCell>
                                 <TableCell>{booking.date}</TableCell>
                                 <TableCell>{booking.time}</TableCell>
                                 <TableCell>
@@ -55,15 +60,6 @@ export default function BookingHistory() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
-                                <TableCell className="text-right">
-                                    {booking.status === 'Paid' && (
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={`/dashboard/receipt/${booking.id}`}>
-                                                <Eye className="mr-2 h-4 w-4" /> View Receipt
-                                            </Link>
-                                        </Button>
-                                    )}
-                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
