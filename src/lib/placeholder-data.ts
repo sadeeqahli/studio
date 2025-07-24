@@ -1,4 +1,5 @@
 
+
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction } from './types';
 
 export const placeholderPitches: Pitch[] = [
@@ -46,10 +47,10 @@ export const placeholderPitches: Pitch[] = [
 
 
 export const placeholderBookings: Booking[] = [
-    { id: 'TXN72362', pitchName: 'Lekki AstroTurf', date: '2024-07-28', time: '4:00 PM', amount: 25500, status: 'Paid' },
-    { id: 'TXN19873', pitchName: 'Ikeja 5-a-side', date: '2024-07-25', time: '7:00 PM', amount: 18500, status: 'Paid' },
-    { id: 'TXN45612', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM', amount: 22500, status: 'Paid' },
-    { id: 'TXN88234', pitchName: 'Lekki AstroTurf', date: '2024-08-05', time: '5:00 PM', amount: 25500, status: 'Pending' },
+    { id: 'TXN72362', customerName: 'Ade Williams', pitchName: 'Lekki AstroTurf', date: '2024-07-28', time: '4:00 PM', amount: 25500, status: 'Paid' },
+    { id: 'TXN19873', customerName: 'Femi Adebayo', pitchName: 'Ikeja 5-a-side', date: '2024-07-25', time: '7:00 PM', amount: 18500, status: 'Paid' },
+    { id: 'TXN45612', customerName: 'Aisha Bello', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM', amount: 22500, status: 'Paid' },
+    { id: 'TXN88234', customerName: 'Chioma Nwosu', pitchName: 'Lekki AstroTurf', date: '2024-08-05', time: '5:00 PM', amount: 25500, status: 'Pending' },
 ];
 
 export const placeholderPayouts: Payout[] = [

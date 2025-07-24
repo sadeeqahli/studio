@@ -79,6 +79,7 @@ export default function BookingPage() {
                 status: 'Paid' as const,
                 paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
                 userName: userName,
+                customerName: userName,
                 pitchLocation: pitch!.location,
             };
 

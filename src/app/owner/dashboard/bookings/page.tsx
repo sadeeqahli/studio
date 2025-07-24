@@ -47,7 +47,7 @@ export default function OwnerBookings() {
                             <TableRow key={booking.id}>
                                 <TableCell>
                                     <div className="font-medium">{booking.id}</div>
-                                    <div className="text-xs text-muted-foreground">Sample Customer</div>
+                                    <div className="text-xs text-muted-foreground">{booking.customerName}</div>
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
                                 <TableCell className="hidden sm:table-cell">{booking.date} at {booking.time}</TableCell>

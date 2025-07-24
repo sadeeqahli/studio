@@ -18,6 +18,7 @@ export type Booking = {
     time: string;
     amount: number;
     status: 'Paid' | 'Pending' | 'Cancelled';
+    customerName: string;
 };
 
 // Extended type for receipt page
