@@ -59,7 +59,7 @@ export default function WelcomePage() {
                 width="600"
                 height="400"
                 alt="Hero"
-                data-ai-hint="football match"
+                data-ai-hint="player kicking ball"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
