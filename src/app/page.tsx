@@ -52,11 +52,6 @@ export default function WelcomePage() {
                       Get Started
                     </Link>
                   </Button>
-                  <Button asChild variant="secondary" size="lg">
-                    <Link href="/signup/owner" prefetch={false}>
-                      List Your Pitch
-                    </Link>
-                  </Button>
                 </div>
               </div>
               <motion.img
