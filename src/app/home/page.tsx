@@ -76,7 +76,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
-                    <Link href="/dashboard" prefetch={false}>
+                    <Link href="/signup" prefetch={false}>
                       Find a Pitch
                     </Link>
                   </Button>
