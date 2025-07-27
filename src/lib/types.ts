@@ -69,4 +69,13 @@ export type Transaction = {
   bookingId?: string;
 }
 
+export type WithdrawalReceipt = {
+    id: string;
+    date: string;
+    amount: number;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+    status: 'Successful' | 'Pending' | 'Failed';
+};
     
