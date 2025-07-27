@@ -16,20 +16,32 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Moon, Sun, ShieldCheck, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 function SetPinDialog() {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
+    const [pin, setPin] = React.useState("");
+    const [confirmPin, setConfirmPin] = React.useState("");
 
     const handleSetPin = (e: React.FormEvent) => {
         e.preventDefault();
+        if (pin !== confirmPin) {
+            toast({
+                title: "PINs do not match",
+                description: "Please ensure both PINs are the same.",
+                variant: "destructive",
+            });
+            return;
+        }
         setIsLoading(true);
 
         setTimeout(() => {
             setIsLoading(false);
             setIsOpen(false);
+            setPin("");
+            setConfirmPin("");
             toast({
                 title: "PIN Set Successfully",
                 description: "Your transaction PIN has been updated."
@@ -53,19 +65,19 @@ function SetPinDialog() {
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="pin">New PIN</Label>
-                            <Input id="pin" type="password" placeholder="****" required maxLength={4} />
+                            <Input id="pin" type="password" placeholder="****" required maxLength={4} value={pin} onChange={(e) => setPin(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="confirm-pin">Confirm New PIN</Label>
-                            <Input id="confirm-pin" type="password" placeholder="****" required maxLength={4} />
+                            <Input id="confirm-pin" type="password" placeholder="****" required maxLength={4} value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} />
                         </div>
                     </div>
-                    <div className="flex justify-end gap-2">
+                    <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Set PIN'}
                         </Button>
-                    </div>
+                    </DialogFooter>
                 </form>
             </DialogContent>
         </Dialog>

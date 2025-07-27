@@ -41,17 +41,24 @@ export default function OwnerPayouts() {
         }
         if (savedUnlockDate) {
             const unlockDate = new Date(savedUnlockDate);
-            setScheduleUnlockDate(unlockDate);
+            if (unlockDate > new Date()) {
+                setScheduleUnlockDate(unlockDate);
 
-            // Also recalculate next payout date based on stored schedule
-             if (savedSchedule) {
-                const now = new Date();
-                let nextDate = now;
-                if (savedSchedule === 'daily') nextDate = add(now, { days: 1 });
-                if (savedSchedule === 'weekly') nextDate = add(now, { weeks: 1 });
-                if (savedSchedule === 'bi-weekly') nextDate = add(now, { weeks: 2 });
-                if (savedSchedule === 'monthly') nextDate = add(now, { months: 1 });
-                setNextPayoutDate(nextDate);
+                if (savedSchedule) {
+                    const now = new Date();
+                    let nextDate = now;
+                    if (savedSchedule === 'daily') nextDate = add(now, { days: 1 });
+                    if (savedSchedule === 'weekly') nextDate = add(now, { weeks: 1 });
+                    if (savedSchedule === 'bi-weekly') nextDate = add(now, { weeks: 2 });
+                    if (savedSchedule === 'monthly') nextDate = add(now, { months: 1 });
+                    setNextPayoutDate(nextDate);
+                }
+            } else {
+                 localStorage.removeItem('payoutSchedule');
+                 localStorage.removeItem('scheduleUnlockDate');
+                 setSchedule(null);
+                 setNextPayoutDate(null);
+                 setScheduleUnlockDate(null);
             }
         }
     }, []);
