@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -23,7 +22,7 @@ import {
 import { placeholderTransactions } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2 } from "lucide-react"
+import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -32,8 +31,70 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import type { Transaction, WithdrawalReceipt } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
+
+function PayoutScheduleCard() {
+    const { toast } = useToast();
+    const [schedule, setSchedule] = React.useState("weekly");
+    const [isLocked, setIsLocked] = React.useState(false);
+    const [unlockDate, setUnlockDate] = React.useState<Date | null>(null);
+
+    const handleSaveSchedule = () => {
+        setIsLocked(true);
+        const nextUnlockDate = new Date();
+        nextUnlockDate.setDate(nextUnlockDate.getDate() + 30); // Lock for 30 days
+        setUnlockDate(nextUnlockDate);
+        toast({
+            title: "Payout Schedule Saved!",
+            description: `Your payout schedule is set to ${schedule}. You can change it again after ${nextUnlockDate.toLocaleDateString()}.`,
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Automatic Payouts</CardTitle>
+                <CardDescription>
+                    Choose how often you want to receive your earnings automatically.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="payout-frequency">Payout Frequency</Label>
+                    <Select
+                        value={schedule}
+                        onValueChange={setSchedule}
+                        disabled={isLocked}
+                    >
+                        <SelectTrigger id="payout-frequency">
+                            <SelectValue placeholder="Select a schedule" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="daily">Daily</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="bi-weekly">Every 2 Weeks</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <Button onClick={handleSaveSchedule} disabled={isLocked} className="w-full">
+                    {isLocked ? "Schedule Locked" : "Save Schedule"}
+                </Button>
+                 {isLocked && unlockDate && (
+                    <Alert>
+                        <Lock className="h-4 w-4" />
+                        <AlertTitle>Schedule Locked</AlertTitle>
+                        <AlertDescription>
+                            Your payout schedule is locked to prevent frequent changes. You can select a new schedule after {unlockDate.toLocaleDateString()}.
+                        </AlertDescription>
+                    </Alert>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
 
 function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: WithdrawalReceipt | null, isOpen: boolean, setIsOpen: (open: boolean) => void }) {
     const receiptRef = React.useRef<HTMLDivElement>(null);
@@ -318,6 +379,8 @@ export default function OwnerWalletPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <PayoutScheduleCard />
 
             <Card>
                 <CardHeader>
