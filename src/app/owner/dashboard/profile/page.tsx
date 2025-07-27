@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from 'react';
 import { useTheme } from 'next-themes';
 import { Button } from "@/components/ui/button"
 import {
@@ -14,7 +15,63 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, ShieldCheck, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
+function SetPinDialog() {
+    const { toast } = useToast();
+    const [isOpen, setIsOpen] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    const handleSetPin = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        setTimeout(() => {
+            setIsLoading(false);
+            setIsOpen(false);
+            toast({
+                title: "PIN Set Successfully",
+                description: "Your transaction PIN has been updated."
+            });
+        }, 1500);
+    }
+    
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline">Set/Change PIN</Button>
+            </DialogTrigger>
+            <DialogContent>
+                 <DialogHeader>
+                    <DialogTitle>Set Your Transaction PIN</DialogTitle>
+                    <DialogDescription>
+                       This 4-digit PIN will be required for all withdrawals. Keep it secure.
+                    </DialogDescription>
+                </DialogHeader>
+                 <form onSubmit={handleSetPin}>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="pin">New PIN</Label>
+                            <Input id="pin" type="password" placeholder="****" required maxLength={4} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="confirm-pin">Confirm New PIN</Label>
+                            <Input id="confirm-pin" type="password" placeholder="****" required maxLength={4} />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
+                        <Button type="submit" disabled={isLoading}>
+                            {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Set PIN'}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 export default function OwnerProfile() {
   const { toast } = useToast();
@@ -83,6 +140,22 @@ export default function OwnerProfile() {
                 <CardFooter className="border-t px-6 py-4">
                     <Button onClick={handleUpdatePassword}>Update Password</Button>
                 </CardFooter>
+            </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Transaction PIN</CardTitle>
+                    <CardDescription>For added security, set a 4-digit PIN for all withdrawals.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                             <ShieldCheck className="h-5 w-5 text-primary"/>
+                            <p className="text-sm font-medium">Your PIN is set and active.</p>
+                        </div>
+                        <SetPinDialog />
+                    </div>
+                </CardContent>
             </Card>
 
             <Card>

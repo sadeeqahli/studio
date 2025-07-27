@@ -89,6 +89,10 @@ function WithdrawDialog() {
                             <Label htmlFor="account-name">Account Name</Label>
                             <Input id="account-name" value="Tunde Ojo" disabled />
                         </div>
+                         <div className="grid gap-2">
+                            <Label htmlFor="pin">Transaction PIN</Label>
+                            <Input id="pin" type="password" placeholder="Enter your 4-digit PIN" required maxLength={4}/>
+                        </div>
                     </div>
                      <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>

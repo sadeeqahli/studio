@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPayouts } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building } from "lucide-react"
+import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -87,7 +87,11 @@ function WithdrawDialog() {
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="account-name">Account Name</Label>
-                            <Input id="account-name" value="9ja Pitch Connect Ltd." disabled />
+                            <Input id="account-name" value="Naija Pitch Connect Ltd." disabled />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="pin">Transaction PIN</Label>
+                            <Input id="pin" type="password" placeholder="Enter your 4-digit PIN" required maxLength={4}/>
                         </div>
                     </div>
                      <DialogFooter>
@@ -195,5 +199,3 @@ export default function AdminWalletPage() {
         </div>
     )
 }
-
-    
