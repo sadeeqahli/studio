@@ -129,7 +129,7 @@ export default function OwnerDashboardLayout({
                   className="flex items-center gap-2 text-lg font-semibold mb-4"
                 >
                   <Logo className="h-8 w-8" />
-                  <span className="text-lg text-primary">Naija Pitch..</span>
+                  <span className="text-lg text-primary">Naija Pitch Connect</span>
                 </Link>
                 {navItems.map((item) => (
                     <Link

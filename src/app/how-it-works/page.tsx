@@ -26,18 +26,6 @@ export default function HowItWorksPage() {
           <Logo className="h-8 w-8" />
           <span className="text-xl font-bold text-primary">Naija Pitch Connect</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button asChild variant="ghost">
-            <Link href="/login" prefetch={false}>
-              Login
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link href="/signup" prefetch={false}>
-              Sign Up
-            </Link>
-          </Button>
-        </nav>
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 bg-primary/5">

@@ -48,18 +48,6 @@ export default function HomePage() {
           <Logo className="h-8 w-8" />
           <span className="text-xl font-bold text-primary">Naija Pitch Connect</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-            <Button asChild variant="ghost">
-              <Link href="/login" prefetch={false}>
-                Login
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup" prefetch={false}>
-                Sign Up
-              </Link>
-            </Button>
-          </nav>
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-primary/10">
@@ -87,7 +75,7 @@ export default function HomePage() {
                 width="600"
                 height="400"
                 alt="Hero"
-                data-ai-hint="football match"
+                data-ai-hint="player kicking ball"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
             </div>

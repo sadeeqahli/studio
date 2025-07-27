@@ -95,7 +95,6 @@ export default function BookingPage() {
             placeholderBookings.unshift(newBooking as any);
 
             // Simulate payout record for owner & platform revenue
-            const commissionAmount = pitch!.price * COMMISSION_RATE;
             placeholderPayouts.unshift({
                 bookingId: newBookingId,
                 customerName: userName,
