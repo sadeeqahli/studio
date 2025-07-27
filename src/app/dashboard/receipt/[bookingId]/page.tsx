@@ -6,15 +6,17 @@ import { useParams } from 'next/navigation';
 import { ReceiptBooking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function ReceiptPage() {
     const params = useParams();
+    const { toast } = useToast();
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     
@@ -66,6 +68,35 @@ export default function ReceiptPage() {
         window.print();
     };
 
+    const handleShare = async () => {
+        if (!booking) return;
+
+        const shareData = {
+            title: `Football Booking: ${booking.pitchName}`,
+            text: `We've booked ${booking.pitchName} on ${booking.date} at ${booking.time}. See you there!`,
+            url: window.location.href,
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(window.location.href);
+                toast({
+                    title: "Link Copied",
+                    description: "Receipt link copied to clipboard.",
+                });
+            }
+        } catch (error) {
+            console.error("Error sharing:", error);
+            toast({
+                title: "Error",
+                description: "Could not share the receipt.",
+                variant: "destructive",
+            });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -106,6 +137,9 @@ export default function ReceiptPage() {
                     </Link>
                 </Button>
                 <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleShare}>
+                        <Share2 className="mr-2 h-4 w-4" /> Share
+                    </Button>
                     <Button variant="outline" onClick={handlePrint}>
                         <Printer className="mr-2 h-4 w-4" /> Print
                     </Button>
