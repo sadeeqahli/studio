@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderTransactions, placeholderPayouts } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building, ArrowDown, ArrowUp, Copy } from "lucide-react"
+import { Banknote, Landmark, Loader2, Download, Building, ArrowUp, Copy } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -122,25 +122,57 @@ export default function OwnerWalletPage() {
         return `To GTBank Account ending in 6789`;
     };
 
+    const virtualAccount = {
+        number: "9988776655",
+        bank: "Providus Bank",
+        name: "9ja Pitch Connect - Tunde Ojo"
+    };
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(virtualAccount.number);
+        toast({
+            title: "Copied!",
+            description: "Virtual account number copied to clipboard.",
+        });
+    };
+
     return (
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
                 <WithdrawDialog />
             </div>
-
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-                    <Landmark className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                        Funds available for withdrawal or use on the platform.
-                    </p>
-                </CardContent>
-            </Card>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+                        <Landmark className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Funds available for withdrawal or use on the platform.
+                        </p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-medium">Your Virtual Account</CardTitle>
+                        <CardDescription>For receiving booking payments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-center justify-between">
+                            <span className="text-xl font-mono font-semibold">{virtualAccount.number}</span>
+                             <Button variant="ghost" size="icon" onClick={handleCopy}>
+                                <Copy className="h-4 w-4"/>
+                                <span className="sr-only">Copy Account Number</span>
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{virtualAccount.name} - {virtualAccount.bank}</p>
+                    </CardContent>
+                </Card>
+            </div>
 
             <Card>
                 <CardHeader>
@@ -185,3 +217,5 @@ export default function OwnerWalletPage() {
         </div>
     )
 }
+
+    
