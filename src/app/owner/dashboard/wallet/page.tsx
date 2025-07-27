@@ -135,9 +135,7 @@ export default function OwnerWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <div className="flex gap-2">
-                    <WithdrawDialog />
-                </div>
+                <WithdrawDialog />
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
