@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPayouts } from "@/lib/placeholder-data";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -64,16 +64,45 @@ export default function OwnerPayouts() {
         document.body.removeChild(link);
     };
 
+    const totalNetPayout = placeholderPayouts.filter(p => p.status === 'Paid Out').reduce((acc, p) => acc + p.netPayout, 0);
+
     return (
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
-                 <h1 className="text-lg font-semibold md:text-2xl">Commission History</h1>
+                 <h1 className="text-lg font-semibold md:text-2xl">Payout History</h1>
                  <Button onClick={handleExport} variant="outline">
                     <Download className="mr-2 h-4 w-4" />
                     Export Report
                 </Button>
             </div>
             
+            <div className="grid md:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Net Payout</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₦{totalNetPayout.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Total earnings paid out to you after commission.
+                        </p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Pending Payout</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₦{placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.netPayout, 0).toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Earnings from recent bookings yet to be paid out.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Commission Breakdown</CardTitle>
