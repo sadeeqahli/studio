@@ -106,47 +106,6 @@ function WithdrawDialog() {
     )
 }
 
-function DepositDialog() {
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                    <ArrowDown className="mr-2 h-4 w-4" />
-                    Deposit Funds
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Fund Your Wallet</DialogTitle>
-                    <DialogDescription>
-                        Deposit funds into your wallet using your unique virtual account number.
-                    </DialogDescription>
-                </DialogHeader>
-                 <Card className="mt-4">
-                    <CardContent className="pt-6 space-y-3 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Bank Name:</span>
-                            <span className="font-semibold">Providus Bank (Virtual)</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Account Name:</span>
-                            <span className="font-semibold">9ja Pitch Connect - Tunde Ojo</span>
-                        </div>
-                            <div className="flex justify-between">
-                            <span className="text-muted-foreground">Account Number:</span>
-                            <span className="font-semibold font-mono">9988776655</span>
-                        </div>
-                    </CardContent>
-                </Card>
-                <DialogFooter>
-                    <DialogTrigger asChild><Button>Done</Button></DialogTrigger>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-
 export default function OwnerWalletPage() {
     const totalBalance = placeholderTransactions.reduce((acc, transaction) => acc + transaction.amount, 0);
     const { toast } = useToast();
@@ -177,7 +136,6 @@ export default function OwnerWalletPage() {
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
                 <div className="flex gap-2">
-                    <DepositDialog />
                     <WithdrawDialog />
                 </div>
             </div>
