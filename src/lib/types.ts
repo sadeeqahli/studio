@@ -1,5 +1,4 @@
 
-
 export type Pitch = {
   id: string;
   name: string;
@@ -66,6 +65,7 @@ export type Transaction = {
   description: string;
   amount: number; // Positive for credit, negative for debit
   type: 'Credit' | 'Commission' | 'Withdrawal' | 'Deposit';
+  bookingId?: string;
 }
 
     

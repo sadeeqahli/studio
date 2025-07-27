@@ -17,16 +17,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { placeholderTransactions, placeholderPayouts } from "@/lib/placeholder-data"
+import { placeholderTransactions } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building, ArrowUp, Copy } from "lucide-react"
+import { Landmark, Loader2, ArrowUp, Copy, Eye } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
 
@@ -110,18 +110,6 @@ export default function OwnerWalletPage() {
     const totalBalance = placeholderTransactions.reduce((acc, transaction) => acc + transaction.amount, 0);
     const { toast } = useToast();
 
-    const getTransactionDetails = (txId: string) => {
-        const payout = placeholderPayouts.find(p => p.bookingId === txId.replace('Commission for booking ', ''));
-        if (payout) {
-            return `On booking of ₦${payout.grossAmount.toLocaleString()} at ${payout.commissionRate}% rate`;
-        }
-        const creditPayout = placeholderPayouts.find(p => p.bookingId === txId.replace('Booking payment from ', ''));
-         if (creditPayout) {
-            return `From customer: ${creditPayout.customerName}`;
-        }
-        return `To GTBank Account ending in 6789`;
-    };
-
     const virtualAccount = {
         number: "9988776655",
         bank: "Providus Bank",
@@ -187,7 +175,8 @@ export default function OwnerWalletPage() {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Description</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -196,17 +185,24 @@ export default function OwnerWalletPage() {
                                     <TableCell className="hidden md:table-cell">{tx.date}</TableCell>
                                     <TableCell>
                                         <div className="font-medium">{tx.description}</div>
-                                        <div className="text-xs text-muted-foreground">
-                                            {getTransactionDetails(tx.description)}
-                                        </div>
                                         <div className="text-xs text-muted-foreground md:hidden">{tx.date}</div>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono">
+                                    <TableCell className="font-mono">
                                         <span className={cn(
                                             tx.amount > 0 ? "text-green-600" : "text-destructive"
                                         )}>
                                             {tx.amount > 0 ? `+ ₦${tx.amount.toLocaleString()}` : `- ₦${Math.abs(tx.amount).toLocaleString()}`}
                                         </span>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {tx.bookingId && (
+                                            <Button asChild variant="outline" size="sm">
+                                                <Link href={`/owner/dashboard/receipt/${tx.bookingId}`}>
+                                                    <Eye className="mr-2 h-4 w-4" />
+                                                    View Receipt
+                                                </Link>
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -217,5 +213,3 @@ export default function OwnerWalletPage() {
         </div>
     )
 }
-
-    
