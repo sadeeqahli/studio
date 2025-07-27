@@ -140,6 +140,9 @@ export default function BookingPage() {
     }
 
     const totalPrice = pitch.price;
+    // Simulate a unique virtual account number based on pitch ID
+    const virtualAccountNumber = `9${pitch.id.padStart(9, '0')}`;
+    const ownerName = "Tunde Ojo"; // In a real app, this would come from the pitch data
     
     return (
         <Dialog>
@@ -258,11 +261,11 @@ export default function BookingPage() {
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Account Name:</span>
-                                                        <span className="font-semibold">9ja Pitch Connect - Tunde Ojo</span>
+                                                        <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
                                                     </div>
                                                      <div className="flex justify-between">
                                                         <span className="text-muted-foreground">Account Number:</span>
-                                                        <span className="font-semibold font-mono">9988776655</span>
+                                                        <span className="font-semibold font-mono">{virtualAccountNumber}</span>
                                                     </div>
                                                     <Alert className="mt-4">
                                                         <AlertCircle className="h-4 w-4" />

@@ -109,15 +109,6 @@ function WithdrawDialog() {
 export default function OwnerWalletPage() {
     const totalBalance = placeholderTransactions.reduce((acc, transaction) => acc + transaction.amount, 0);
     const { toast } = useToast();
-    const VIRTUAL_ACCOUNT_NUMBER = "9988776655";
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(VIRTUAL_ACCOUNT_NUMBER);
-        toast({
-            title: "Copied!",
-            description: "Account number copied to clipboard."
-        });
-    }
 
     const getTransactionDetails = (txId: string) => {
         const payout = placeholderPayouts.find(p => p.bookingId === txId.replace('Commission for booking ', ''));
@@ -138,38 +129,18 @@ export default function OwnerWalletPage() {
                 <WithdrawDialog />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-                        <Landmark className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Funds available for withdrawal or use on the platform.
-                        </p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Your Virtual Account</CardTitle>
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between">
-                            <div className="text-xl font-semibold font-mono">{VIRTUAL_ACCOUNT_NUMBER}</div>
-                            <Button variant="ghost" size="icon" onClick={handleCopy} className="h-8 w-8">
-                                <span className="sr-only">Copy</span>
-                                <Copy className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Providus Bank - For receiving booking payments.
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+                    <Landmark className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
+                    <p className="text-xs text-muted-foreground">
+                        Funds available for withdrawal or use on the platform.
+                    </p>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
