@@ -71,11 +71,11 @@ export default function HomePage() {
                 </div>
               </div>
               <Image
-                src="https://placehold.co/600x400.png"
+                src="https://images.unsplash.com/photo-1556056504-5c7696c4c28d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmb290YmFsbCUyMHBpdGNoJTIwfGVufDB8fHx8MTc1MzYxNjM1NHww&ixlib=rb-4.1.0&q=80&w=1080"
                 width="600"
                 height="400"
                 alt="An aerial view of a brightly lit football pitch at night"
-                data-ai-hint="football pitch"
+                data-ai-hint="player kicking ball"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
             </div>
