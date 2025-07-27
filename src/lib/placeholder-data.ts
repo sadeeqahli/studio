@@ -85,7 +85,6 @@ export const placeholderTransactions: Transaction[] = [
     { id: 'TRN003', date: '2024-07-28', description: 'Booking payment from Ade Williams', amount: 25000, type: 'Credit', bookingId: 'TXN72362' },
     { id: 'TRN004', date: '2024-07-27', description: 'Commission for booking', amount: -925, type: 'Commission', bookingId: 'TXN19873' },
     { id: 'TRN005', date: '2024-07-27', description: 'Booking payment from Femi Adebayo', amount: 18500, type: 'Credit', bookingId: 'TXN19873'},
-    { id: 'TRN006', date: '2024-07-26', description: 'Wallet Deposit', amount: 50000, type: 'Deposit' },
 ];
 
 export function updatePitch(updatedPitch: Pitch): void {
