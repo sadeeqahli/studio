@@ -2,7 +2,7 @@
 
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction } from './types';
 
-export const placeholderPitches: Pitch[] = [
+export let placeholderPitches: Pitch[] = [
   {
     id: '1',
     name: 'Lekki AstroTurf',
@@ -88,11 +88,6 @@ export const placeholderTransactions: Transaction[] = [
     { id: 'TRN005', date: '2024-07-27', description: 'Booking payment from Chioma Nwosu', amount: 25000, type: 'Credit' },
     { id: 'TRN006', date: '2024-07-26', description: 'Wallet Deposit', amount: 50000, type: 'Deposit' },
 ];
-
-// Helper functions to manage placeholder data
-export function getPitchById(id: string): Pitch | undefined {
-    return placeholderPitches.find(p => p.id === id);
-}
 
 export function updatePitch(updatedPitch: Pitch): void {
     const index = placeholderPitches.findIndex(p => p.id === updatedPitch.id);

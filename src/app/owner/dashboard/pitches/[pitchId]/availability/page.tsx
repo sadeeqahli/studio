@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { getPitchById, updatePitch } from "@/lib/placeholder-data"
+import { placeholderPitches, updatePitch } from "@/lib/placeholder-data"
 import type { Pitch } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -24,7 +24,7 @@ export default function ManageAvailabilityPage() {
     React.useEffect(() => {
         const pitchId = params.pitchId as string
         if (pitchId) {
-            const foundPitch = getPitchById(pitchId)
+            const foundPitch = placeholderPitches.find(p => p.id === pitchId);
             if (foundPitch) {
                 setPitch(foundPitch)
                 setSlots(new Set(foundPitch.availableSlots))
@@ -56,9 +56,9 @@ export default function ManageAvailabilityPage() {
 
     const handleSaveChanges = () => {
         if (pitch) {
-            const updatedPitch = { ...pitch, availableSlots: Array.from(slots) }
-            updatePitch(updatedPitch)
-            setPitch(updatedPitch)
+            const updatedPitchData = { ...pitch, availableSlots: Array.from(slots) }
+            updatePitch(updatedPitchData)
+            setPitch(updatedPitchData)
             toast({
                 title: "Success",
                 description: "Availability has been updated successfully."
@@ -94,6 +94,12 @@ export default function ManageAvailabilityPage() {
                                     value={newSlot}
                                     onChange={(e) => setNewSlot(e.target.value)}
                                     placeholder="e.g., 6:00 PM - 7:00 PM"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleAddSlot();
+                                        }
+                                    }}
                                 />
                                 <Button onClick={handleAddSlot}>
                                     <PlusCircle className="h-4 w-4 mr-2" /> Add
@@ -128,4 +134,3 @@ export default function ManageAvailabilityPage() {
         </div>
     )
 }
-
