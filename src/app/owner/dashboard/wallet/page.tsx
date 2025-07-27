@@ -126,7 +126,7 @@ function DepositDialog() {
                         </div>
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Account Name:</span>
-                            <span className="font-semibold">9ja Pitch Connect - Tunde Ojo</span>
+                            <span className="font-semibold">Naija Pitch Connect - Tunde Ojo</span>
                         </div>
                             <div className="flex justify-between">
                             <span className="text-muted-foreground">Account Number:</span>

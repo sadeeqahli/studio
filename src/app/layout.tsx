@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: '9ja Pitch Connect',
+  title: 'Naija Pitch Connect',
   description: 'Connect with football pitches across Nigeria. Book, play, and manage your games seamlessly.',
 };
 
@@ -35,4 +35,5 @@ export default function RootLayout({
       </body>
     </html>
   );
+
 

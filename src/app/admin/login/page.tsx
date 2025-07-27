@@ -29,7 +29,7 @@ export default function AdminLoginForm() {
     
     // In a real app, use a proper authentication provider.
     // For this prototype, we'll use hardcoded credentials.
-    if (email === 'admin@9japitchconnect.com' && password === 'admin123') {
+    if (email === 'admin@naijapitchconnect.com' && password === 'admin123') {
         toast({
             title: "Admin Login Successful",
             description: "Welcome back, Admin! Redirecting you to the dashboard.",
@@ -49,7 +49,7 @@ export default function AdminLoginForm() {
         <div className="mb-8 text-center">
             <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
                 <Logo className="h-10 w-10" />
-                <span className="text-2xl font-bold text-primary">9ja Pitch Connect</span>
+                <span className="text-2xl font-bold text-primary">Naija Pitch Connect</span>
             </Link>
              <p className="text-muted-foreground mt-2">Admin Portal</p>
         </div>
@@ -67,7 +67,7 @@ export default function AdminLoginForm() {
                 <Input
                 id="email"
                 type="email"
-                placeholder="admin@9japitchconnect.com"
+                placeholder="admin@naijapitchconnect.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

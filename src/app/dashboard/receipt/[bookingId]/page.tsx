@@ -179,11 +179,9 @@ export default function ReceiptPage() {
                     </div>
                 </CardContent>
                 <CardFooter className="text-center text-xs text-muted-foreground p-6">
-                    <p>Thank you for booking with 9ja Pitch Connect. Please arrive at least 10 minutes before your scheduled time. This receipt is your proof of payment.</p>
+                    <p>Thank you for booking with Naija Pitch Connect. Please arrive at least 10 minutes before your scheduled time. This receipt is your proof of payment.</p>
                 </CardFooter>
             </Card>
         </div>
     );
 }
-
-    

@@ -215,7 +215,7 @@ export default function OwnerPayouts() {
                                             ₦{payout.grossAmount.toLocaleString()}
                                         </TableCell>
                                         <TableCell className="hidden sm:table-cell">
-                                            <div className="font-medium text-destructive">Transfer to 9ja Pitch Connect</div>
+                                            <div className="font-medium text-destructive">Transfer to Naija Pitch Connect</div>
                                             <div className="text-xs text-muted-foreground font-mono">
                                                 - ₦{payout.commissionFee.toLocaleString()} ({payout.commissionRate}%)
                                             </div>

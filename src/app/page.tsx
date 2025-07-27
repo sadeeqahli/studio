@@ -46,8 +46,20 @@ export default function HomePage() {
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <Logo className="h-8 w-8" />
-          <span className="text-xl font-bold text-primary">9ja Pitch Connect</span>
+          <span className="text-xl font-bold text-primary">Naija Pitch Connect</span>
         </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+            <Button asChild variant="ghost">
+              <Link href="/login" prefetch={false}>
+                Login
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup" prefetch={false}>
+                Sign Up
+              </Link>
+            </Button>
+          </nav>
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-primary/10">
@@ -59,7 +71,7 @@ export default function HomePage() {
                     The Heartbeat of Nigerian Football
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Connect, book, and play. 9ja Pitch Connect is your ultimate platform for finding the best football pitches across Nigeria.
+                    Connect, book, and play. Naija Pitch Connect is your ultimate platform for finding the best football pitches across Nigeria.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -109,7 +121,7 @@ export default function HomePage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Naija Pitch Connect. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/about" className="text-xs hover:underline underline-offset-4" prefetch={false}>
             About Us
