@@ -2,22 +2,16 @@
 "use client";
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Booking } from '@/lib/types';
+import { useParams } from 'next/navigation';
+import { ReceiptBooking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { placeholderBookings } from '@/lib/placeholder-data';
+import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
 
-// Extended Booking type for receipt page
-type ReceiptBooking = Booking & {
-    pitchLocation: string;
-    userName: string;
-    paymentMethod: 'Card' | 'Bank Transfer';
-};
 
 export default function ReceiptPage() {
     const params = useParams();
@@ -31,35 +25,40 @@ export default function ReceiptPage() {
             return;
         }
 
-        // In a real app, you'd fetch this from your database.
-        // For this demo, we check localStorage first (for just-completed bookings)
-        // and then the main placeholder data (for history).
-        const storedBooking = localStorage.getItem('latestBooking');
-        let foundBooking: ReceiptBooking | null = null;
+        const loadBooking = () => {
+            // In a real app, you'd fetch this from your database.
+            // For this demo, we check localStorage first (for just-completed bookings)
+            // and then the main placeholder data (for history).
+            const storedBooking = localStorage.getItem('latestBooking');
+            let foundBooking: ReceiptBooking | null = null;
+            
+            if (storedBooking) {
+                const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
+                if (parsedBooking.id === bookingId) {
+                    foundBooking = parsedBooking;
+                }
+            }
+            
+            if (!foundBooking) {
+                const historyBooking = placeholderBookings.find(b => b.id === bookingId);
+                if (historyBooking) {
+                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
+                    // We need to augment the history booking with the extra details for the receipt.
+                    // In a real app, this data would already be part of the booking object from the DB.
+                    foundBooking = {
+                        ...historyBooking,
+                        pitchLocation: pitch?.location || 'N/A', // get location from pitch data
+                        userName: historyBooking.customerName, // use the name from the booking
+                        paymentMethod: 'Card', // Placeholder, ideally this is stored with the booking
+                    };
+                }
+            }
+            
+            setBooking(foundBooking);
+            setIsLoading(false);
+        };
 
-        if (storedBooking) {
-            const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
-            if (parsedBooking.id === bookingId) {
-                foundBooking = parsedBooking;
-            }
-        }
-        
-        if (!foundBooking) {
-            const historyBooking = placeholderBookings.find(b => b.id === bookingId);
-            if (historyBooking) {
-                // We need to augment the history booking with the extra details for the receipt.
-                // In a real app, this data would already be part of the booking object from the DB.
-                foundBooking = {
-                    ...historyBooking,
-                    pitchLocation: 'Location from DB', // Placeholder
-                    userName: 'Max Robinson', // Placeholder
-                    paymentMethod: 'Card', // Placeholder
-                };
-            }
-        }
-        
-        setBooking(foundBooking);
-        setIsLoading(false);
+        loadBooking();
 
     }, [params.bookingId]);
 

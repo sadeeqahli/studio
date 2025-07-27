@@ -54,10 +54,10 @@ export const placeholderBookings: Booking[] = [
 ];
 
 export const placeholderPayouts: Payout[] = [
-    { bookingId: 'BK1', customerName: 'Ade Williams', grossAmount: 25000, commissionRate: 5, commissionFee: 1250, netPayout: 23750, date: '2024-07-28', status: 'Paid Out' },
-    { bookingId: 'BK2', customerName: 'Chioma Nwosu', grossAmount: 25000, commissionRate: 5, commissionFee: 1250, netPayout: 23750, date: '2024-07-28', status: 'Paid Out' },
-    { bookingId: 'BK3', customerName: 'Femi Adebayo', grossAmount: 18000, commissionRate: 5, commissionFee: 900, netPayout: 17100, date: '2024-07-29', status: 'Paid Out' },
-    { bookingId: 'BK4', customerName: 'Aisha Bello', grossAmount: 22000, commissionRate: 5, commissionFee: 1100, netPayout: 20900, date: '2024-07-30', status: 'Paid Out' },
+    { bookingId: 'TXN72362', customerName: 'Ade Williams', grossAmount: 25000, commissionRate: 5, commissionFee: 1250, netPayout: 23750, date: '2024-07-28', status: 'Paid Out' },
+    { bookingId: 'TXN19873', customerName: 'Femi Adebayo', grossAmount: 18500, commissionRate: 5, commissionFee: 925, netPayout: 17575, date: '2024-07-25', status: 'Paid Out' },
+    { bookingId: 'TXN45612', customerName: 'Aisha Bello', grossAmount: 22500, commissionRate: 5, commissionFee: 1125, netPayout: 21375, date: '2024-07-22', status: 'Paid Out' },
+    { bookingId: 'TXN88234', customerName: 'Chioma Nwosu', grossAmount: 25500, commissionRate: 10, commissionFee: 2550, netPayout: 22950, date: '2024-08-05', status: 'Pending' },
     { bookingId: 'BK5', customerName: 'Emeka Okafor', grossAmount: 18000, commissionRate: 10, commissionFee: 1800, netPayout: 16200, date: '2024-08-01', status: 'Pending' },
 ]
 
