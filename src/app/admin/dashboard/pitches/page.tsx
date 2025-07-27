@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -29,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { placeholderPitches } from "@/lib/placeholder-data"
 import { Input } from "@/components/ui/input"
+import Image from "next/image"
 
 export default function AdminPitchesPage() {
     const [searchTerm, setSearchTerm] = React.useState("");
@@ -73,12 +75,13 @@ export default function AdminPitchesPage() {
                 {filteredPitches.map((pitch) => (
                     <TableRow key={pitch.id}>
                     <TableCell className="hidden sm:table-cell">
-                        <img
+                        <Image
                             alt="Pitch image"
                             className="aspect-square rounded-md object-cover"
                             height="64"
                             src={pitch.imageUrl}
                             width="64"
+                            data-ai-hint={pitch.imageHint}
                         />
                     </TableCell>
                     <TableCell className="font-medium">

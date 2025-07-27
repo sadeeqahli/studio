@@ -36,7 +36,7 @@ export default function AboutPage() {
                     </p>
                 </div>
                  <Image
-                    src="https://placehold.co/600x400.png"
+                    src="https://images.unsplash.com/photo-1527090442353-7b4c58c2341d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhZnJpY2FuJTIwZm9vdGJhbGwlMjB0ZWFtfGVufDB8fHx8MTc1Mzc2MTI4OXww&ixlib=rb-4.1.0&q=80&w=1080"
                     width="600"
                     height="400"
                     alt="Team celebrating"

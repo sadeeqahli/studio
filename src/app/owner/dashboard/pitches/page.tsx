@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -42,6 +43,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import Image from "next/image"
 
 export default function OwnerPitches() {
   const [pitches, setPitches] = React.useState<Pitch[]>(initialPitches);
@@ -125,12 +127,13 @@ export default function OwnerPitches() {
               {pitches.map((pitch) => (
                 <TableRow key={pitch.id}>
                   <TableCell className="hidden sm:table-cell">
-                    <img
+                    <Image
                       alt="Product image"
                       className="aspect-square rounded-md object-cover"
                       height="64"
                       src={pitch.imageUrl}
                       width="64"
+                      data-ai-hint={pitch.imageHint}
                     />
                   </TableCell>
                   <TableCell className="font-medium">{pitch.name}</TableCell>
