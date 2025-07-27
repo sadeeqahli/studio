@@ -94,6 +94,7 @@ export default function BookingPage() {
             // For the history page, we can push to the placeholder data array
             placeholderBookings.unshift(newBooking as any);
 
+            const commissionAmount = pitch!.price * COMMISSION_RATE;
             // Simulate payout record for owner & platform revenue
             placeholderPayouts.unshift({
                 bookingId: newBookingId,
@@ -384,12 +385,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-    
-
-    
-
-
-
-
-    
