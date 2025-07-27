@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, CreditCard, Info, Loader2 } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, CreditCard, Info, Loader2, ShieldCheck, Clock } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -21,6 +21,32 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
+type BookingStatus = 'idle' | 'confirming' | 'confirmed';
+
+function PaymentConfirmationView({ countdown }: { countdown: number }) {
+    return (
+        <Card className="max-w-md mx-auto">
+            <CardHeader className="text-center">
+                <CardTitle>Confirming Your Payment...</CardTitle>
+                <CardDescription>Please do not close or refresh this page.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center space-y-4">
+                <div className="relative h-24 w-24">
+                    <Loader2 className="absolute h-full w-full animate-spin text-primary" />
+                    <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-primary">
+                        {countdown}
+                    </span>
+                </div>
+                <p className="text-sm text-muted-foreground">Securely processing your transaction.</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <ShieldCheck className="h-4 w-4 text-green-500" />
+                    <span>SSL Encrypted</span>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 
 export default function BookingPage() {
     const params = useParams();
@@ -30,7 +56,8 @@ export default function BookingPage() {
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
     const [paymentMethod, setPaymentMethod] = React.useState('card');
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
+    const [countdown, setCountdown] = React.useState(60);
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
@@ -40,6 +67,59 @@ export default function BookingPage() {
             setPitch(foundPitch);
         }
     }, [params.pitchId]);
+    
+    React.useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (bookingStatus === 'confirming' && countdown > 0) {
+            timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+        } else if (bookingStatus === 'confirming' && countdown === 0) {
+            // Finalize booking after countdown
+            const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
+            const totalAmount = pitch!.price;
+            const userName = 'Max Robinson';
+
+            const newBooking = {
+                id: newBookingId,
+                pitchName: pitch!.name,
+                date: new Date().toISOString().split('T')[0],
+                time: selectedSlot!,
+                amount: totalAmount,
+                status: 'Paid' as const,
+                paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
+                userName: userName,
+                customerName: userName,
+                pitchLocation: pitch!.location,
+            };
+
+            try {
+                localStorage.setItem('latestBooking', JSON.stringify(newBooking));
+            } catch (error) {
+                console.error("Could not save to localStorage", error);
+            }
+            
+            placeholderBookings.unshift(newBooking as any);
+            const commissionAmount = pitch!.price * COMMISSION_RATE;
+            placeholderPayouts.unshift({
+                bookingId: newBookingId,
+                customerName: userName,
+                grossAmount: pitch!.price,
+                commissionRate: COMMISSION_RATE * 100,
+                commissionFee: commissionAmount,
+                netPayout: pitch!.price - commissionAmount,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Paid Out',
+            });
+
+            toast({
+                title: "Booking Confirmed!",
+                description: `Your booking for ${pitch?.name} at ${selectedSlot} is successful.`,
+            });
+
+            setBookingStatus('confirmed');
+            router.push(`/dashboard/receipt/${newBookingId}`);
+        }
+        return () => clearTimeout(timer);
+    }, [bookingStatus, countdown, pitch, selectedSlot, paymentMethod, router, toast]);
 
     const handleConfirmBooking = () => {
         if (!selectedSlot) {
@@ -59,63 +139,12 @@ export default function BookingPage() {
             return;
         }
 
-        setIsLoading(true);
-        // Simulate payment processing
-        setTimeout(() => {
-            setIsLoading(false);
-            
-            const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-            const totalAmount = pitch!.price;
-
-            // In a real app, you'd get user details from context/session
-            const userName = 'Max Robinson';
-
-            const newBooking = {
-                id: newBookingId,
-                pitchName: pitch!.name,
-                date: new Date().toISOString().split('T')[0], // Use today's date for simplicity
-                time: selectedSlot,
-                amount: totalAmount,
-                status: 'Paid' as const,
-                paymentMethod: paymentMethod === 'card' ? 'Card' : 'Bank Transfer',
-                userName: userName,
-                customerName: userName,
-                pitchLocation: pitch!.location,
-            };
-
-            // This is where you would typically save the booking to a database.
-            // For this demo, we'll store it in localStorage to make it accessible on the receipt page.
-            try {
-                localStorage.setItem('latestBooking', JSON.stringify(newBooking));
-            } catch (error) {
-                console.error("Could not save to localStorage", error);
-            }
-            
-            // For the history page, we can push to the placeholder data array
-            placeholderBookings.unshift(newBooking as any);
-
-            const commissionAmount = pitch!.price * COMMISSION_RATE;
-            // Simulate payout record for owner & platform revenue
-            placeholderPayouts.unshift({
-                bookingId: newBookingId,
-                customerName: userName,
-                grossAmount: pitch!.price,
-                commissionRate: COMMISSION_RATE * 100,
-                commissionFee: commissionAmount,
-                netPayout: pitch!.price - commissionAmount,
-                date: new Date().toISOString().split('T')[0],
-                status: 'Paid Out',
-            });
-
-
-            toast({
-                title: "Booking Confirmed!",
-                description: `Your booking for ${pitch?.name} at ${selectedSlot} is successful.`,
-            });
-
-            router.push(`/dashboard/receipt/${newBookingId}`);
-        }, 2000);
+        setBookingStatus('confirming');
     };
+
+    if (bookingStatus === 'confirming') {
+        return <PaymentConfirmationView countdown={countdown} />;
+    }
 
     if (!pitch) {
         return (
@@ -140,9 +169,8 @@ export default function BookingPage() {
     }
 
     const totalPrice = pitch.price;
-    // Simulate a unique virtual account number based on pitch ID
     const virtualAccountNumber = `9${pitch.id.padStart(9, '0')}`;
-    const ownerName = "Tunde Ojo"; // In a real app, this would come from the pitch data
+    const ownerName = "Tunde Ojo";
     
     return (
         <Dialog>
@@ -297,13 +325,9 @@ export default function BookingPage() {
                                     className="w-full" 
                                     size="lg" 
                                     onClick={handleConfirmBooking} 
-                                    disabled={!selectedSlot || isLoading || !agreedToTerms}
+                                    disabled={!selectedSlot || !agreedToTerms || bookingStatus !== 'idle'}
                                 >
-                                    {isLoading ? (
-                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-                                    ) : (
-                                        `Confirm & Pay ₦${totalPrice.toLocaleString()}`
-                                    )}
+                                    {bookingStatus === 'idle' ? `Confirm & Pay ₦${totalPrice.toLocaleString()}` : <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>}
                                 </Button>
                             </CardFooter>
                         </Card>
@@ -388,3 +412,4 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
