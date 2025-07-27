@@ -175,8 +175,7 @@ export default function OwnerWalletPage() {
                             <TableRow>
                                 <TableHead>Date</TableHead>
                                 <TableHead>Description</TableHead>
-                                <TableHead>Amount</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -186,23 +185,18 @@ export default function OwnerWalletPage() {
                                     <TableCell>
                                         <div className="font-medium">{tx.description}</div>
                                         <div className="text-xs text-muted-foreground md:hidden">{tx.date}</div>
+                                        {tx.bookingId && (
+                                            <Link href={`/owner/dashboard/bookings`}>
+                                                <p className="text-xs text-primary hover:underline">View Booking: {tx.bookingId}</p>
+                                            </Link>
+                                        )}
                                     </TableCell>
-                                    <TableCell className="font-mono">
+                                    <TableCell className="text-right font-mono">
                                         <span className={cn(
                                             tx.amount > 0 ? "text-green-600" : "text-destructive"
                                         )}>
                                             {tx.amount > 0 ? `+ ₦${tx.amount.toLocaleString()}` : `- ₦${Math.abs(tx.amount).toLocaleString()}`}
                                         </span>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {tx.bookingId && (
-                                            <Button asChild variant="outline" size="sm">
-                                                <Link href={`/owner/dashboard/receipt/${tx.bookingId}`}>
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    View Receipt
-                                                </Link>
-                                            </Button>
-                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}

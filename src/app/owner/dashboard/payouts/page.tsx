@@ -137,7 +137,7 @@ export default function OwnerPayouts() {
     return (
         <div>
             <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-                 <h1 className="text-lg font-semibold md:text-2xl">Payout History</h1>
+                 <h1 className="text-lg font-semibold md:text-2xl">Payouts</h1>
                  <Button onClick={handleExport}>
                     <Download className="mr-2 h-4 w-4" />
                     Export Report
@@ -222,7 +222,7 @@ export default function OwnerPayouts() {
                                             ₦{payout.grossAmount.toLocaleString()}
                                         </TableCell>
                                         <TableCell className="hidden sm:table-cell">
-                                            <div className="font-medium text-destructive">Transfer to 9ja Pitch Connect</div>
+                                            <div className="font-medium text-destructive">Platform Commission</div>
                                             <div className="text-xs text-muted-foreground font-mono">
                                                 - ₦{payout.commissionFee.toLocaleString()} ({payout.commissionRate}%)
                                             </div>
