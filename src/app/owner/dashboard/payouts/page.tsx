@@ -78,7 +78,7 @@ export default function OwnerPayouts() {
                 </Button>
             </div>
             
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-1 gap-6">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Net Payout</CardTitle>
@@ -88,18 +88,6 @@ export default function OwnerPayouts() {
                         <div className="text-2xl font-bold">₦{totalNetPayout.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
                             Total earnings paid out to you after commission.
-                        </p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Payout</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">₦{placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.netPayout, 0).toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Earnings from recent bookings yet to be paid out.
                         </p>
                     </CardContent>
                 </Card>
