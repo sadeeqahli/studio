@@ -54,9 +54,9 @@ export const placeholderBookings: Booking[] = [
 ];
 
 export const placeholderPayouts: Payout[] = [
-    { bookingId: 'TXN72362', customerName: 'Ade Williams', grossAmount: 25000, commissionRate: 5, commissionFee: 1250, netPayout: 23750, date: '2024-07-28', status: 'Paid Out' },
-    { bookingId: 'TXN19873', customerName: 'Femi Adebayo', grossAmount: 18500, commissionRate: 5, commissionFee: 925, netPayout: 17575, date: '2024-07-25', status: 'Paid Out' },
-    { bookingId: 'TXN45612', customerName: 'Aisha Bello', grossAmount: 22500, commissionRate: 5, commissionFee: 1125, netPayout: 21375, date: '2024-07-22', status: 'Paid Out' },
+    { bookingId: 'TXN72362', customerName: 'Ade Williams', grossAmount: 25000, commissionRate: 10, commissionFee: 2500, netPayout: 22500, date: '2024-07-28', status: 'Paid Out' },
+    { bookingId: 'TXN19873', customerName: 'Femi Adebayo', grossAmount: 18500, commissionRate: 10, commissionFee: 1850, netPayout: 16650, date: '2024-07-25', status: 'Paid Out' },
+    { bookingId: 'TXN45612', customerName: 'Aisha Bello', grossAmount: 22500, commissionRate: 10, commissionFee: 2250, netPayout: 20250, date: '2024-07-22', status: 'Paid Out' },
     { bookingId: 'TXN88234', customerName: 'Chioma Nwosu', grossAmount: 25500, commissionRate: 10, commissionFee: 2550, netPayout: 22950, date: '2024-08-05', status: 'Pending' },
     { bookingId: 'BK5', customerName: 'Emeka Okafor', grossAmount: 18000, commissionRate: 10, commissionFee: 1800, netPayout: 16200, date: '2024-08-01', status: 'Pending' },
 ]
@@ -81,8 +81,8 @@ export const placeholderUsers: User[] = [
 
 
 export const placeholderTransactions: Transaction[] = [
-    { id: 'TRN003', date: '2024-07-28', description: 'Credit from booking payment', amount: 23750, type: 'Credit', bookingId: 'TXN72362' },
-    { id: 'TRN005', date: '2024-07-27', description: 'Credit from booking payment', amount: 17575, type: 'Credit', bookingId: 'TXN19873'},
+    { id: 'TRN003', date: '2024-07-28', description: 'Credit from booking payment', amount: 22500, type: 'Credit', bookingId: 'TXN72362' },
+    { id: 'TRN005', date: '2024-07-27', description: 'Credit from booking payment', amount: 16650, type: 'Credit', bookingId: 'TXN19873'},
 ];
 
 export function updatePitch(updatedPitch: Pitch): void {
