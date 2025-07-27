@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -48,11 +49,10 @@ export default function OwnerPitches() {
   const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
   const { toast } = useToast();
 
-  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageUrl' | 'imageHint' | 'availableSlots'>) => {
+  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots'>) => {
     const newPitch: Pitch = {
       ...newPitchData,
       id: (pitches.length + 1).toString(),
-      imageUrl: 'https://placehold.co/600x400.png',
       imageHint: 'football field',
       availableSlots: [],
     };

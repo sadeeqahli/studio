@@ -26,6 +26,7 @@ const pitchSchema = z.object({
   location: z.string().min(3, 'Location is required'),
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
+  imageUrl: z.string().url('Please enter a valid image URL').min(1, 'Image URL is required'),
 });
 
 type PitchForm = z.infer<typeof pitchSchema>;
@@ -33,7 +34,7 @@ type PitchForm = z.infer<typeof pitchSchema>;
 interface AddPitchDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'imageUrl' | 'imageHint' | 'availableSlots'>) => void;
+  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots'>) => void;
   onEditPitch: (pitch: Pitch) => void;
   pitch: Pitch | null;
 }
@@ -56,6 +57,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
       location: '',
       price: 0,
       amenities: [],
+      imageUrl: '',
     }
   });
 
@@ -66,6 +68,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         location: pitch.location,
         price: pitch.price,
         amenities: pitch.amenities,
+        imageUrl: pitch.imageUrl,
       });
     } else {
       reset({
@@ -73,6 +76,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         location: '',
         price: 0,
         amenities: [],
+        imageUrl: '',
       });
     }
   }, [pitch, reset, isOpen]);
@@ -120,6 +124,11 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
             <Label htmlFor="price">Price per Hour (NGN)</Label>
             <Input id="price" type="number" placeholder="e.g., 25000" {...register('price')} />
             {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="imageUrl">Image URL</Label>
+            <Input id="imageUrl" placeholder="e.g., https://example.com/pitch.jpg" {...register('imageUrl')} />
+            {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
           </div>
           <div className="grid gap-2">
             <Label>Amenities</Label>
