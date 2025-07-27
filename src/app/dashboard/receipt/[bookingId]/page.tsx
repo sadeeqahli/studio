@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
+import html2canvas from 'html2canvas';
 
 
 export default function ReceiptPage() {
@@ -19,6 +20,7 @@ export default function ReceiptPage() {
     const { toast } = useToast();
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
+    const receiptRef = React.useRef<HTMLDivElement>(null);
     
     React.useEffect(() => {
         const bookingId = params.bookingId;
@@ -69,29 +71,50 @@ export default function ReceiptPage() {
     };
 
     const handleShare = async () => {
-        if (!booking) return;
+        if (!booking || !receiptRef.current) return;
 
-        const shareData = {
-            title: `Football Booking: ${booking.pitchName}`,
-            text: `We've booked ${booking.pitchName} on ${booking.date} at ${booking.time}. See you there!`,
-            url: window.location.href,
-        };
+        toast({ title: 'Generating image...', description: 'Please wait a moment.' });
 
         try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(window.location.href);
-                toast({
-                    title: "Link Copied",
-                    description: "Receipt link copied to clipboard.",
-                });
-            }
+            const canvas = await html2canvas(receiptRef.current, {
+                useCORS: true, // Important for external images
+                scale: 2 // Higher scale for better quality
+            });
+            
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    toast({ title: "Error", description: "Failed to generate image.", variant: "destructive" });
+                    return;
+                }
+
+                const file = new File([blob], `receipt-${booking.id}.png`, { type: 'image/png' });
+                const shareData = {
+                    title: `Football Booking: ${booking.pitchName}`,
+                    text: `We've booked ${booking.pitchName} on ${booking.date} at ${booking.time}. See you there!`,
+                    files: [file],
+                };
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share(shareData);
+                } else {
+                    // Fallback for desktop or non-supporting browsers
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `receipt-${booking.id}.png`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    toast({
+                        title: "Image Downloaded",
+                        description: "Receipt image has been saved.",
+                    });
+                }
+            }, 'image/png');
+
         } catch (error) {
             console.error("Error sharing:", error);
             toast({
                 title: "Error",
-                description: "Could not share the receipt.",
+                description: "Could not share the receipt image.",
                 variant: "destructive",
             });
         }
@@ -146,7 +169,7 @@ export default function ReceiptPage() {
                 </div>
             </div>
             
-            <Card className="p-2 print:shadow-none print:border-none">
+            <Card ref={receiptRef} className="p-2 print:shadow-none print:border-none bg-background">
                 <CardHeader className="text-center bg-primary/5 rounded-t-lg p-6">
                     <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
                     <CardTitle className="text-2xl mt-2">Booking Confirmed!</CardTitle>
