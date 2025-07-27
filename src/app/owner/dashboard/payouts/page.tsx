@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPayouts } from "@/lib/placeholder-data";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Download, DollarSign } from 'lucide-react';
+import { Download, DollarSign, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 
@@ -65,6 +65,8 @@ export default function OwnerPayouts() {
     };
 
     const totalNetPayout = placeholderPayouts.filter(p => p.status === 'Paid Out').reduce((acc, p) => acc + p.netPayout, 0);
+    const paidOutPayouts = placeholderPayouts.filter(p => p.status === 'Paid Out');
+
 
     return (
         <div className="grid gap-6">
@@ -102,6 +104,40 @@ export default function OwnerPayouts() {
                     </CardContent>
                 </Card>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Net Payout History</CardTitle>
+                    <CardDescription>
+                       A detailed record of all net payouts made to you.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Booking ID</TableHead>
+                                <TableHead className="text-right">Net Amount Paid</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {paidOutPayouts.map((payout) => (
+                                <TableRow key={payout.bookingId}>
+                                    <TableCell>{payout.date}</TableCell>
+                                    <TableCell>
+                                         <div className="font-medium">{payout.bookingId}</div>
+                                         <div className="text-xs text-muted-foreground">From booking by {payout.customerName}</div>
+                                    </TableCell>
+                                    <TableCell className="text-right font-mono font-semibold text-primary">
+                                        + ₦{payout.netPayout.toLocaleString()}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
