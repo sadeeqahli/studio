@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPitches as initialPitches } from "@/lib/placeholder-data"
+import { placeholderPitches as initialPitches, updatePitch } from "@/lib/placeholder-data"
 import { Pitch } from "@/lib/types"
 import { AddPitchDialog } from "@/components/add-pitch-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -44,6 +44,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function OwnerPitches() {
   const [pitches, setPitches] = React.useState<Pitch[]>(initialPitches);
@@ -64,6 +65,7 @@ export default function OwnerPitches() {
   };
 
   const handleEditPitch = (updatedPitch: Pitch) => {
+    updatePitch(updatedPitch);
     setPitches(prev => prev.map(p => p.id === updatedPitch.id ? updatedPitch : p));
     toast({ title: "Success!", description: "Pitch details have been updated." });
     setEditingPitch(null);
@@ -158,7 +160,9 @@ export default function OwnerPitches() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => openEditDialog(pitch)}>Edit Details</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => alert('Manage Availability clicked for ' + pitch.name)}>Manage Availability</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                           <Link href={`/owner/dashboard/pitches/${pitch.id}/availability`}>Manage Availability</Link>
+                        </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
