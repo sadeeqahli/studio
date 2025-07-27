@@ -56,7 +56,7 @@ export default function AdminDashboardLayout({
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
               <Logo className="h-8 w-8" />
-              <span className="text-lg text-primary">Naija Pitch Connect</span>
+              <span className="text-lg text-primary">9ja Pitch Connect</span>
             </Link>
           </div>
           <div className="flex-1">
