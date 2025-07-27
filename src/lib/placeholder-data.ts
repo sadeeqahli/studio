@@ -1,4 +1,5 @@
 
+
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction } from './types';
 
 export let placeholderPitches: Pitch[] = [
@@ -80,10 +81,8 @@ export const placeholderUsers: User[] = [
 
 
 export const placeholderTransactions: Transaction[] = [
-    { id: 'TRN002', date: '2024-07-28', description: 'Commission for booking', amount: -1250, type: 'Commission', bookingId: 'TXN72362' },
-    { id: 'TRN003', date: '2024-07-28', description: 'Booking payment from Ade Williams', amount: 25000, type: 'Credit', bookingId: 'TXN72362' },
-    { id: 'TRN004', date: '2024-07-27', description: 'Commission for booking', amount: -925, type: 'Commission', bookingId: 'TXN19873' },
-    { id: 'TRN005', date: '2024-07-27', description: 'Booking payment from Femi Adebayo', amount: 18500, type: 'Credit', bookingId: 'TXN19873'},
+    { id: 'TRN003', date: '2024-07-28', description: 'Credit from booking payment', amount: 23750, type: 'Credit', bookingId: 'TXN72362' },
+    { id: 'TRN005', date: '2024-07-27', description: 'Credit from booking payment', amount: 17575, type: 'Credit', bookingId: 'TXN19873'},
 ];
 
 export function updatePitch(updatedPitch: Pitch): void {

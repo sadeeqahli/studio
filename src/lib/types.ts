@@ -65,7 +65,7 @@ export type Transaction = {
   date: string;
   description: string;
   amount: number; // Positive for credit, negative for debit
-  type: 'Credit' | 'Commission' | 'Withdrawal';
+  type: 'Credit' | 'Withdrawal';
   bookingId?: string;
 }
 
