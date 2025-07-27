@@ -80,7 +80,6 @@ export const placeholderUsers: User[] = [
 
 
 export const placeholderTransactions: Transaction[] = [
-    { id: 'TRN001', date: '2024-07-28', description: 'Weekly Payout', amount: -85000, type: 'Withdrawal' },
     { id: 'TRN002', date: '2024-07-28', description: 'Commission for booking', amount: -1250, type: 'Commission', bookingId: 'TXN72362' },
     { id: 'TRN003', date: '2024-07-28', description: 'Booking payment from Ade Williams', amount: 25000, type: 'Credit', bookingId: 'TXN72362' },
     { id: 'TRN004', date: '2024-07-27', description: 'Commission for booking', amount: -925, type: 'Commission', bookingId: 'TXN19873' },

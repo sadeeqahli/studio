@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPayouts } from "@/lib/placeholder-data";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Download, Lock } from 'lucide-react';
+import { Download, Lock, CheckCircle, Clock } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { add, format } from 'date-fns';
 
@@ -133,121 +133,176 @@ export default function OwnerPayouts() {
     };
 
     const isScheduleLocked = scheduleUnlockDate ? new Date() < scheduleUnlockDate : false;
+    const pendingPayouts = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.netPayout, 0);
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+        <div className="grid gap-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
                  <h1 className="text-lg font-semibold md:text-2xl">Payouts</h1>
-                 <Button onClick={handleExport}>
+                 <Button onClick={handleExport} variant="outline">
                     <Download className="mr-2 h-4 w-4" />
                     Export Report
                 </Button>
             </div>
             
-            <div className="grid gap-6">
-                 <div className="grid md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Pending Payout</CardDescription>
-                            <CardTitle className="text-3xl">₦16,200</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-xs text-muted-foreground">
-                                Scheduled for next payout cycle
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="pb-2">
-                            <CardDescription>Payout Schedule</CardDescription>
-                            <CardTitle className="text-2xl">
-                                <Select 
-                                    value={schedule || ''} 
-                                    onValueChange={(value) => handleScheduleChange(value as Schedule)}
-                                    disabled={isScheduleLocked}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select schedule" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="daily">Daily</SelectItem>
-                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                        <SelectItem value="bi-weekly">Every 2 Weeks</SelectItem>
-                                        <SelectItem value="monthly">Monthly</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </CardTitle>
-                        </CardHeader>
-                         <CardContent>
-                            <div className="text-xs text-muted-foreground">
-                                {isScheduleLocked && scheduleUnlockDate && nextPayoutDate ? (
-                                    <span className="flex items-center gap-1.5">
-                                        <Lock className="h-3 w-3" />
-                                        Next payout: {format(nextPayoutDate, 'dd MMM yyyy')}. You can change this on {format(scheduleUnlockDate, 'dd MMM yyyy')}.
-                                    </span>
-                                ) : (
-                                    'Select a schedule to see your next payout date.'
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="grid md:grid-cols-2 gap-6">
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Deduction History</CardTitle>
-                        <CardDescription>
-                            A detailed record of all commissions deducted from your bookings.
-                        </CardDescription>
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between">
+                        <div>
+                            <CardDescription>Pending Payout</CardDescription>
+                            <CardTitle className="text-3xl">₦{pendingPayouts.toLocaleString()}</CardTitle>
+                        </div>
+                        <Clock className="h-6 w-6 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Booking ID</TableHead>
-                                    <TableHead className="hidden sm:table-cell">Gross Amount</TableHead>
-                                    <TableHead className="hidden sm:table-cell">Commission</TableHead>
-                                    <TableHead>Net Payout</TableHead>
-                                    <TableHead className="hidden md:table-cell">Date</TableHead>
-                                    <TableHead className="text-right">Status</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {placeholderPayouts.map((payout) => (
-                                    <TableRow key={payout.bookingId}>
-                                        <TableCell>
-                                            <div className="font-medium">{payout.bookingId}</div>
-                                            <div className="text-xs text-muted-foreground">{payout.customerName}</div>
-                                        </TableCell>
-                                        <TableCell className="hidden sm:table-cell font-mono">
-                                            ₦{payout.grossAmount.toLocaleString()}
-                                        </TableCell>
-                                        <TableCell className="hidden sm:table-cell">
-                                            <div className="font-medium text-destructive">Platform Commission</div>
-                                            <div className="text-xs text-muted-foreground font-mono">
-                                                - ₦{payout.commissionFee.toLocaleString()} ({payout.commissionRate}%)
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="font-mono font-semibold text-primary">
-                                            ₦{payout.netPayout.toLocaleString()}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge variant="outline"
-                                                className={cn(
-                                                    payout.status === 'Paid Out' && 'bg-green-100 text-green-800 border-green-200',
-                                                    payout.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                                )}
-                                            >
-                                                {payout.status}
-                                            </Badge>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <div className="text-xs text-muted-foreground">
+                            Scheduled for your next payout cycle
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardDescription>Payout Schedule</CardDescription>
+                        <CardTitle className="text-2xl">
+                            <Select 
+                                value={schedule || ''} 
+                                onValueChange={(value) => handleScheduleChange(value as Schedule)}
+                                disabled={isScheduleLocked}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select schedule" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="daily">Daily</SelectItem>
+                                    <SelectItem value="weekly">Weekly</SelectItem>
+                                    <SelectItem value="bi-weekly">Every 2 Weeks</SelectItem>
+                                    <SelectItem value="monthly">Monthly</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </CardTitle>
+                    </CardHeader>
+                     <CardContent>
+                        <div className="text-xs text-muted-foreground">
+                            {isScheduleLocked && scheduleUnlockDate && nextPayoutDate ? (
+                                <span className="flex items-center gap-1.5">
+                                    <Lock className="h-3 w-3" />
+                                    Next payout: {format(nextPayoutDate, 'dd MMM yyyy')}. Schedule locked until {format(scheduleUnlockDate, 'dd MMM yyyy')}.
+                                </span>
+                            ) : (
+                                'Select a schedule to automate your payouts.'
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Payout History</CardTitle>
+                    <CardDescription>
+                        A record of all funds transferred to your bank account.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Amount</TableHead>
+                                <TableHead className="hidden sm:table-cell">Destination</TableHead>
+                                <TableHead className="text-right">Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>
+                                    <div className="font-medium">2024-07-28</div>
+                                    <div className="text-xs text-muted-foreground">Ref: P-78123</div>
+                                </TableCell>
+                                <TableCell className="font-mono font-semibold">₦85,000</TableCell>
+                                <TableCell className="hidden sm:table-cell">GTBank (****6789)</TableCell>
+                                <TableCell className="text-right">
+                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                                        <CheckCircle className="mr-1 h-3 w-3" />
+                                        Paid
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell>
+                                    <div className="font-medium">2024-07-21</div>
+                                     <div className="text-xs text-muted-foreground">Ref: P-78011</div>
+                                </TableCell>
+                                <TableCell className="font-mono font-semibold">₦72,500</TableCell>
+                                <TableCell className="hidden sm:table-cell">GTBank (****6789)</TableCell>
+                                <TableCell className="text-right">
+                                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                                         <CheckCircle className="mr-1 h-3 w-3" />
+                                        Paid
+                                    </Badge>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Commission History</CardTitle>
+                    <CardDescription>
+                        A detailed record of all commissions deducted from your bookings.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Booking ID</TableHead>
+                                <TableHead className="hidden sm:table-cell">Gross Amount</TableHead>
+                                <TableHead className="hidden sm:table-cell">Commission</TableHead>
+                                <TableHead>Net Payout</TableHead>
+                                <TableHead className="hidden md:table-cell">Date</TableHead>
+                                <TableHead className="text-right">Status</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {placeholderPayouts.map((payout) => (
+                                <TableRow key={payout.bookingId}>
+                                    <TableCell>
+                                        <div className="font-medium">{payout.bookingId}</div>
+                                        <div className="text-xs text-muted-foreground">{payout.customerName}</div>
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell font-mono">
+                                        ₦{payout.grossAmount.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <div className="font-medium text-destructive">Platform Commission</div>
+                                        <div className="text-xs text-muted-foreground font-mono">
+                                            - ₦{payout.commissionFee.toLocaleString()} ({payout.commissionRate}%)
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="font-mono font-semibold text-primary">
+                                        ₦{payout.netPayout.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Badge variant="outline"
+                                            className={cn(
+                                                payout.status === 'Paid Out' && 'bg-green-100 text-green-800 border-green-200',
+                                                payout.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                            )}
+                                        >
+                                            {payout.status}
+                                        </Badge>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </div>
     );
 }
+
