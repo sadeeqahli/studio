@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -66,7 +67,7 @@ export default function OwnerBookings() {
                                 <TableCell className="text-right">
                                     {booking.status === 'Paid' && (
                                         <Button asChild variant="outline" size="sm">
-                                            <Link href={`/dashboard/receipt/${booking.id}`}>
+                                            <Link href={`/owner/dashboard/receipt/${booking.id}`}>
                                                 <Eye className="mr-2 h-4 w-4" /> View Receipt
                                             </Link>
                                         </Button>
