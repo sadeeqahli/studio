@@ -74,8 +74,8 @@ export default function HomePage() {
                 src="https://placehold.co/600x400.png"
                 width="600"
                 height="400"
-                alt="Hero"
-                data-ai-hint="player kicking ball"
+                alt="An aerial view of a brightly lit football pitch at night"
+                data-ai-hint="football pitch"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
             </div>
