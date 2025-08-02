@@ -254,21 +254,24 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
 }
 
 function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
-    const [formattedDate, setFormattedDate] = React.useState({ date: '', time: '' });
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         const date = new Date(withdrawal.date);
-        setFormattedDate({
-            date: date.toLocaleDateString(),
-            time: date.toLocaleTimeString(),
-        });
+        setFormattedDate(`${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
     }, [withdrawal.date]);
 
     return (
         <TableRow>
             <TableCell>
-                <div className="font-medium">{formattedDate.date}</div>
-                <div className="text-xs text-muted-foreground">{formattedDate.time}</div>
+                {formattedDate ? (
+                    <div>
+                        <div className="font-medium">{new Date(withdrawal.date).toLocaleDateString()}</div>
+                        <div className="text-xs text-muted-foreground">{new Date(withdrawal.date).toLocaleTimeString()}</div>
+                    </div>
+                ) : (
+                    <div className="font-medium">Loading...</div>
+                )}
             </TableCell>
             <TableCell className="font-mono font-semibold text-destructive">
                 - ₦{withdrawal.amount.toLocaleString()}
@@ -286,7 +289,7 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
 }
 
 function CommissionRow({ payout }: { payout: any }) {
-    const [formattedDate, setFormattedDate] = React.useState('');
+    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
         setFormattedDate(new Date(payout.date).toLocaleDateString());
@@ -304,7 +307,7 @@ function CommissionRow({ payout }: { payout: any }) {
             <TableCell className="font-mono font-semibold text-primary">
                 + ₦{payout.commissionFee.toLocaleString()}
             </TableCell>
-            <TableCell className="hidden md:table-cell">{formattedDate}</TableCell>
+            <TableCell className="hidden md:table-cell">{formattedDate || 'Loading...'}</TableCell>
             <TableCell className="text-right">
                 <Badge variant="outline"
                     className={cn(
