@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPayouts, placeholderAdminWithdrawals } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck, CheckCircle, Printer, Share2 } from "lucide-react"
+import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck, CheckCircle, Printer, Share2, DollarSign } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -200,6 +200,7 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
                     <DialogTitle>Withdraw Funds</DialogTitle>
                     <DialogDescription>
                         Transfer funds from your platform wallet to your bank account.
+                        Available for withdrawal: ₦{availableBalance.toLocaleString()}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleWithdraw}>
@@ -257,7 +258,7 @@ export default function AdminWalletPage() {
     }, 0);
 
     const totalWithdrawn = withdrawals.reduce((acc, w) => acc + w.amount, 0);
-    const availableBalance = totalRevenue - totalWithdrawn;
+    const availableForWithdrawal = totalRevenue - totalWithdrawn;
 
     const handleWithdraw = (newReceipt: WithdrawalReceipt) => {
         const newWithdrawal: AdminWithdrawal = {
@@ -277,34 +278,46 @@ export default function AdminWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold md:text-2xl">Platform Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} availableBalance={availableBalance} />
+                <WithdrawDialog onWithdraw={handleWithdraw} availableBalance={availableForWithdrawal} />
             </div>
 
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
 
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                         <Landmark className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₦{availableBalance.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">₦{totalRevenue.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            Total commission fees minus withdrawals.
+                            Total commission earned all-time.
                         </p>
                     </CardContent>
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Platform Account</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle>
+                        <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₦{totalWithdrawn.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                           Total amount withdrawn from the platform.
+                        </p>
+                    </CardContent>
+                </Card>
+                 <Card className="md:col-span-1 bg-primary/10 border-primary/20">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Available for Withdrawal</CardTitle>
                         <Building className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-xl font-semibold font-mono">9876543210</div>
+                        <div className="text-2xl font-bold text-primary">₦{availableForWithdrawal.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                            Kuda MFB - For subscription payments.
+                            The current balance you can withdraw.
                         </p>
                     </CardContent>
                 </Card>
