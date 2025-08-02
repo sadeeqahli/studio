@@ -5,9 +5,9 @@ import * as React from 'react';
 import { PitchCard } from '@/components/pitch-card';
 import { placeholderPitches } from '@/lib/placeholder-data';
 import { RecommendationDialog } from '@/components/recommendation-dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { MapPin, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Pitch } from '@/lib/types';
 
 export default function UserDashboard() {
@@ -41,30 +41,7 @@ export default function UserDashboard() {
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <Card className="lg:col-span-2 xl:col-span-2">
-            <CardHeader>
-                <CardTitle>Pitch Map</CardTitle>
-                <CardDescription>Find pitches visually near you.</CardDescription>
-            </CardHeader>
-            <CardContent className='h-[300px] p-0 rounded-b-lg overflow-hidden'>
-                <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d253682.46348281735!2d3.115933394531248!3d6.548981600000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b8b2ae68280c1%3A0x5df9fe84a20a50b3!2sLagos!5e0!3m2!1sen!2sng!4v1700000000000"
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen={false}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Map of Pitches in Lagos"
-                ></iframe>
-            </CardContent>
-        </Card>
-        {filteredPitches.slice(0, 2).map((pitch) => (
-          <PitchCard key={pitch.id} pitch={pitch} />
-        ))}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredPitches.slice(2).map((pitch) => (
+        {filteredPitches.map((pitch) => (
           <PitchCard key={pitch.id} pitch={pitch} />
         ))}
       </div>
