@@ -79,4 +79,13 @@ export type WithdrawalReceipt = {
     accountName: string;
     status: 'Successful' | 'Pending' | 'Failed';
 };
+
+export type AdminWithdrawal = {
+    id: string;
+    date: string;
+    amount: number;
+    bankName: string;
+    accountNumber: string;
+    status: 'Successful' | 'Pending' | 'Failed';
+};
     

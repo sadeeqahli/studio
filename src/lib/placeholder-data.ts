@@ -1,6 +1,6 @@
 
 
-import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction } from './types';
+import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal } from './types';
 
 export let placeholderPitches: Pitch[] = [
   {
@@ -87,6 +87,11 @@ export const placeholderUsers: User[] = [
 export const placeholderTransactions: Transaction[] = [
     { id: 'TRN003', date: '2024-07-28', description: 'Credit from booking payment', amount: 22500, type: 'Credit', bookingId: 'TXN72362' },
     { id: 'TRN005', date: '2024-07-27', description: 'Credit from booking payment', amount: 16650, type: 'Credit', bookingId: 'TXN19873'},
+];
+
+export const placeholderAdminWithdrawals: AdminWithdrawal[] = [
+    { id: 'WDL001', date: '2024-07-20', amount: 50000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful' },
+    { id: 'WDL002', date: '2024-07-10', amount: 120000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful' },
 ];
 
 export function updatePitch(updatedPitch: Pitch): void {
