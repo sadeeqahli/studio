@@ -54,7 +54,7 @@ export default function BookingPage() {
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
-    const [paymentMethod, setPaymentMethod] = React.useState('card');
+    const [paymentMethod, setPaymentMethod] = React.useState('transfer');
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(60);
@@ -243,68 +243,32 @@ export default function BookingPage() {
                                 
                                 <div>
                                     <h3 className="font-semibold mb-2">Payment Method</h3>
-                                    <Tabs defaultValue="card" onValueChange={setPaymentMethod}>
-                                        <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="card"><CreditCard className="mr-2 h-4 w-4" />Card</TabsTrigger>
-                                            <TabsTrigger value="transfer"><Banknote className="mr-2 h-4 w-4" />Transfer</TabsTrigger>
-                                        </TabsList>
-                                        <TabsContent value="card" className="mt-4">
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle>Credit/Debit Card</CardTitle>
-                                                    <CardDescription>Enter your card details. Payment is secure.</CardDescription>
-                                                </CardHeader>
-                                                <CardContent className="space-y-4">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="card-number">Card Number</Label>
-                                                        <Input id="card-number" placeholder="0000 0000 0000 0000" />
-                                                    </div>
-                                                    <div className="grid grid-cols-3 gap-4">
-                                                        <div className="space-y-2 col-span-2">
-                                                            <Label htmlFor="expiry">Expiry Date</Label>
-                                                            <Input id="expiry" placeholder="MM / YY" />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor="cvc">CVC</Label>
-                                                            <Input id="cvc" placeholder="123" />
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor="name-on-card">Name on Card</Label>
-                                                        <Input id="name-on-card" placeholder="Full Name" />
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </TabsContent>
-                                        <TabsContent value="transfer" className="mt-4">
-                                            <Card>
-                                                <CardHeader>
-                                                    <CardTitle>Owner's Virtual Account</CardTitle>
-                                                    <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
-                                                </CardHeader>
-                                                <CardContent className="space-y-3 text-sm">
-                                                    <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">Bank Name:</span>
-                                                        <span className="font-semibold">Providus Bank (Virtual)</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">Account Name:</span>
-                                                        <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
-                                                    </div>
-                                                     <div className="flex justify-between">
-                                                        <span className="text-muted-foreground">Account Number:</span>
-                                                        <span className="font-semibold font-mono">{virtualAccountNumber}</span>
-                                                    </div>
-                                                    <Alert className="mt-4">
-                                                        <AlertCircle className="h-4 w-4" />
-                                                        <AlertDescription>
-                                                          Use your Booking ID as the payment reference to confirm your booking instantly.
-                                                        </AlertDescription>
-                                                    </Alert>
-                                                </CardContent>
-                                            </Card>
-                                        </TabsContent>
-                                    </Tabs>
+                                     <Card>
+                                        <CardHeader>
+                                            <CardTitle className="flex items-center gap-2"><Banknote className="h-5 w-5" /> Bank Transfer</CardTitle>
+                                            <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Bank Name:</span>
+                                                <span className="font-semibold">Providus Bank (Virtual)</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Account Name:</span>
+                                                <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
+                                            </div>
+                                             <div className="flex justify-between">
+                                                <span className="text-muted-foreground">Account Number:</span>
+                                                <span className="font-semibold font-mono">{virtualAccountNumber}</span>
+                                            </div>
+                                            <Alert className="mt-4">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <AlertDescription>
+                                                  Use your Booking ID as the payment reference to confirm your booking instantly.
+                                                </AlertDescription>
+                                            </Alert>
+                                        </CardContent>
+                                    </Card>
                                 </div>
                                 <div className="space-y-2">
                                     <p className="text-xs text-muted-foreground">Please read these Terms carefully before making any payment or booking. If you do not agree with these Terms, you may not use the app or its services.</p>
@@ -412,4 +376,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
 
