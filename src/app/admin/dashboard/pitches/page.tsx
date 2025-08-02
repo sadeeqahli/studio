@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import * as React from "react"
@@ -38,7 +37,13 @@ import type { Pitch } from "@/lib/types"
 export default function AdminPitchesPage() {
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = React.useState("");
-    const [pitches, setPitches] = React.useState<Pitch[]>(placeholderPitches);
+    const [pitches, setPitches] = React.useState<Pitch[]>([]);
+
+    React.useEffect(() => {
+        // Initialize state from placeholder data only on component mount
+        setPitches(placeholderPitches);
+    }, []);
+
 
     const filteredPitches = pitches.filter(pitch => 
         pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
