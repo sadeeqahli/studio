@@ -38,6 +38,14 @@ const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kud
 function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: WithdrawalReceipt | null, isOpen: boolean, setIsOpen: (open: boolean) => void }) {
     const receiptRef = React.useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const [formattedDate, setFormattedDate] = React.useState('');
+
+    React.useEffect(() => {
+        if (receipt) {
+            setFormattedDate(new Date(receipt.date).toLocaleString());
+        }
+    }, [receipt]);
+
 
     if (!receipt) return null;
 
@@ -112,7 +120,7 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
                             </div>
                              <div className="flex justify-between">
                                 <span className="text-muted-foreground">Date:</span>
-                                <span>{new Date(receipt.date).toLocaleString()}</span>
+                                <span>{formattedDate}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Bank:</span>
@@ -245,6 +253,73 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
     )
 }
 
+function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
+    const [formattedDate, setFormattedDate] = React.useState({ date: '', time: '' });
+
+    React.useEffect(() => {
+        const date = new Date(withdrawal.date);
+        setFormattedDate({
+            date: date.toLocaleDateString(),
+            time: date.toLocaleTimeString(),
+        });
+    }, [withdrawal.date]);
+
+    return (
+        <TableRow>
+            <TableCell>
+                <div className="font-medium">{formattedDate.date}</div>
+                <div className="text-xs text-muted-foreground">{formattedDate.time}</div>
+            </TableCell>
+            <TableCell className="font-mono font-semibold text-destructive">
+                - ₦{withdrawal.amount.toLocaleString()}
+            </TableCell>
+            <TableCell className="hidden sm:table-cell">
+                {withdrawal.bankName} ({withdrawal.accountNumber})
+            </TableCell>
+            <TableCell className="text-right">
+                <Badge variant="outline" className='bg-green-100 text-green-800 border-green-200'>
+                    {withdrawal.status}
+                </Badge>
+            </TableCell>
+        </TableRow>
+    );
+}
+
+function CommissionRow({ payout }: { payout: any }) {
+    const [formattedDate, setFormattedDate] = React.useState('');
+
+    React.useEffect(() => {
+        setFormattedDate(new Date(payout.date).toLocaleDateString());
+    }, [payout.date]);
+
+    return (
+         <TableRow>
+            <TableCell>
+                <div className="font-medium">{payout.bookingId}</div>
+                <div className="text-xs text-muted-foreground">From {payout.customerName}</div>
+            </TableCell>
+            <TableCell className="hidden sm:table-cell">
+                Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()} booking
+            </TableCell>
+            <TableCell className="font-mono font-semibold text-primary">
+                + ₦{payout.commissionFee.toLocaleString()}
+            </TableCell>
+            <TableCell className="hidden md:table-cell">{formattedDate}</TableCell>
+            <TableCell className="text-right">
+                <Badge variant="outline"
+                    className={cn(
+                        payout.status === 'Paid Out' && 'bg-green-100 text-green-800 border-green-200',
+                        payout.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    )}
+                >
+                    {payout.status === 'Paid Out' ? 'Received' : 'Pending'}
+                </Badge>
+            </TableCell>
+        </TableRow>
+    );
+}
+
+
 export default function AdminWalletPage() {
     const [withdrawals, setWithdrawals] = React.useState<AdminWithdrawal[]>(placeholderAdminWithdrawals);
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
@@ -342,25 +417,7 @@ export default function AdminWalletPage() {
                         </TableHeader>
                         <TableBody>
                             {withdrawals.map((withdrawal) => (
-                                <TableRow key={withdrawal.id}>
-                                    <TableCell>
-                                        <div className="font-medium">{new Date(withdrawal.date).toLocaleDateString()}</div>
-                                        <div className="text-xs text-muted-foreground">{new Date(withdrawal.date).toLocaleTimeString()}</div>
-                                    </TableCell>
-                                    <TableCell className="font-mono font-semibold text-destructive">
-                                       - ₦{withdrawal.amount.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                        {withdrawal.bankName} ({withdrawal.accountNumber})
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge variant="outline"
-                                            className='bg-green-100 text-green-800 border-green-200'
-                                        >
-                                            {withdrawal.status}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
+                                <HistoryRow key={withdrawal.id} withdrawal={withdrawal} />
                             ))}
                         </TableBody>
                     </Table>
@@ -387,29 +444,7 @@ export default function AdminWalletPage() {
                         </TableHeader>
                         <TableBody>
                             {placeholderPayouts.map((payout) => (
-                                <TableRow key={payout.bookingId}>
-                                    <TableCell>
-                                        <div className="font-medium">{payout.bookingId}</div>
-                                        <div className="text-xs text-muted-foreground">From {payout.customerName}</div>
-                                    </TableCell>
-                                    <TableCell className="hidden sm:table-cell">
-                                        Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()} booking
-                                    </TableCell>
-                                    <TableCell className="font-mono font-semibold text-primary">
-                                       + ₦{payout.commissionFee.toLocaleString()}
-                                    </TableCell>
-                                    <TableCell className="hidden md:table-cell">{payout.date}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Badge variant="outline"
-                                            className={cn(
-                                                payout.status === 'Paid Out' && 'bg-green-100 text-green-800 border-green-200',
-                                                payout.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                            )}
-                                        >
-                                            {payout.status === 'Paid Out' ? 'Received' : 'Pending'}
-                                        </Badge>
-                                    </TableCell>
-                                </TableRow>
+                               <CommissionRow key={payout.bookingId} payout={payout} />
                             ))}
                         </TableBody>
                     </Table>
