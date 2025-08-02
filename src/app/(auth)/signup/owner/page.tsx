@@ -73,14 +73,14 @@ export default function OwnerSignupForm() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="bvn">Bank Verification Number (BVN)</Label>
-            <Input id="bvn" type="text" placeholder="Enter your 11-digit BVN" required maxLength={11} />
+            <Label htmlFor="nin">National Identification Number (NIN)</Label>
+            <Input id="nin" type="text" placeholder="Enter your 11-digit NIN" required maxLength={11} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="document">Verification Document</Label>
+            <Label htmlFor="document">NIN Verification Document</Label>
             <Input id="document" type="file" required />
-            <p className="text-xs text-muted-foreground">Please upload a CAC document, utility bill, or other proof of ownership.</p>
+            <p className="text-xs text-muted-foreground">Please upload your NIN slip or a clear photo of your National ID card.</p>
           </div>
 
           <Button type="submit" className="w-full">
