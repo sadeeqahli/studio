@@ -143,7 +143,7 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
 }
 
 
-function WithdrawDialog({ onWithdraw }: { onWithdraw: (receipt: WithdrawalReceipt) => void }) {
+function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt: WithdrawalReceipt) => void, availableBalance: number }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -151,13 +151,23 @@ function WithdrawDialog({ onWithdraw }: { onWithdraw: (receipt: WithdrawalReceip
 
     const handleWithdraw = (e: React.FormEvent) => {
         e.preventDefault();
+        
+        const withdrawalAmount = parseFloat(amount);
+        if (withdrawalAmount > availableBalance) {
+            toast({
+                title: "Insufficient funds",
+                description: `You cannot withdraw more than the available balance of ₦${availableBalance.toLocaleString()}`,
+                variant: "destructive",
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         setTimeout(() => {
             setIsLoading(false);
             setIsOpen(false);
             
-            const withdrawalAmount = parseFloat(amount);
             const receiptId = `WDR-${Date.now()}`;
 
             const newReceipt: WithdrawalReceipt = {
@@ -238,12 +248,15 @@ export default function AdminWalletPage() {
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
 
-    const totalBalance = placeholderPayouts.reduce((acc, payout) => {
+    const totalRevenue = placeholderPayouts.reduce((acc, payout) => {
         if (payout.status === 'Paid Out') {
             return acc + payout.commissionFee;
         }
         return acc;
-    }, 0) - withdrawals.reduce((acc, w) => acc + w.amount, 0);
+    }, 0);
+
+    const totalWithdrawn = withdrawals.reduce((acc, w) => acc + w.amount, 0);
+    const availableBalance = totalRevenue - totalWithdrawn;
 
     const handleWithdraw = (newReceipt: WithdrawalReceipt) => {
         const newWithdrawal: AdminWithdrawal = {
@@ -263,7 +276,7 @@ export default function AdminWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-lg font-semibold md:text-2xl">Platform Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} />
+                <WithdrawDialog onWithdraw={handleWithdraw} availableBalance={availableBalance} />
             </div>
 
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
@@ -276,7 +289,7 @@ export default function AdminWalletPage() {
                         <Landmark className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">₦{availableBalance.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
                             Total commission fees minus withdrawals.
                         </p>
