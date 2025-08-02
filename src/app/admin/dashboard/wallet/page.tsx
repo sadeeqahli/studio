@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import type { AdminWithdrawal, WithdrawalReceipt } from "@/lib/types";
+import type { AdminWithdrawal, WithdrawalReceipt, Payout } from "@/lib/types";
 
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
@@ -257,6 +257,7 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
+        // This effect runs only on the client, preventing hydration mismatch
         const date = new Date(withdrawal.date);
         setFormattedDate(`${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
     }, [withdrawal.date]);
@@ -270,7 +271,8 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
                         <div className="text-xs text-muted-foreground">{new Date(withdrawal.date).toLocaleTimeString()}</div>
                     </div>
                 ) : (
-                    <div className="font-medium">Loading...</div>
+                    // Render a placeholder or nothing on the server and initial client render
+                    <div className="font-medium">...</div>
                 )}
             </TableCell>
             <TableCell className="font-mono font-semibold text-destructive">
@@ -288,10 +290,11 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
     );
 }
 
-function CommissionRow({ payout }: { payout: any }) {
+function CommissionRow({ payout }: { payout: Payout }) {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
+        // This effect runs only on the client, preventing hydration mismatch
         setFormattedDate(new Date(payout.date).toLocaleDateString());
     }, [payout.date]);
 
@@ -307,7 +310,7 @@ function CommissionRow({ payout }: { payout: any }) {
             <TableCell className="font-mono font-semibold text-primary">
                 + ₦{payout.commissionFee.toLocaleString()}
             </TableCell>
-            <TableCell className="hidden md:table-cell">{formattedDate || 'Loading...'}</TableCell>
+            <TableCell className="hidden md:table-cell">{formattedDate || '...'}</TableCell>
             <TableCell className="text-right">
                 <Badge variant="outline"
                     className={cn(
@@ -456,3 +459,5 @@ export default function AdminWalletPage() {
         </div>
     )
 }
+
+    
