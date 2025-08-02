@@ -30,11 +30,6 @@ export default function HomePage() {
       description: 'Pitch owners can easily manage their pitch details, availability, and bookings from their dashboard.',
     },
     {
-        icon: <Star className="w-8 h-8 text-primary" />,
-        title: 'AI Recommendations',
-        description: 'Get personalized pitch suggestions based on your preferences for location, budget, and amenities.',
-    },
-    {
         icon: <MapPin className="w-8 h-8 text-primary" />,
         title: 'Map Integration',
         description: 'Visualize pitch locations on an interactive map to find the perfect spot for your game.',

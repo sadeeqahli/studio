@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { PitchCard } from '@/components/pitch-card';
 import { placeholderPitches } from '@/lib/placeholder-data';
-import { RecommendationDialog } from '@/components/recommendation-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -37,7 +36,6 @@ export default function UserDashboard() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <RecommendationDialog />
         </div>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
