@@ -56,7 +56,7 @@ export default function BookingPage() {
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
-    const [countdown, setCountdown] = React.useState(60);
+    const [countdown, setCountdown] = React.useState(20);
     const [isCopied, setIsCopied] = React.useState(false);
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
@@ -389,6 +389,7 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
 
 
 
