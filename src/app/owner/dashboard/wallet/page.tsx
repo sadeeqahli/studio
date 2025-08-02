@@ -347,7 +347,7 @@ export default function OwnerWalletPage() {
                 <WithdrawDialog onWithdraw={handleWithdraw} />
             </div>
             
-            <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />
+            {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
 
             <div className="grid md:grid-cols-2 gap-6">
                  <Card>
@@ -427,3 +427,5 @@ export default function OwnerWalletPage() {
         </div>
     )
 }
+
+    
