@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldCheck } from "lucide-react";
 
 export default function OwnerSignupForm() {
     const router = useRouter();
@@ -23,30 +25,37 @@ export default function OwnerSignupForm() {
     const handleSignup = (event: React.FormEvent) => {
         event.preventDefault();
         toast({
-            title: "Account Created!",
-            description: "Welcome! Please select a subscription plan to continue.",
+            title: "Verification Pending",
+            description: "Thank you for submitting your details. Your account is under review. We will notify you via email once your verification is complete.",
         });
-        // In a real app, you'd have registration logic here.
-        // Redirect to the pricing page to choose a plan.
-        router.push('/owner/dashboard/pricing');
+        // In a real app, you'd handle the form data and verification logic.
+        // For now, we'll just redirect to the login page.
+        router.push('/login?type=owner');
     };
 
   return (
-    <Card className="mx-auto max-w-sm w-full">
+    <Card className="mx-auto max-w-lg w-full">
       <CardHeader>
         <CardTitle className="text-xl">Create your Pitch Owner Account</CardTitle>
         <CardDescription>
-          Enter your information to list your pitch
+          Enter your information to list your pitch. Verification is required.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSignup} className="grid gap-4">
+            <Alert>
+                <ShieldCheck className="h-4 w-4" />
+                <AlertTitle>Verification Required</AlertTitle>
+                <AlertDescription>
+                    To ensure the safety of our users, we require identity and business verification before you can list a pitch.
+                </AlertDescription>
+            </Alert>
           <div className="grid gap-2">
             <Label htmlFor="owner-name">Full Name</Label>
             <Input id="owner-name" placeholder="Tunde Ojo" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="pitch-name">Pitch Name</Label>
+            <Label htmlFor="pitch-name">Pitch Name / Business Name</Label>
             <Input id="pitch-name" placeholder="Lekki Goals Arena" required />
           </div>
           <div className="grid gap-2">
@@ -62,8 +71,20 @@ export default function OwnerSignupForm() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" />
           </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="bvn">Bank Verification Number (BVN)</Label>
+            <Input id="bvn" type="text" placeholder="Enter your 11-digit BVN" required maxLength={11} />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="document">Verification Document</Label>
+            <Input id="document" type="file" required />
+            <p className="text-xs text-muted-foreground">Please upload a CAC document, utility bill, or other proof of ownership.</p>
+          </div>
+
           <Button type="submit" className="w-full">
-            Create an account
+            Submit for Verification
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
