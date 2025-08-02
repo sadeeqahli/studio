@@ -31,13 +31,35 @@ import { Badge } from "@/components/ui/badge"
 import { placeholderPitches } from "@/lib/placeholder-data"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
+import { cn } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+import type { Pitch } from "@/lib/types"
 
 export default function AdminPitchesPage() {
+    const { toast } = useToast();
     const [searchTerm, setSearchTerm] = React.useState("");
-    const filteredPitches = placeholderPitches.filter(pitch => 
+    const [pitches, setPitches] = React.useState<Pitch[]>(placeholderPitches);
+
+    const filteredPitches = pitches.filter(pitch => 
         pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleTogglePitchStatus = (pitchId: string) => {
+        setPitches(currentPitches =>
+            currentPitches.map(pitch => {
+                if (pitch.id === pitchId) {
+                    const newStatus = pitch.status === 'Active' ? 'Unlisted' : 'Active';
+                    toast({
+                        title: `Pitch ${newStatus}`,
+                        description: `The pitch "${pitch.name}" has been ${newStatus.toLowerCase()}.`,
+                    });
+                    return { ...pitch, status: newStatus };
+                }
+                return pitch;
+            })
+        );
+    };
 
   return (
     <div>
@@ -90,7 +112,12 @@ export default function AdminPitchesPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">Tunde Ojo</TableCell>
                      <TableCell>
-                        <Badge variant="outline" className="text-green-600 border-green-400 bg-green-50">Active</Badge>
+                         <Badge
+                            variant={pitch.status === 'Active' ? 'outline' : 'destructive'}
+                            className={cn(pitch.status === 'Active' ? 'text-green-600 border-green-400 bg-green-50' : 'text-red-600 border-red-400 bg-red-50')}
+                        >
+                            {pitch.status}
+                        </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell font-mono">
                         ₦{pitch.price.toLocaleString()}
@@ -110,7 +137,9 @@ export default function AdminPitchesPage() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Unlist Pitch</DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => handleTogglePitchStatus(pitch.id)}>
+                                {pitch.status === 'Active' ? 'Unlist Pitch' : 'Re-list Pitch'}
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                         </DropdownMenu>
                     </TableCell>

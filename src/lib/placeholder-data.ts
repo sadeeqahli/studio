@@ -12,6 +12,7 @@ export let placeholderPitches: Pitch[] = [
     imageUrl: 'https://images.unsplash.com/photo-1596352321429-514303685a97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzb2NjZXIlMjBhc3Ryb3R1cmZ8ZW58MHx8fHwxNzUzNzYwODQ0fDA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'astroturf pitch',
     availableSlots: ['4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
+    status: 'Active',
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ export let placeholderPitches: Pitch[] = [
     imageUrl: 'https://images.unsplash.com/photo-1521952210435-373f9b234475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHw1LWEtc2lkZSUyMGZvb3RiYWxsfGVufDB8fHx8MTc1Mzc2MDkwMHww&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: '5-a-side soccer',
     availableSlots: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM'],
+    status: 'Active',
   },
   {
     id: '3',
@@ -32,6 +34,7 @@ export let placeholderPitches: Pitch[] = [
     imageUrl: 'https://images.unsplash.com/photo-1622953443487-735264b51936?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGZvb3RiYWxsJTIwZmllbGR8ZW58MHx8fHwxNzUzNzYwOTYyfDA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'green field',
     availableSlots: ['3:00 PM - 4:00 PM'],
+    status: 'Active',
   },
   {
     id: '4',
@@ -42,6 +45,7 @@ export let placeholderPitches: Pitch[] = [
     imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHBsYXllcnxlbnwwfHx8fDE3NTM3NjEwMTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'football players',
     availableSlots: ['5:00 PM - 6:00 PM', '8:00 PM - 9:00 PM'],
+    status: 'Active',
   },
 ];
 
