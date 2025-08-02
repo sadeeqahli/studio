@@ -32,13 +32,16 @@ import { Input } from "@/components/ui/input"
 import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
 import type { User } from "@/lib/types"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 
 export default function AdminUsersPage() {
+    const { toast } = useToast();
+    const [users, setUsers] = React.useState<User[]>(placeholderUsers);
     const [searchTerm, setSearchTerm] = React.useState("");
     const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
 
-    const filteredUsers = placeholderUsers.filter(user => 
+    const filteredUsers = users.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -47,6 +50,23 @@ export default function AdminUsersPage() {
         setSelectedUser(user);
         setIsDetailsOpen(true);
     };
+
+    const handleToggleUserStatus = (userId: string) => {
+        setUsers(currentUsers =>
+            currentUsers.map(user => {
+                if (user.id === userId) {
+                    const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+                    toast({
+                        title: `User ${newStatus}`,
+                        description: `${user.name}'s account has been ${newStatus.toLowerCase()}.`,
+                    });
+                    return { ...user, status: newStatus };
+                }
+                return user;
+            })
+        );
+    };
+
 
   return (
     <div>
@@ -107,7 +127,7 @@ export default function AdminUsersPage() {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onClick={() => handleViewDetails(user)}>View Details</DropdownMenuItem>
-                                        <DropdownMenuItem>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleToggleUserStatus(user.id)}>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
                                     </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
