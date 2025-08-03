@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'LinkHub - 9ja Pitch Connect',
+  title: '9ja Pitch Connect - Powered by Link Hub',
   description: 'Connect with football pitches across Nigeria. Book, play, and manage your games seamlessly. Powered by Link Hub.',
 };
 
@@ -35,5 +35,3 @@ export default function RootLayout({
       </body>
     </html>
   );
-
-

@@ -12,7 +12,6 @@ import {
   List,
   BarChart3,
   Landmark,
-  SheetTitle
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -24,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/icons"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -57,7 +56,7 @@ export default function AdminDashboardLayout({
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
               <Logo className="h-8 w-8" />
-              <span className="text-lg text-primary">LinkHub</span>
+              <span className="text-lg text-primary">9ja Pitch Connect</span>
             </Link>
           </div>
           <div className="flex-1">
