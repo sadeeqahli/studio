@@ -1,3 +1,4 @@
+
 # How to Access the Admin Dashboard
 
 To access the admin dashboard for your deployed application, follow these steps:
@@ -5,7 +6,7 @@ To access the admin dashboard for your deployed application, follow these steps:
 1.  Navigate to the `/admin/login` URL of your application. For example, if your application is deployed at `https://myapp.com`, you would go to `https://myapp.com/admin/login`.
 
 2.  Use the following hardcoded credentials to log in:
-    *   **Email:** `admin@naijapitchconnect.com`
+    *   **Email:** `admin@linkhub.com`
     *   **Password:** `admin123`
 
 **Important Security Note:**

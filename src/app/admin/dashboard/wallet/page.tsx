@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -185,7 +184,7 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
                 amount: withdrawalAmount,
                 bankName: "GTBank",
                 accountNumber: "****6789",
-                accountName: "Naija Pitch Connect Ltd.",
+                accountName: "LinkHub Inc.",
                 status: 'Successful'
             };
             
@@ -234,7 +233,7 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="account-name">Account Name</Label>
-                            <Input id="account-name" value="Naija Pitch Connect Ltd." disabled />
+                            <Input id="account-name" value="LinkHub Inc." disabled />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="pin">Transaction PIN</Label>

@@ -43,7 +43,7 @@ export default function LoginForm() {
       <CardHeader>
         <CardTitle className="text-2xl">{isOwnerLogin ? 'Owner Login' : 'Player Login'}</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account.
+          Enter your email below to login to your account on 9ja Pitch Connect.
         </CardDescription>
       </CardHeader>
       <CardContent>

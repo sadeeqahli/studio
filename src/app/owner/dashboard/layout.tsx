@@ -15,6 +15,7 @@ import {
   DollarSign,
   BarChartHorizontalBig,
   Wallet,
+  SheetTitle
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -62,7 +63,7 @@ export default function OwnerDashboardLayout({
              <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6 justify-between">
                  <Link href="/" className="flex items-center gap-2 font-semibold">
                     <Logo className="h-8 w-8" />
-                    <span className="text-lg text-primary">9ja Pitch Connect</span>
+                    <span className="text-lg text-primary">LinkHub</span>
                 </Link>
                 <Button variant="ghost" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" /> Logout
@@ -82,7 +83,7 @@ export default function OwnerDashboardLayout({
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Logo className="h-8 w-8" />
-              <span className="text-lg text-primary">9ja Pitch Connect</span>
+              <span className="text-lg text-primary">LinkHub</span>
             </Link>
           </div>
           <div className="flex-1">
@@ -123,6 +124,9 @@ export default function OwnerDashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+               <div className="sr-only">
+                  <SheetTitle>Owner Menu</SheetTitle>
+              </div>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -166,7 +170,7 @@ export default function OwnerDashboardLayout({
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => router.push('/owner/dashboard/profile')}>Settings</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@linkhub.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>

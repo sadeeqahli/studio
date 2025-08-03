@@ -266,7 +266,7 @@ function WithdrawDialog({ onWithdraw }: { onWithdraw: (newTransaction: Transacti
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
                             <Label htmlFor="amount">Amount (NGN)</Label>
-                            <Input id="amount" type="number" placeholder="e.g., 50000" required value={amount} onChange={(e) => setAmount(e.target.value)} />
+                            <Input id="amount" type="number" placeholder="e.g., 50000" required value={amount} onChange={e => setAmount(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="bank">Bank Name</Label>
@@ -329,7 +329,7 @@ export default function OwnerWalletPage() {
     const virtualAccount = {
         number: "9988776655",
         bank: "Providus Bank",
-        name: "9ja Pitch Connect - Tunde Ojo"
+        name: "LinkHub - Tunde Ojo"
     };
 
     const handleCopy = () => {

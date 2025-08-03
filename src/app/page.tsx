@@ -1,5 +1,4 @@
 
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/icons';
@@ -41,7 +40,7 @@ export default function HomePage() {
       <header className="px-4 lg:px-6 h-16 flex items-center bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <Link href="/" className="flex items-center justify-center gap-2" prefetch={false}>
           <Logo className="h-8 w-8" />
-          <span className="text-xl font-bold text-primary">9ja Pitch Connect</span>
+          <span className="text-xl font-bold text-primary">LinkHub</span>
         </Link>
       </header>
       <main className="flex-1">
@@ -56,6 +55,7 @@ export default function HomePage() {
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
                     Connect, book, and play. 9ja Pitch Connect is your ultimate platform for finding the best football pitches across Nigeria.
                   </p>
+                   <p className="text-sm font-semibold text-primary">Powered by Link Hub</p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
@@ -103,7 +103,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t text-center justify-center">
         <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/about" className="text-xs hover:underline underline-offset-4" prefetch={false}>
@@ -122,6 +122,7 @@ export default function HomePage() {
             Privacy
           </Link>
         </nav>
+         <p className="text-xs text-muted-foreground sm:ml-auto">Powered by Link Hub</p>
       </footer>
     </div>
   );
