@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/icons"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -123,6 +123,9 @@ export default function OwnerDashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+               <div className="sr-only">
+                  <SheetTitle>Owner Menu</SheetTitle>
+              </div>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -166,7 +169,7 @@ export default function OwnerDashboardLayout({
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => router.push('/owner/dashboard/profile')}>Settings</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@linkhub.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>

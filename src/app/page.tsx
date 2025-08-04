@@ -1,5 +1,4 @@
 
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Logo } from '@/components/icons';
@@ -30,11 +29,6 @@ export default function HomePage() {
       description: 'Pitch owners can easily manage their pitch details, availability, and bookings from their dashboard.',
     },
     {
-        icon: <Star className="w-8 h-8 text-primary" />,
-        title: 'AI Recommendations',
-        description: 'Get personalized pitch suggestions based on your preferences for location, budget, and amenities.',
-    },
-    {
         icon: <MapPin className="w-8 h-8 text-primary" />,
         title: 'Map Integration',
         description: 'Visualize pitch locations on an interactive map to find the perfect spot for your game.',
@@ -61,6 +55,7 @@ export default function HomePage() {
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
                     Connect, book, and play. 9ja Pitch Connect is your ultimate platform for finding the best football pitches across Nigeria.
                   </p>
+                   <p className="text-sm font-semibold text-primary">Powered by Link Hub</p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button asChild size="lg">
@@ -108,7 +103,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t text-center justify-center">
         <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="/about" className="text-xs hover:underline underline-offset-4" prefetch={false}>
@@ -127,6 +122,7 @@ export default function HomePage() {
             Privacy
           </Link>
         </nav>
+         <p className="text-xs text-muted-foreground sm:ml-auto">Powered by Link Hub</p>
       </footer>
     </div>
   );

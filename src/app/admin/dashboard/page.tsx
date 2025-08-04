@@ -18,6 +18,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { placeholderUsers, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
+import { User } from "@/lib/types"
 
 export default function AdminDashboard() {
   const totalUsers = placeholderUsers.length;
@@ -69,7 +70,7 @@ export default function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {placeholderUsers.slice(0, 5).map(user => (
+                            {placeholderUsers.slice(0, 5).map((user: User) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="font-medium">{user.name}</div>

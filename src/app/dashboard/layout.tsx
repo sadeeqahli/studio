@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import Link from "next/link"
@@ -38,7 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/icons"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -60,7 +59,6 @@ export default function DashboardLayout({
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/shop", label: "Shop", icon: ShoppingCart },
     { href: "/dashboard/history", label: "Booking History", icon: History },
-    { href: "/dashboard/ai-news", label: "AI Assistant", icon: Sparkles },
     { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
   ];
 
@@ -112,6 +110,9 @@ export default function DashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <div className="sr-only">
+                  <SheetTitle>Player Menu</SheetTitle>
+              </div>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -155,7 +156,7 @@ export default function DashboardLayout({
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => router.push('/dashboard/profile')}>Profile & Settings</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@linkhub.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>

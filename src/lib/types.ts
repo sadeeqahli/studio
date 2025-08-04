@@ -1,5 +1,4 @@
 
-
 export type Pitch = {
   id: string;
   name: string;
@@ -9,6 +8,7 @@ export type Pitch = {
   imageUrl: string;
   imageHint: string;
   availableSlots: string[];
+  status: 'Active' | 'Unlisted' | 'Pending Review';
 };
 
 export type Booking = {
@@ -78,4 +78,12 @@ export type WithdrawalReceipt = {
     accountName: string;
     status: 'Successful' | 'Pending' | 'Failed';
 };
-    
+
+export type AdminWithdrawal = {
+    id: string;
+    date: string;
+    amount: number;
+    bankName: string;
+    accountNumber: string;
+    status: 'Successful' | 'Pending' | 'Failed';
+};

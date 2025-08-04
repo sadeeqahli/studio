@@ -11,7 +11,7 @@ import {
   CalendarCheck,
   List,
   BarChart3,
-  Landmark
+  Landmark,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Logo } from "@/components/icons"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -97,6 +97,9 @@ export default function AdminDashboardLayout({
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <div className="sr-only">
+                  <SheetTitle>Admin Menu</SheetTitle>
+              </div>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/admin/dashboard"
@@ -139,7 +142,7 @@ export default function AdminDashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Admin Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@naijapitchconnect.com'}>Support</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.location.href = 'mailto:support@linkhub.com'}>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>

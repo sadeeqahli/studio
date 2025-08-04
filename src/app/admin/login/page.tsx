@@ -29,7 +29,7 @@ export default function AdminLoginForm() {
     
     // In a real app, use a proper authentication provider.
     // For this prototype, we'll use hardcoded credentials.
-    if (email === 'admin@naijapitchconnect.com' && password === 'admin123') {
+    if (email === 'admin@linkhub.com' && password === 'admin123') {
         toast({
             title: "Admin Login Successful",
             description: "Welcome back, Admin! Redirecting you to the dashboard.",
@@ -67,7 +67,7 @@ export default function AdminLoginForm() {
                 <Input
                 id="email"
                 type="email"
-                placeholder="admin@naijapitchconnect.com"
+                placeholder="admin@linkhub.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

@@ -18,8 +18,9 @@ export default function AuthLayout({
       <main className="flex-1 flex items-center justify-center p-4 bg-primary/5">
         {children}
       </main>
-      <footer className="flex justify-center py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect</p>
+      <footer className="flex flex-col sm:flex-row justify-center items-center text-center py-6 w-full shrink-0 px-4 md:px-6 border-t gap-2">
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} 9ja Pitch Connect.</p>
+        <p className="text-xs text-muted-foreground">Powered by Link Hub</p>
       </footer>
     </div>
   )
