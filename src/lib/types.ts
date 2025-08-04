@@ -1,5 +1,4 @@
 
-
 export type Pitch = {
   id: string;
   name: string;
@@ -88,4 +87,3 @@ export type AdminWithdrawal = {
     accountNumber: string;
     status: 'Successful' | 'Pending' | 'Failed';
 };
-    
