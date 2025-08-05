@@ -19,10 +19,13 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldCheck } from "lucide-react";
+import { addUserCredential } from "@/lib/placeholder-data";
 
 export default function OwnerSignupForm() {
     const router = useRouter();
     const { toast } = useToast();
+    const [fullName, setFullName] = React.useState('');
+    const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
 
@@ -46,13 +49,24 @@ export default function OwnerSignupForm() {
             });
             return;
         }
+        
+        // Add new user to our placeholder data
+        addUserCredential({
+            id: `USR-${Date.now()}`,
+            name: fullName,
+            email: email,
+            password: password,
+            role: 'Owner',
+            registeredDate: new Date().toISOString().split('T')[0],
+            status: 'Active', // Or 'Pending' if verification is a real step
+            pitchesListed: 0
+        });
 
         toast({
             title: "Verification Pending",
-            description: "Thank you for submitting your details. Your account is under review. We will notify you via email once your verification is complete.",
+            description: "Thank you for submitting. Please log in to continue once your account is approved.",
         });
-        // In a real app, you'd handle the form data and verification logic.
-        // For now, we'll just redirect to the login page.
+
         router.push('/login?type=owner');
     };
 
@@ -75,7 +89,7 @@ export default function OwnerSignupForm() {
             </Alert>
           <div className="grid gap-2">
             <Label htmlFor="owner-name">Full Name</Label>
-            <Input id="owner-name" placeholder="Tunde Ojo" required />
+            <Input id="owner-name" placeholder="Tunde Ojo" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="pitch-name">Pitch Name / Business Name</Label>
@@ -88,6 +102,8 @@ export default function OwnerSignupForm() {
               type="email"
               placeholder="m@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">

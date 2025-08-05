@@ -3,11 +3,14 @@
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal } from './types';
 
 // This is a new data structure to simulate a user credential store.
-export const placeholderCredentials: User[] = [
+export let placeholderCredentials: User[] = [
     { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
     { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2 },
 ];
 
+export function addUserCredential(user: User) {
+    placeholderCredentials.push(user);
+}
 
 export let placeholderPitches: Pitch[] = [
   {

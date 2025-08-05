@@ -17,10 +17,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
+import { addUserCredential } from "@/lib/placeholder-data";
 
 export default function UserSignupForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
 
@@ -46,12 +50,23 @@ export default function UserSignupForm() {
       return;
     }
 
+    // Add new user to our placeholder data
+    addUserCredential({
+        id: `USR-${Date.now()}`,
+        name: `${firstName} ${lastName}`,
+        email: email,
+        password: password,
+        role: 'Player',
+        registeredDate: new Date().toISOString().split('T')[0],
+        status: 'Active',
+        totalBookings: 0,
+    });
+
     toast({
         title: "Account Created!",
-        description: "Welcome! We're redirecting you to your dashboard.",
+        description: "Welcome! Please log in to continue.",
     });
-    // In a real app, you'd save the user and then redirect.
-    router.push('/dashboard');
+    router.push('/login');
   };
 
   return (
@@ -67,11 +82,11 @@ export default function UserSignupForm() {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="first-name">First name</Label>
-              <Input id="first-name" placeholder="Max" required />
+              <Input id="first-name" placeholder="Max" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="last-name">Last name</Label>
-              <Input id="last-name" placeholder="Robinson" required />
+              <Input id="last-name" placeholder="Robinson" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
           </div>
           <div className="grid gap-2">
@@ -81,6 +96,8 @@ export default function UserSignupForm() {
               type="email"
               placeholder="m@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
