@@ -1,4 +1,5 @@
 
+
 export type Pitch = {
   id: string;
   name: string;
@@ -53,6 +54,7 @@ export type User = {
     id: string;
     name: string;
     email: string;
+    password?: string;
     role: 'Player' | 'Owner' | 'Admin';
     registeredDate: string;
     status: 'Active' | 'Suspended';

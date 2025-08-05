@@ -1,8 +1,10 @@
 
+
 "use client";
 
 import Link from "next/link"
 import { useRouter, useSearchParams } from 'next/navigation';
+import * as React from 'react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,25 +17,44 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
+import { placeholderCredentials } from "@/lib/placeholder-data";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const userType = searchParams.get('type');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
 
   const handleLogin = (event: React.FormEvent) => {
     event.preventDefault();
     
     const isOwner = userType === 'owner';
-    const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
-    const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
+    const expectedRole = isOwner ? 'Owner' : 'Player';
+    
+    // Find user by email and role
+    const user = placeholderCredentials.find(
+      u => u.email.toLowerCase() === email.toLowerCase() && u.role === expectedRole
+    );
 
-    toast({
-        title: "Login Successful",
-        description: welcomeMessage,
-    });
-    router.push(redirectPath);
+    // Check if user exists and password is correct
+    if (user && user.password === password) {
+      const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
+      const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
+
+      toast({
+          title: "Login Successful",
+          description: welcomeMessage,
+      });
+      router.push(redirectPath);
+    } else {
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const isOwnerLogin = userType === 'owner';
@@ -55,6 +76,8 @@ export default function LoginForm() {
               type="email"
               placeholder="m@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">
@@ -67,7 +90,13 @@ export default function LoginForm() {
                 Forgot your password?
               </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
           <Button type="submit" className="w-full">
             Login

@@ -1,8 +1,10 @@
 
+
 "use client";
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import * as React from 'react';
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,15 +21,36 @@ import { useToast } from "@/hooks/use-toast";
 export default function UserSignupForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [password, setPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+
 
   const handleSignup = (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (password.length < 5) {
+      toast({
+          title: "Password Too Short",
+          description: "Your password must be at least 5 characters long.",
+          variant: "destructive",
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+          title: "Passwords Do Not Match",
+          description: "Please make sure your passwords match.",
+          variant: "destructive",
+      });
+      return;
+    }
+
     toast({
         title: "Account Created!",
         description: "Welcome! We're redirecting you to your dashboard.",
     });
-    // In a real app, you'd have registration logic here.
-    // We'll simulate a successful signup and redirect.
+    // In a real app, you'd save the user and then redirect.
     router.push('/dashboard');
   };
 
@@ -62,7 +85,23 @@ export default function UserSignupForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" />
+            <Input 
+              id="password" 
+              type="password" 
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input 
+              id="confirm-password" 
+              type="password" 
+              required 
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
           <Button type="submit" className="w-full">
             Create an account

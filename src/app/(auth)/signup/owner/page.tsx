@@ -1,7 +1,9 @@
 
+
 "use client";
 
 import Link from "next/link"
+import * as React from 'react';
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
@@ -21,9 +23,30 @@ import { ShieldCheck } from "lucide-react";
 export default function OwnerSignupForm() {
     const router = useRouter();
     const { toast } = useToast();
+    const [password, setPassword] = React.useState('');
+    const [confirmPassword, setConfirmPassword] = React.useState('');
 
     const handleSignup = (event: React.FormEvent) => {
         event.preventDefault();
+
+        if (password.length < 5) {
+            toast({
+                title: "Password Too Short",
+                description: "Your password must be at least 5 characters long.",
+                variant: "destructive",
+            });
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            toast({
+                title: "Passwords Do Not Match",
+                description: "Please make sure your passwords match.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         toast({
             title: "Verification Pending",
             description: "Thank you for submitting your details. Your account is under review. We will notify you via email once your verification is complete.",
@@ -69,7 +92,23 @@ export default function OwnerSignupForm() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" />
+            <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+           <div className="grid gap-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input 
+                id="confirm-password" 
+                type="password" 
+                required 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+            />
           </div>
 
           <div className="grid gap-2">
