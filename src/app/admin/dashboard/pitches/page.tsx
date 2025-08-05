@@ -33,11 +33,15 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import type { Pitch } from "@/lib/types"
+import { PitchDetailsDialog } from "@/components/admin/pitch-details-dialog"
 
 export default function AdminPitchesPage() {
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = React.useState("");
     const [pitches, setPitches] = React.useState<Pitch[]>(placeholderPitches);
+    const [selectedPitch, setSelectedPitch] = React.useState<Pitch | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+
 
     const filteredPitches = pitches.filter(pitch => 
         pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -64,6 +68,12 @@ export default function AdminPitchesPage() {
             });
         }
     };
+
+    const handleViewDetails = (pitch: Pitch) => {
+        setSelectedPitch(pitch);
+        setIsDetailsOpen(true);
+    };
+
 
   return (
     <div>
@@ -140,7 +150,7 @@ export default function AdminPitchesPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(pitch)}>View Details</DropdownMenuItem>
                              <DropdownMenuItem onClick={() => handleTogglePitchStatus(pitch.id)}>
                                 {pitch.status === 'Active' ? 'Unlist Pitch' : 'Re-list Pitch'}
                             </DropdownMenuItem>
@@ -153,6 +163,13 @@ export default function AdminPitchesPage() {
             </Table>
             </CardContent>
         </Card>
+        {selectedPitch && (
+            <PitchDetailsDialog
+                pitch={selectedPitch}
+                isOpen={isDetailsOpen}
+                setIsOpen={setIsDetailsOpen}
+            />
+        )}
     </div>
   )
 }
