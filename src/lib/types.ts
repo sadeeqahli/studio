@@ -89,3 +89,11 @@ export type AdminWithdrawal = {
     accountNumber: string;
     status: 'Successful' | 'Pending' | 'Failed';
 };
+
+export type Activity = {
+    id: string;
+    userName: string;
+    userRole: 'Player' | 'Owner';
+    action: 'Logged In' | 'Signed Up';
+    timestamp: string;
+};

@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Logo } from "@/components/icons";
+import { placeholderActivities } from "@/lib/placeholder-data";
 
 export default function AdminLoginForm() {
   const router = useRouter();
@@ -30,6 +31,16 @@ export default function AdminLoginForm() {
     // In a real app, use a proper authentication provider.
     // For this prototype, we'll use hardcoded credentials.
     if (email === 'admin@linkhub.com' && password === 'admin123') {
+        
+        // Simulate adding a login activity
+        placeholderActivities.unshift({
+            id: `ACT-${Date.now()}`,
+            userName: 'Admin',
+            userRole: 'Owner', // Using Owner as a stand-in for an Admin role type
+            action: 'Logged In',
+            timestamp: new Date().toISOString(),
+        });
+        
         toast({
             title: "Admin Login Successful",
             description: "Welcome back, Admin! Redirecting you to the dashboard.",

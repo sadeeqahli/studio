@@ -1,6 +1,6 @@
 
 
-import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal } from './types';
+import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity } from './types';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
@@ -11,6 +11,14 @@ export let placeholderCredentials: User[] = [
 export function addUserCredential(user: User) {
     placeholderCredentials.push(user);
     placeholderUsers.unshift(user); // Add to the main user list as well
+    // Also add a "Signed Up" activity
+    placeholderActivities.unshift({
+        id: `ACT-${Date.now()}`,
+        userName: user.name,
+        userRole: user.role as 'Player' | 'Owner',
+        action: 'Signed Up',
+        timestamp: new Date().toISOString(),
+    });
 }
 
 export let placeholderPitches: Pitch[] = [
@@ -84,7 +92,7 @@ export const ownerBookings: OwnerBooking[] = [
     { id: 'BK5', customer: 'Emeka Okafor', pitch: 'Lekki AstroTurf', date: '2024-08-01', time: '7:00 PM', amount: 25000, status: 'Cancelled'},
 ]
 
-export const placeholderUsers: User[] = [
+export let placeholderUsers: User[] = [
   { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
   { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2 },
   { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 1 },
@@ -111,3 +119,10 @@ export function updatePitch(updatedPitch: Pitch): void {
         placeholderPitches[index] = updatedPitch;
     }
 }
+
+export let placeholderActivities: Activity[] = [
+    { id: '1', userName: 'Aisha Bello', userRole: 'Player', action: 'Logged In', timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+    { id: '2', userName: 'Femi Adebayo', userRole: 'Player', action: 'Signed Up', timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString() },
+    { id: '3', userName: 'Tunde Ojo', userRole: 'Owner', action: 'Logged In', timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+    { id: '4', userName: 'Max Robinson', userRole: 'Player', action: 'Logged In', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
+];

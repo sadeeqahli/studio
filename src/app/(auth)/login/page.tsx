@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { placeholderCredentials } from "@/lib/placeholder-data";
+import { placeholderCredentials, placeholderActivities } from "@/lib/placeholder-data";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -42,6 +42,15 @@ export default function LoginForm() {
     if (user && user.password === password) {
       const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
       const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
+
+      // Simulate adding a login activity
+      placeholderActivities.unshift({
+          id: `ACT-${Date.now()}`,
+          userName: user.name,
+          userRole: user.role as 'Player' | 'Owner',
+          action: 'Logged In',
+          timestamp: new Date().toISOString(),
+      });
 
       toast({
           title: "Login Successful",
