@@ -20,9 +20,9 @@ export default function ManageAvailabilityPage() {
     const [pitch, setPitch] = React.useState<Pitch | null>(null)
     const [slots, setSlots] = React.useState<Set<string>>(new Set())
     const [newSlot, setNewSlot] = React.useState("")
+    const pitchId = params.pitchId as string;
 
     React.useEffect(() => {
-        const pitchId = params.pitchId as string
         if (pitchId) {
             const foundPitch = placeholderPitches.find(p => p.id === pitchId);
             if (foundPitch) {
@@ -36,7 +36,7 @@ export default function ManageAvailabilityPage() {
                 router.push("/owner/dashboard/pitches")
             }
         }
-    }, [params.pitchId, router, toast])
+    }, [pitchId, router, toast])
 
     const handleAddSlot = () => {
         const trimmedSlot = newSlot.trim()

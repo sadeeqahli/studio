@@ -21,9 +21,9 @@ export default function ReceiptPage() {
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const receiptRef = React.useRef<HTMLDivElement>(null);
+    const bookingId = params.bookingId as string;
     
     React.useEffect(() => {
-        const bookingId = params.bookingId;
         if (!bookingId) {
             setIsLoading(false);
             return;
@@ -64,7 +64,7 @@ export default function ReceiptPage() {
 
         loadBooking();
 
-    }, [params.bookingId]);
+    }, [bookingId]);
 
     const handlePrint = () => {
         window.print();

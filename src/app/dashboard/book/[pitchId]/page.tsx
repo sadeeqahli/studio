@@ -58,15 +58,16 @@ export default function BookingPage() {
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(20);
     const [isCopied, setIsCopied] = React.useState(false);
+    const pitchId = params.pitchId as string;
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
     React.useEffect(() => {
-        const foundPitch = placeholderPitches.find(p => p.id === params.pitchId);
+        const foundPitch = placeholderPitches.find(p => p.id === pitchId);
         if (foundPitch) {
             setPitch(foundPitch);
         }
-    }, [params.pitchId]);
+    }, [pitchId]);
     
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -389,7 +390,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-
-
-
