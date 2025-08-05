@@ -45,19 +45,24 @@ export default function AdminPitchesPage() {
     );
 
     const handleTogglePitchStatus = (pitchId: string) => {
-        setPitches(currentPitches =>
-            currentPitches.map(pitch => {
-                if (pitch.id === pitchId) {
-                    const newStatus = pitch.status === 'Active' ? 'Unlisted' : 'Active';
-                    toast({
-                        title: `Pitch ${newStatus}`,
-                        description: `The pitch "${pitch.name}" has been ${newStatus.toLowerCase()}.`,
-                    });
-                    return { ...pitch, status: newStatus };
-                }
-                return pitch;
-            })
-        );
+        let updatedPitch: Pitch | undefined;
+        const newPitches = pitches.map(pitch => {
+            if (pitch.id === pitchId) {
+                const newStatus = pitch.status === 'Active' ? 'Unlisted' : 'Active';
+                updatedPitch = { ...pitch, status: newStatus };
+                return updatedPitch;
+            }
+            return pitch;
+        });
+
+        setPitches(newPitches);
+        
+        if (updatedPitch) {
+            toast({
+                title: `Pitch ${updatedPitch.status}`,
+                description: `The pitch "${updatedPitch.name}" has been ${updatedPitch.status.toLowerCase()}.`,
+            });
+        }
     };
 
   return (
