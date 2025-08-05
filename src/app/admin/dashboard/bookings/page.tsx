@@ -21,6 +21,9 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { placeholderBookings } from "@/lib/placeholder-data"
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { Eye } from "lucide-react"
 
 export default function AdminBookingsPage() {
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -54,6 +57,7 @@ export default function AdminBookingsPage() {
                             <TableHead className="hidden sm:table-cell">Date</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -76,6 +80,15 @@ export default function AdminBookingsPage() {
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
+                                <TableCell className="text-right">
+                                     {booking.status === 'Paid' && (
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/admin/dashboard/receipt/${booking.id}`}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Receipt
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
