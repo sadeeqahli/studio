@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
 import type { User } from "@/lib/types"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
