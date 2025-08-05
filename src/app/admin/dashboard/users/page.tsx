@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +34,17 @@ import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
 import type { User } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminUsersPage() {
     const { toast } = useToast();
@@ -68,6 +80,18 @@ export default function AdminUsersPage() {
              toast({
                 title: `User ${updatedUser.status}`,
                 description: `${updatedUser.name}'s account has been ${updatedUser.status.toLowerCase()}.`,
+            });
+        }
+    };
+
+    const handleDeleteUser = (userId: string) => {
+        const userToDelete = users.find(u => u.id === userId);
+        if (userToDelete) {
+            setUsers(users.filter(user => user.id !== userId));
+            toast({
+                title: "User Deleted",
+                description: `${userToDelete.name} has been permanently deleted.`,
+                variant: "destructive",
             });
         }
     };
@@ -133,6 +157,35 @@ export default function AdminUsersPage() {
                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                         <DropdownMenuItem onClick={() => handleViewDetails(user)}>View Details</DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleToggleUserStatus(user.id)}>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem
+                                                className="text-destructive"
+                                                onSelect={(e) => e.preventDefault()}
+                                                >
+                                                Delete User
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the
+                                                    account for <span className="font-semibold">{user.name}</span> and remove their data from our servers.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => handleDeleteUser(user.id)}
+                                                    className={cn(buttonVariants({ variant: "destructive" }))}
+                                                >
+                                                    Yes, delete user
+                                                </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
