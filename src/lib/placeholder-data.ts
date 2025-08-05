@@ -10,6 +10,7 @@ export let placeholderCredentials: User[] = [
 
 export function addUserCredential(user: User) {
     placeholderCredentials.push(user);
+    placeholderUsers.unshift(user); // Add to the main user list as well
 }
 
 export let placeholderPitches: Pitch[] = [
