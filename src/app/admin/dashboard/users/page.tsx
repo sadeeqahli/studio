@@ -52,19 +52,24 @@ export default function AdminUsersPage() {
     };
 
     const handleToggleUserStatus = (userId: string) => {
-        setUsers(currentUsers =>
-            currentUsers.map(user => {
-                if (user.id === userId) {
-                    const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
-                    toast({
-                        title: `User ${newStatus}`,
-                        description: `${user.name}'s account has been ${newStatus.toLowerCase()}.`,
-                    });
-                    return { ...user, status: newStatus };
-                }
-                return user;
-            })
-        );
+        let updatedUser: User | undefined;
+        const newUsers = users.map(user => {
+            if (user.id === userId) {
+                const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
+                updatedUser = { ...user, status: newStatus };
+                return updatedUser;
+            }
+            return user;
+        });
+
+        setUsers(newUsers);
+
+        if (updatedUser) {
+             toast({
+                title: `User ${updatedUser.status}`,
+                description: `${updatedUser.name}'s account has been ${updatedUser.status.toLowerCase()}.`,
+            });
+        }
     };
 
 
