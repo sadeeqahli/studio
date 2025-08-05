@@ -26,14 +26,17 @@ export default function ForgotPasswordForm() {
   const handleResetRequest = (event: React.FormEvent) => {
     event.preventDefault();
     
+    // In a real app, you would generate and email a code.
+    // For this prototype, we'll generate it and show it in the toast.
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
     toast({
-        title: "Reset Link Sent",
-        description: `If an account exists for ${email}, a password reset link has been sent.`,
+        title: "Verification Code Sent",
+        description: `A 6-digit code has been sent to ${email}. (Code for testing: ${verificationCode})`,
     });
     
-    // In a real app, you would not redirect immediately,
-    // but for this prototype, we'll go to the reset page.
-    router.push('/reset-password');
+    // Pass the email to the next page to keep track of who is resetting
+    router.push(`/verify-reset-code?email=${encodeURIComponent(email)}`);
   };
 
   return (
@@ -41,7 +44,7 @@ export default function ForgotPasswordForm() {
       <CardHeader>
         <CardTitle className="text-2xl">Forgot Password</CardTitle>
         <CardDescription>
-          Enter your email and we'll send you a link to reset your password.
+          Enter your email and we'll send you a code to reset your password.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,7 +61,7 @@ export default function ForgotPasswordForm() {
             />
           </div>
           <Button type="submit" className="w-full">
-            Send Reset Link
+            Send Verification Code
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
