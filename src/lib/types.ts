@@ -9,6 +9,7 @@ export type Pitch = {
   imageUrl: string;
   imageHint: string;
   availableSlots: { [date: string]: string[] }; // e.g. { "2024-08-15": ["4:00 PM - 5:00 PM"] }
+  allDaySlots: string[]; // Add this to represent all possible slots for a pitch
   status: 'Active' | 'Unlisted' | 'Pending Review';
   ownerId: string;
 };
@@ -99,4 +100,3 @@ export type Activity = {
     action: 'Logged In' | 'Signed Up';
     timestamp: string;
 };
-

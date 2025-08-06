@@ -49,6 +49,13 @@ tomorrow.setDate(tomorrow.getDate() + 1);
 const todayStr = format(today, 'yyyy-MM-dd');
 const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
 
+const standardSlots = [
+    "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
+    "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM",
+    "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM",
+    "6:00 PM - 7:00 PM", "7:00 PM - 8:00 PM", "8:00 PM - 9:00 PM"
+];
+
 export let placeholderPitches: Pitch[] = [
   {
     id: '1',
@@ -63,6 +70,7 @@ export let placeholderPitches: Pitch[] = [
         [todayStr]: ['4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
         [tomorrowStr]: ['3:00 PM - 4:00 PM', '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
     },
+    allDaySlots: standardSlots,
     status: 'Active',
   },
   {
@@ -78,6 +86,7 @@ export let placeholderPitches: Pitch[] = [
         [todayStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM'],
         [tomorrowStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM'],
     },
+    allDaySlots: standardSlots,
     status: 'Active',
   },
   {
@@ -92,6 +101,7 @@ export let placeholderPitches: Pitch[] = [
     availableSlots: {
         [todayStr]: ['3:00 PM - 4:00 PM'],
     },
+    allDaySlots: standardSlots,
     status: 'Active',
   },
   {
@@ -106,16 +116,17 @@ export let placeholderPitches: Pitch[] = [
     availableSlots: {
         [tomorrowStr]: ['5:00 PM - 6:00 PM', '8:00 PM - 9:00 PM'],
     },
+    allDaySlots: standardSlots,
     status: 'Active',
   },
 ];
 
 
 export const placeholderBookings: Booking[] = [
-    { id: 'TXN72362', customerName: 'Ade Williams', pitchName: 'Lekki AstroTurf', date: '2024-07-28', time: '4:00 PM', amount: 25500, status: 'Paid' },
-    { id: 'TXN19873', customerName: 'Femi Adebayo', pitchName: 'Ikeja 5-a-side', date: '2024-07-25', time: '7:00 PM', amount: 18500, status: 'Paid' },
-    { id: 'TXN45612', customerName: 'Aisha Bello', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM', amount: 22500, status: 'Paid' },
-    { id: 'TXN88234', customerName: 'Chioma Nwosu', pitchName: 'Lekki AstroTurf', date: '2024-08-05', time: '5:00 PM', amount: 25500, status: 'Pending' },
+    { id: 'TXN72362', customerName: 'Ade Williams', pitchName: 'Lekki AstroTurf', date: todayStr, time: '4:00 PM - 5:00 PM', amount: 25500, status: 'Paid' },
+    { id: 'TXN19873', customerName: 'Femi Adebayo', pitchName: 'Ikeja 5-a-side', date: todayStr, time: '7:00 PM - 8:00 PM', amount: 18500, status: 'Paid' },
+    { id: 'TXN45612', customerName: 'Aisha Bello', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM - 4:00 PM', amount: 22500, status: 'Paid' },
+    { id: 'TXN88234', customerName: 'Chioma Nwosu', pitchName: 'Lekki AstroTurf', date: tomorrowStr, time: '5:00 PM - 6:00 PM', amount: 25500, status: 'Pending' },
 ];
 
 export const placeholderPayouts: Payout[] = [

@@ -23,6 +23,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 type BookingStatus = 'idle' | 'confirming' | 'confirmed';
 
@@ -75,12 +76,23 @@ export default function BookingPage() {
     }, [pitchId]);
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
-    const slotsForDate = pitch?.availableSlots[dateKey] || [];
+    
+    // New logic to get booked slots for the selected date
+    const bookedSlotsForDate = React.useMemo(() => {
+        if (!pitch) return new Set();
+        return new Set(
+            placeholderBookings
+                .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
+                .map(b => b.time.split(' for ')[0]) // Get the start time
+        );
+    }, [pitch, dateKey]);
+
+    const allDaySlots = pitch?.allDaySlots || [];
     
     React.useEffect(() => {
-        // Reset selected slot if the date changes or if the slot is not available for the new date
+        // Reset selected slot if the date changes
         setSelectedSlot(null);
-    }, [selectedDate, pitch]);
+    }, [selectedDate]);
     
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
@@ -279,19 +291,26 @@ export default function BookingPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold mb-2">Select a Time Slot</h3>
-                                    {slotsForDate.length > 0 ? (
-                                        <RadioGroup onValueChange={setSelectedSlot} value={selectedSlot || ""}>
-                                            <div className="space-y-2">
-                                                {slotsForDate.map(slot => (
+                                     <RadioGroup onValueChange={setSelectedSlot} value={selectedSlot || ""}>
+                                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+                                            {allDaySlots.map(slot => {
+                                                const isBooked = bookedSlotsForDate.has(slot);
+                                                return (
                                                     <div key={slot} className="flex items-center space-x-2">
-                                                        <RadioGroupItem value={slot} id={slot} />
-                                                        <Label htmlFor={slot}>{slot}</Label>
+                                                        <RadioGroupItem value={slot} id={slot} disabled={isBooked} />
+                                                        <Label htmlFor={slot} className={cn("flex justify-between items-center w-full", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
+                                                            <span>{slot}</span>
+                                                             {isBooked ? 
+                                                                <Badge variant="destructive">Booked</Badge> 
+                                                                : <Badge variant="outline" className="text-green-600 border-green-400">Available</Badge>}
+                                                        </Label>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </RadioGroup>
-                                    ) : (
-                                        <Alert variant="destructive">
+                                                )
+                                            })}
+                                        </div>
+                                    </RadioGroup>
+                                    {allDaySlots.length === 0 && (
+                                         <Alert variant="destructive">
                                             <AlertCircle className="h-4 w-4" />
                                             <AlertTitle>No Slots</AlertTitle>
                                             <AlertDescription>
@@ -442,6 +461,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-
-    
