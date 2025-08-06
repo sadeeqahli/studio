@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type BookingStatus = 'idle' | 'confirming' | 'confirmed';
 
@@ -441,3 +442,6 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+
+    
