@@ -197,71 +197,69 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         if (!open) handleClose();
         else setIsOpen(true);
     }}>
-      <DialogContent className="max-w-4xl grid-rows-[auto_1fr_auto]">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{pitch ? 'Edit Pitch' : 'Add a New Pitch'}</DialogTitle>
           <DialogDescription>
             {pitch ? 'Update the details and availability for your pitch.' : 'Fill in the details and initial availability to list your pitch.'}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid md:grid-cols-2 gap-8 py-4">
+        <div className="flex-grow overflow-y-auto pr-4">
+            <form id="pitch-form" onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-8 py-4">
                 {/* Left side: Pitch Details */}
-                <ScrollArea className="h-96 w-full pr-6">
-                    <div className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">Pitch Name</Label>
-                            <Input id="name" placeholder="e.g., Lekki Goals Arena" {...register('name')} />
-                            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="location">Location</Label>
-                            <Input id="location" placeholder="e.g., Lekki Phase 1, Lagos" {...register('location')} />
-                            {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="price">Price per Hour (NGN)</Label>
-                            <Input id="price" type="number" placeholder="e.g., 25000" {...register('price')} />
-                            {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="image">Pitch Image</Label>
-                            <Input id="image" type="file" accept="image/*" {...register('image')} />
-                            {errors.image && <p className="text-sm text-destructive">{errors.image.message as string}</p>}
-                            {imagePreview && (
-                                <div className="mt-2">
-                                    <img src={imagePreview} alt="Image Preview" className="rounded-md object-cover aspect-video" />
-                                </div>
-                            )}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label>Amenities</Label>
-                            <Controller
-                            name="amenities"
-                            control={control}
-                            render={({ field }) => (
-                                <div className="grid grid-cols-2 gap-2 p-2 rounded-md border">
-                                {allAmenities.map((amenity) => (
-                                    <div key={amenity} className="flex items-center gap-2">
-                                    <Checkbox
-                                        id={`amenity-${amenity}`}
-                                        checked={field.value?.includes(amenity)}
-                                        onCheckedChange={(checked) => {
-                                        const newValue = checked
-                                            ? [...(field.value || []), amenity]
-                                            : (field.value || []).filter((a) => a !== amenity);
-                                        field.onChange(newValue);
-                                        }}
-                                    />
-                                    <Label htmlFor={`amenity-${amenity}`} className="font-normal">{amenity}</Label>
-                                    </div>
-                                ))}
-                                </div>
-                            )}
-                            />
-                        </div>
+                <div className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">Pitch Name</Label>
+                        <Input id="name" placeholder="e.g., Lekki Goals Arena" {...register('name')} />
+                        {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
                     </div>
-                </ScrollArea>
+                    <div className="grid gap-2">
+                        <Label htmlFor="location">Location</Label>
+                        <Input id="location" placeholder="e.g., Lekki Phase 1, Lagos" {...register('location')} />
+                        {errors.location && <p className="text-sm text-destructive">{errors.location.message}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="price">Price per Hour (NGN)</Label>
+                        <Input id="price" type="number" placeholder="e.g., 25000" {...register('price')} />
+                        {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="image">Pitch Image</Label>
+                        <Input id="image" type="file" accept="image/*" {...register('image')} />
+                        {errors.image && <p className="text-sm text-destructive">{errors.image.message as string}</p>}
+                        {imagePreview && (
+                            <div className="mt-2">
+                                <img src={imagePreview} alt="Image Preview" className="rounded-md object-cover aspect-video" />
+                            </div>
+                        )}
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Amenities</Label>
+                        <Controller
+                        name="amenities"
+                        control={control}
+                        render={({ field }) => (
+                            <div className="grid grid-cols-2 gap-2 p-2 rounded-md border">
+                            {allAmenities.map((amenity) => (
+                                <div key={amenity} className="flex items-center gap-2">
+                                <Checkbox
+                                    id={`amenity-${amenity}`}
+                                    checked={field.value?.includes(amenity)}
+                                    onCheckedChange={(checked) => {
+                                    const newValue = checked
+                                        ? [...(field.value || []), amenity]
+                                        : (field.value || []).filter((a) => a !== amenity);
+                                    field.onChange(newValue);
+                                    }}
+                                />
+                                <Label htmlFor={`amenity-${amenity}`} className="font-normal">{amenity}</Label>
+                                </div>
+                            ))}
+                            </div>
+                        )}
+                        />
+                    </div>
+                </div>
                  {/* Right side: Availability */}
                 <div className="space-y-4">
                     <h3 className="font-semibold">Set Initial Availability</h3>
@@ -304,7 +302,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                 </div>
                             </div>
                             {slotsForDate.length > 0 ? (
-                                <ScrollArea className="h-32 pr-2 border rounded-md p-2">
+                                <ScrollArea className="h-40 pr-2 border rounded-md p-2">
                                     {slotsForDate.map((slot) => (
                                         <div key={slot} className="flex items-center justify-between p-2 bg-muted rounded-md mb-2">
                                             <span>{slot}</span>
@@ -321,11 +319,11 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                             )}
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
         <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
-            <Button type="submit" onClick={handleSubmit(onSubmit)} disabled={isLoading}>
+            <Button type="submit" form="pitch-form" disabled={isLoading}>
                 {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : (pitch ? 'Save Changes' : 'Add Pitch')}
             </Button>
         </DialogFooter>
