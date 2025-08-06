@@ -23,7 +23,7 @@ export default function ManageAvailabilityPage() {
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
     const [slotsForDate, setSlotsForDate] = React.useState<Set<string>>(new Set())
     const [newSlot, setNewSlot] = React.useState("")
-    const pitchId = React.use(Promise.resolve(params.pitchId as string));
+    const pitchId = params.pitchId as string;
 
     React.useEffect(() => {
         if (pitchId) {
@@ -187,5 +187,7 @@ export default function ManageAvailabilityPage() {
         </div>
     )
 }
+
+    
 
     

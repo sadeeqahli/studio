@@ -61,7 +61,7 @@ export default function BookingPage() {
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
-    const pitchId = React.use(Promise.resolve(params.pitchId as string));
+    const pitchId = params.pitchId as string;
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
@@ -459,5 +459,7 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    
 
     

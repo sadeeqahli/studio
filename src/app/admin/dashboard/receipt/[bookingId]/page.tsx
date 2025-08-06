@@ -21,7 +21,7 @@ export default function ReceiptPage() {
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const receiptRef = React.useRef<HTMLDivElement>(null);
-    const bookingId = React.use(Promise.resolve(params.bookingId as string));
+    const bookingId = params.bookingId as string;
     
     React.useEffect(() => {
         if (!bookingId) {
@@ -241,5 +241,7 @@ export default function ReceiptPage() {
         </div>
     );
 }
+
+    
 
     
