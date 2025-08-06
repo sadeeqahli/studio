@@ -209,7 +209,7 @@ export default function ReceiptPage() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <h3 className="text-sm font-semibold text-muted-foreground">DATE</h3>
-                            <p className="font-medium">{new Date(booking.date).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                            <p className="font-medium">{new Date(`${booking.date}T00:00:00`).toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                         </div>
                          <div>
                             <h3 className="text-sm font-semibold text-muted-foreground">TIME</h3>
