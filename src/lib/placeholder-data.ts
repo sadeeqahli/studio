@@ -17,6 +17,10 @@ export let placeholderActivities: Activity[] = [
 
 
 export function addUserCredential(user: User) {
+    // Check if user already exists
+    if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
+        return; // Or throw an error
+    }
     placeholderCredentials.push(user);
     placeholderUsers.unshift(user); // Add to the main user list as well
     // Also add a "Signed Up" activity
@@ -127,3 +131,5 @@ export function updatePitch(updatedPitch: Pitch): void {
         placeholderPitches[index] = updatedPitch;
     }
 }
+
+    
