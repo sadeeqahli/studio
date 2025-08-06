@@ -52,22 +52,19 @@ export default function OwnerPitches() {
   const { toast } = useToast();
 
   // For this prototype, we'll hardcode the current owner's ID.
-  // We'll use a unique ID for a "new" owner who has no pitches yet.
-  const currentOwnerId = 'new-owner-123'; 
+  const currentOwnerId = 'USR002';
 
   React.useEffect(() => {
     // Filter pitches to only show those owned by the current owner
-    // This will initially be empty for our 'new-owner-123'
     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
   }, []);
 
 
-  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots' | 'status' | 'ownerId'>) => {
+  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'status' | 'ownerId'>) => {
     const newPitch: Pitch = {
       ...newPitchData,
       id: `PITCH-${Date.now()}`,
       imageHint: 'football field',
-      availableSlots: [],
       status: 'Active',
       ownerId: currentOwnerId,
     };
