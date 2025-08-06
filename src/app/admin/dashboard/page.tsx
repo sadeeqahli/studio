@@ -32,11 +32,29 @@ export default function AdminDashboard() {
   const totalBookings = placeholderBookings.length;
   const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
-  const monthlyRecurringRevenue = placeholderCredentials
+  // --- Start of new MRR/ARR Calculation ---
+  
+  // 1. Calculate monthly subscription revenue
+  const monthlySubscriptionRevenue = placeholderCredentials
     .filter(user => user.role === 'Owner' && user.status === 'Active' && user.subscriptionPlan && planPricing[user.subscriptionPlan as keyof typeof planPricing])
     .reduce((acc, user) => acc + (planPricing[user.subscriptionPlan as keyof typeof planPricing] || 0), 0);
+
+  // 2. Calculate commission revenue from the last 30 days
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const monthlyCommissionRevenue = placeholderPayouts
+    .filter(payout => new Date(payout.date) >= thirtyDaysAgo)
+    .reduce((acc, payout) => acc + payout.commissionFee, 0);
+  
+  // 3. Combine for total monthly revenue (MRR)
+  const monthlyRecurringRevenue = monthlySubscriptionRevenue + monthlyCommissionRevenue;
     
+  // 4. Calculate Annual Recurring Revenue
   const annualRecurringRevenue = monthlyRecurringRevenue * 12;
+
+  // --- End of new MRR/ARR Calculation ---
+
 
   const stats = [
     { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time commission earned" },
@@ -46,8 +64,8 @@ export default function AdminDashboard() {
   ];
   
   const recurringRevenueStats = [
-      { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "From owner subscriptions" },
-      { title: "Annual Recurring Revenue", value: `₦${annualRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated from subscriptions" },
+      { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Subscriptions + recent commissions" },
+      { title: "Annual Recurring Revenue", value: `₦${annualRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated from monthly revenue" },
   ]
 
   return (
