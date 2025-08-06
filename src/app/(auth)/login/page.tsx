@@ -32,7 +32,7 @@ export default function LoginForm() {
     const isOwner = userType === 'owner';
     const expectedRole = isOwner ? 'Owner' : 'Player';
     
-    // Find user by email and role
+    // Find user by email and role from the definitive credentials list
     const user = placeholderCredentials.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.role === expectedRole
     );
@@ -59,7 +59,7 @@ export default function LoginForm() {
     } else {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
+        description: "Invalid email or password for this role. Please try again.",
         variant: "destructive",
       });
     }
