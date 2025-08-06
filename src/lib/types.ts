@@ -60,6 +60,7 @@ export type User = {
     status: 'Active' | 'Suspended';
     totalBookings?: number;
     pitchesListed?: number;
+    subscriptionPlan?: 'Starter' | 'Plus' | 'Pro';
 }
 
 export type Transaction = {

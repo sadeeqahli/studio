@@ -17,20 +17,31 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderCredentials, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
+import { placeholderCredentials, placeholderPitches, placeholderBookings } from "@/lib/placeholder-data"
 import { User } from "@/lib/types"
+
+const planPricing = {
+    'Starter': 0,
+    'Plus': 20000,
+    'Pro': 40000
+};
 
 export default function AdminDashboard() {
   const totalUsers = placeholderCredentials.length;
   const totalPitches = placeholderPitches.length;
   const totalBookings = placeholderBookings.length;
-  const totalRevenue = placeholderPayouts.reduce((acc, payout) => payout.status === 'Paid Out' ? acc + payout.commissionFee : acc, 0);
+
+  const monthlyRecurringRevenue = placeholderCredentials
+    .filter(user => user.role === 'Owner' && user.status === 'Active' && user.subscriptionPlan && planPricing[user.subscriptionPlan])
+    .reduce((acc, user) => acc + (planPricing[user.subscriptionPlan!] || 0), 0);
+    
+  const annualRecurringRevenue = monthlyRecurringRevenue * 12;
 
   const stats = [
-    { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time commission earned" },
+    { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated monthly revenue" },
+    { title: "Annual Recurring Revenue", value: `₦${annualRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated annual revenue" },
     { title: "Total Users", value: totalUsers.toString(), icon: <Users className="h-4 w-4 text-muted-foreground" />, description: "Players and Owners" },
     { title: "Total Pitches", value: totalPitches.toString(), icon: <List className="h-4 w-4 text-muted-foreground" />, description: "Across all owners" },
-    { title: "Total Bookings", value: totalBookings.toString(), icon: <CalendarCheck className="h-4 w-4 text-muted-foreground" />, description: "All-time bookings" },
   ];
 
   return (
