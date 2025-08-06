@@ -25,7 +25,7 @@ const pitchSchema = z.object({
   location: z.string().min(3, 'Location is required'),
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
-  imageUrl: z.string().url('Please enter a valid image URL').min(1, 'Image URL is required'),
+  image: z.any().refine(files => files?.length > 0, 'Image is required.'),
 });
 
 type PitchForm = z.infer<typeof pitchSchema>;
@@ -42,12 +42,14 @@ const allAmenities = ['Floodlights', 'Changing Rooms', 'Parking', 'Bibs', 'Water
 
 export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pitch }: AddPitchDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm<PitchForm>({
     resolver: zodResolver(pitchSchema),
@@ -56,9 +58,25 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
       location: '',
       price: 0,
       amenities: [],
-      imageUrl: '',
+      image: undefined,
     }
   });
+
+  const imageFile = watch('image');
+
+  useEffect(() => {
+    if (imageFile && imageFile.length > 0) {
+      const file = imageFile[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  }, [imageFile]);
+
 
   useEffect(() => {
     if (pitch) {
@@ -67,16 +85,18 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         location: pitch.location,
         price: pitch.price,
         amenities: pitch.amenities,
-        imageUrl: pitch.imageUrl,
+        image: undefined, // cannot pre-fill file input
       });
+      setImagePreview(pitch.imageUrl);
     } else {
       reset({
         name: '',
         location: '',
         price: 0,
         amenities: [],
-        imageUrl: '',
+        image: undefined,
       });
+      setImagePreview(null);
     }
   }, [pitch, reset, isOpen]);
 
@@ -84,10 +104,19 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
     setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
+      const pitchData = {
+          name: data.name,
+          location: data.location,
+          price: data.price,
+          amenities: data.amenities,
+          // Use the new image preview if available, otherwise keep existing or use a placeholder
+          imageUrl: imagePreview || "https://placehold.co/600x400.png"
+      };
+
       if (pitch) {
-        onEditPitch({ ...pitch, ...data });
+        onEditPitch({ ...pitch, ...pitchData });
       } else {
-        onAddPitch(data);
+        onAddPitch(pitchData);
       }
       setIsLoading(false);
       handleClose();
@@ -125,9 +154,14 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
             {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
           </div>
            <div className="grid gap-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input id="imageUrl" placeholder="e.g., https://example.com/pitch.jpg" {...register('imageUrl')} />
-            {errors.imageUrl && <p className="text-sm text-destructive">{errors.imageUrl.message}</p>}
+            <Label htmlFor="image">Pitch Image</Label>
+            <Input id="image" type="file" accept="image/*" {...register('image')} />
+            {errors.image && <p className="text-sm text-destructive">{errors.image.message as string}</p>}
+             {imagePreview && (
+                <div className="mt-2">
+                    <img src={imagePreview} alt="Image Preview" className="rounded-md object-cover aspect-video" />
+                </div>
+            )}
           </div>
           <div className="grid gap-2">
             <Label>Amenities</Label>
