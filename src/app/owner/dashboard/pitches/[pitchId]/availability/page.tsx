@@ -9,13 +9,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { X, ArrowLeft, PlusCircle, Calendar as CalendarIcon } from "lucide-react"
+import { X, ArrowLeft, PlusCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { format } from "date-fns"
-import { cn } from "@/lib/utils"
 
 export default function ManageAvailabilityPage() {
     const params = useParams()
@@ -45,7 +43,9 @@ export default function ManageAvailabilityPage() {
     React.useEffect(() => {
         if (pitch && selectedDate) {
             const dateKey = format(selectedDate, 'yyyy-MM-dd')
-            const existingSlots = pitch.availableSlots[dateKey] || []
+            // Use allDaySlots as the base and filter out booked slots for that day if needed
+            // For now, we just manage the availableSlots object
+            const existingSlots = pitch.availableSlots[dateKey] || pitch.allDaySlots || []
             setSlotsForDate(new Set(existingSlots))
         }
     }, [pitch, selectedDate])
@@ -57,6 +57,12 @@ export default function ManageAvailabilityPage() {
             newSlots.add(trimmedSlot)
             setSlotsForDate(newSlots)
             setNewSlot("")
+        } else {
+             toast({
+                title: "Invalid Slot",
+                description: "Time slot cannot be empty or a duplicate.",
+                variant: "destructive"
+            })
         }
     }
 
@@ -81,6 +87,17 @@ export default function ManageAvailabilityPage() {
             });
         }
     }
+    
+    const addAllSlots = () => {
+        if (pitch) {
+            setSlotsForDate(new Set(pitch.allDaySlots));
+        }
+    }
+
+    const clearAllSlots = () => {
+        setSlotsForDate(new Set());
+    }
+
 
     if (!pitch) {
         return <div>Loading...</div>
@@ -115,7 +132,7 @@ export default function ManageAvailabilityPage() {
                             </Label>
                         </div>
                         <div>
-                            <Label htmlFor="new-slot">New Time Slot</Label>
+                            <Label htmlFor="new-slot">New Time Slot (e.g., 6PM-7PM)</Label>
                             <div className="flex gap-2 mt-1">
                                 <Input
                                     id="new-slot"
@@ -136,9 +153,15 @@ export default function ManageAvailabilityPage() {
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-medium mb-2">Current Slots:</h3>
+                            <div className="flex justify-between items-center mb-2">
+                                <h3 className="text-sm font-medium">Current Slots:</h3>
+                                <div className="flex gap-2">
+                                     <Button variant="outline" size="sm" onClick={addAllSlots}>All</Button>
+                                     <Button variant="outline" size="sm" onClick={clearAllSlots}>None</Button>
+                                </div>
+                            </div>
                             {slotsForDate.size > 0 ? (
-                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 border rounded-md p-2">
                                     {Array.from(slotsForDate).sort().map((slot) => (
                                         <div key={slot} className="flex items-center justify-between p-2 bg-muted rounded-md">
                                             <span>{slot}</span>
