@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { use, useParams, useRouter } from 'next/navigation';
 import { placeholderPitches, placeholderBookings, placeholderPayouts } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,7 +61,7 @@ export default function BookingPage() {
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
-    const pitchId = params.pitchId as string;
+    const pitchId = use(Promise.resolve(params.pitchId as string));
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     
@@ -80,11 +80,11 @@ export default function BookingPage() {
         return new Set(
             placeholderBookings
                 .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
-                .map(b => b.time.split(' for ')[0]) // Get the start time
+                .map(b => b.time) 
         );
     }, [pitch, dateKey]);
 
-    const allDaySlots = pitch?.allDaySlots || [];
+    const allDaySlots = pitch ? pitch.availableSlots[dateKey] || [] : [];
     
     React.useEffect(() => {
         // Reset selected slots if the date changes
@@ -216,7 +216,7 @@ export default function BookingPage() {
                     </Link>
                 </Button>
                 <h1 className="text-2xl font-bold tracking-tight mb-6">Confirm Your Booking</h1>
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <div>
                         <Card className="overflow-hidden">
                             <Image 
@@ -285,7 +285,7 @@ export default function BookingPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold mb-2">Select Time Slot(s)</h3>
-                                     <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
                                         {allDaySlots.map(slot => {
                                             const isBooked = bookedSlotsForDate.has(slot);
                                             const isChecked = selectedSlots.includes(slot);
