@@ -55,9 +55,14 @@ export default function OwnerPitches() {
   const currentOwnerId = 'USR002';
 
   React.useEffect(() => {
-    // Filter pitches to only show those owned by the current owner
+    // This effect now initializes the pitches from the global placeholder data,
+    // which may be updated by adding/editing pitches.
     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
-  }, []);
+  }, []); // Re-running this on every render would be inefficient. It should run once.
+
+  const refreshPitches = () => {
+     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
+  }
 
 
   const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'status' | 'ownerId'>) => {
@@ -69,15 +74,14 @@ export default function OwnerPitches() {
       ownerId: currentOwnerId,
     };
     addNewPitch(newPitch);
-    // Refresh the component's state to include the new pitch
-    setPitches(prev => [...prev, newPitch]);
+    refreshPitches();
     toast({ title: "Success!", description: "New pitch has been added." });
     setIsDialogOpen(false);
   };
 
   const handleEditPitch = (updatedPitch: Pitch) => {
     updatePitch(updatedPitch);
-    setPitches(prev => prev.map(p => p.id === updatedPitch.id ? updatedPitch : p));
+    refreshPitches();
     toast({ title: "Success!", description: "Pitch details have been updated." });
     setEditingPitch(null);
     setIsDialogOpen(false);
@@ -89,11 +93,11 @@ export default function OwnerPitches() {
   }
 
   const handleDeactivate = (pitchId: string) => {
-    const pitchToDeactivate = pitches.find(p => p.id === pitchId);
+    const pitchToDeactivate = allPitches.find(p => p.id === pitchId);
     if (pitchToDeactivate) {
        const updatedPitch = { ...pitchToDeactivate, status: 'Unlisted' as const };
        updatePitch(updatedPitch);
-       setPitches(prev => prev.map(p => p.id === pitchId ? updatedPitch : p));
+       refreshPitches();
        toast({ 
             title: "Pitch Deactivated", 
             description: "The pitch has been unlisted and is no longer visible to players.",
@@ -102,11 +106,11 @@ export default function OwnerPitches() {
   }
 
   const handleActivate = (pitchId: string) => {
-    const pitchToActivate = pitches.find(p => p.id === pitchId);
+    const pitchToActivate = allPitches.find(p => p.id === pitchId);
     if (pitchToActivate) {
         const updatedPitch = { ...pitchToActivate, status: 'Active' as const };
         updatePitch(updatedPitch);
-        setPitches(prev => prev.map(p => p.id === pitchId ? updatedPitch : p));
+        refreshPitches();
         toast({
             title: "Pitch Activated",
             description: "The pitch is now active and visible to players.",

@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
     { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
-    { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2, subscriptionPlan: 'Starter' },
+    { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 0, subscriptionPlan: 'Starter' },
     { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 1 },
     { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-20', status: 'Active', totalBookings: 1 },
     { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', password: 'password', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended', pitchesListed: 1, subscriptionPlan: 'Plus' },
@@ -57,38 +57,6 @@ const standardSlots = [
 ];
 
 export let placeholderPitches: Pitch[] = [
-  {
-    id: '1',
-    ownerId: 'USR002',
-    name: 'Lekki AstroTurf',
-    location: 'Lekki Phase 1, Lagos',
-    price: 25000,
-    amenities: ['Floodlights', 'Changing Rooms', 'Parking'],
-    imageUrl: 'https://images.unsplash.com/photo-1596352321429-514303685a97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzb2NjZXIlMjBhc3Ryb3R1cmZ8ZW58MHx8fHwxNzUzNzYwODQ0fDA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'astroturf pitch',
-    availableSlots: {
-        [todayStr]: ['4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
-        [tomorrowStr]: ['3:00 PM - 4:00 PM', '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
-    },
-    allDaySlots: standardSlots,
-    status: 'Active',
-  },
-  {
-    id: '2',
-    ownerId: 'USR002',
-    name: 'Ikeja 5-a-side',
-    location: 'Ikeja GRA, Lagos',
-    price: 18000,
-    amenities: ['Bibs', 'Water', 'Parking'],
-    imageUrl: 'https://images.unsplash.com/photo-1521952210435-373f9b234475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHw1LWEtc2lkZSUyMGZvb3RiYWxsfGVufDB8fHx8MTc1Mzc2MDkwMHww&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: '5-a-side soccer',
-    availableSlots: {
-        [todayStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM'],
-        [tomorrowStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM'],
-    },
-    allDaySlots: standardSlots,
-    status: 'Active',
-  },
   {
     id: '3',
     ownerId: 'USR005',
