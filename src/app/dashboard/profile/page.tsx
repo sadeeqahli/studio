@@ -1,8 +1,9 @@
 
 "use client";
 
+import * as React from 'react';
 import { useTheme } from 'next-themes';
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -15,17 +16,55 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun } from 'lucide-react';
+import { placeholderUsers, placeholderCredentials } from '@/lib/placeholder-data';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 export default function UserProfile() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
 
-  const handleSaveChanges = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
+  // For this prototype, we'll hardcode the current user. In a real app, this would come from a session.
+  const currentUserEmail = 'm@example.com';
+  const currentUser = placeholderUsers.find(u => u.email === currentUserEmail);
+
+  const [firstName, setFirstName] = React.useState(currentUser?.name.split(' ')[0] || '');
+  const [lastName, setLastName] = React.useState(currentUser?.name.split(' ')[1] || '');
+  const [email, setEmail] = React.useState(currentUser?.email || '');
+
+  const handleSaveChanges = () => {
+    if (!currentUser) {
+        toast({ title: "Error", description: "Could not find user to update.", variant: "destructive" });
+        return;
+    }
+    
+    const newName = `${firstName} ${lastName}`;
+
+    // Update in placeholderUsers
+    const userIndex = placeholderUsers.findIndex(u => u.id === currentUser.id);
+    if (userIndex !== -1) {
+        placeholderUsers[userIndex] = { ...placeholderUsers[userIndex], name: newName, email };
+    }
+
+    // Update in placeholderCredentials
+    const credIndex = placeholderCredentials.findIndex(c => c.id === currentUser.id);
+    if (credIndex !== -1) {
+        placeholderCredentials[credIndex] = { ...placeholderCredentials[credIndex], name: newName, email };
+    }
+
     toast({
       title: "Success!",
       description: "Your personal information has been updated.",
-      variant: "default",
     });
   };
 
@@ -34,7 +73,6 @@ export default function UserProfile() {
     toast({
       title: "Success!",
       description: "Your password has been changed. You will be logged out shortly.",
-      variant: "default",
     });
   };
 
@@ -47,25 +85,45 @@ export default function UserProfile() {
                     <CardTitle>Personal Information</CardTitle>
                     <CardDescription>Update your personal details here.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" defaultValue="Max" />
+                <form>
+                    <CardContent className="grid gap-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="first-name">First Name</Label>
+                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="last-name">Last Name</Label>
+                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                            </div>
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" defaultValue="Robinson" />
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                         </div>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="m@example.com" />
-                    </div>
-                </CardContent>
-                <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                </CardFooter>
+                    </CardContent>
+                    <CardFooter className="border-t px-6 py-4">
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button>Save Changes</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will update your profile information with the details you've entered.
+                                </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSaveChanges}>
+                                    Yes, Save Changes
+                                </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </CardFooter>
+                </form>
             </Card>
 
             <Card>
