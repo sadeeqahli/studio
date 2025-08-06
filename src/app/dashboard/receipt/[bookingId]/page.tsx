@@ -23,6 +23,9 @@ export default function ReceiptPage() {
     const receiptRef = React.useRef<HTMLDivElement>(null);
     const bookingId = params.bookingId as string;
     
+    // In a real app, this would come from a session/auth context.
+    const currentUserName = "Max Robinson";
+
     React.useEffect(() => {
         if (!bookingId) {
             setIsLoading(false);
@@ -30,30 +33,31 @@ export default function ReceiptPage() {
         }
 
         const loadBooking = () => {
-            // In a real app, you'd fetch this from your database.
-            // For this demo, we check localStorage first (for just-completed bookings)
-            // and then the main placeholder data (for history).
-            const storedBooking = localStorage.getItem('latestBooking');
             let foundBooking: ReceiptBooking | null = null;
             
+            // Check localStorage for a freshly completed booking
+            const storedBooking = localStorage.getItem('latestBooking');
             if (storedBooking) {
                 const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
                 if (parsedBooking.id === bookingId) {
-                    foundBooking = parsedBooking;
+                    // Security Check: ensure the user viewing is the one who made the booking
+                    if (parsedBooking.userName === currentUserName) {
+                        foundBooking = parsedBooking;
+                    }
                 }
             }
             
+            // If not found in localStorage, check the main placeholder data
             if (!foundBooking) {
                 const historyBooking = placeholderBookings.find(b => b.id === bookingId);
-                if (historyBooking) {
+                // Security Check: ensure the user viewing is the one who made the booking
+                if (historyBooking && historyBooking.customerName === currentUserName) {
                     const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
-                    // We need to augment the history booking with the extra details for the receipt.
-                    // In a real app, this data would already be part of the booking object from the DB.
                     foundBooking = {
                         ...historyBooking,
-                        pitchLocation: pitch?.location || 'N/A', // get location from pitch data
-                        userName: historyBooking.customerName, // use the name from the booking
-                        paymentMethod: 'Card', // Placeholder, ideally this is stored with the booking
+                        pitchLocation: pitch?.location || 'N/A',
+                        userName: historyBooking.customerName,
+                        paymentMethod: 'Card', // Placeholder
                     };
                 }
             }
@@ -64,7 +68,7 @@ export default function ReceiptPage() {
 
         loadBooking();
 
-    }, [bookingId]);
+    }, [bookingId, currentUserName]);
 
     const handlePrint = () => {
         window.print();
@@ -77,8 +81,8 @@ export default function ReceiptPage() {
 
         try {
             const canvas = await html2canvas(receiptRef.current, {
-                useCORS: true, // Important for external images
-                scale: 2 // Higher scale for better quality
+                useCORS: true, 
+                scale: 2 
             });
             
             canvas.toBlob(async (blob) => {
@@ -97,7 +101,6 @@ export default function ReceiptPage() {
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share(shareData);
                 } else {
-                    // Fallback for desktop or non-supporting browsers
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = `receipt-${booking.id}.png`;
@@ -135,7 +138,7 @@ export default function ReceiptPage() {
                 <Card className="max-w-md w-full text-center">
                     <CardHeader>
                         <CardTitle>Booking Not Found</CardTitle>
-                        <CardDescription>The booking receipt you are looking for does not exist or has expired.</CardDescription>
+                        <CardDescription>The booking receipt you are looking for does not exist or you do not have permission to view it.</CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-center">
                          <Button asChild variant="outline">
