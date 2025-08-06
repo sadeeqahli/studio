@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { useParams, useRouter } from "next/navigation"
+import { use, useParams, useRouter } from "next/navigation"
 import { placeholderPitches, updatePitch } from "@/lib/placeholder-data"
 import type { Pitch } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,7 +23,7 @@ export default function ManageAvailabilityPage() {
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
     const [slotsForDate, setSlotsForDate] = React.useState<Set<string>>(new Set())
     const [newSlot, setNewSlot] = React.useState("")
-    const pitchId = params.pitchId as string;
+    const pitchId = use(Promise.resolve(params.pitchId as string));
 
     React.useEffect(() => {
         if (pitchId) {
