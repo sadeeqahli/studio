@@ -10,16 +10,18 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, CreditCard, Info, Loader2, ShieldCheck, Clock, Copy, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type BookingStatus = 'idle' | 'confirming' | 'confirmed';
 
@@ -53,10 +55,12 @@ export default function BookingPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
+    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
     const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
+    const [duration, setDuration] = React.useState(1); // Default to 1 hour
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
-    const [countdown, setCountdown] = React.useState(20);
+    const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
     const pitchId = params.pitchId as string;
     
@@ -68,22 +72,29 @@ export default function BookingPage() {
             setPitch(foundPitch);
         }
     }, [pitchId]);
+
+    const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+    const slotsForDate = pitch?.availableSlots[dateKey] || [];
+    
+    React.useEffect(() => {
+        // Reset selected slot if the date changes or if the slot is not available for the new date
+        setSelectedSlot(null);
+    }, [selectedDate, pitch]);
     
     React.useEffect(() => {
         let timer: NodeJS.Timeout;
         if (bookingStatus === 'confirming' && countdown > 0) {
             timer = setTimeout(() => setCountdown(countdown - 1), 1000);
         } else if (bookingStatus === 'confirming' && countdown === 0) {
-            // Finalize booking after countdown
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-            const totalAmount = pitch!.price;
+            const totalAmount = pitch!.price * duration;
             const userName = 'Max Robinson';
 
             const newBooking = {
                 id: newBookingId,
                 pitchName: pitch!.name,
-                date: new Date().toISOString().split('T')[0],
-                time: selectedSlot!,
+                date: format(selectedDate!, 'yyyy-MM-dd'),
+                time: `${selectedSlot!} for ${duration} hour(s)`,
                 amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: 'Bank Transfer',
@@ -99,14 +110,14 @@ export default function BookingPage() {
             }
             
             placeholderBookings.unshift(newBooking as any);
-            const commissionAmount = pitch!.price * COMMISSION_RATE;
+            const commissionAmount = totalAmount * COMMISSION_RATE;
             placeholderPayouts.unshift({
                 bookingId: newBookingId,
                 customerName: userName,
-                grossAmount: pitch!.price,
+                grossAmount: totalAmount,
                 commissionRate: COMMISSION_RATE * 100,
                 commissionFee: commissionAmount,
-                netPayout: pitch!.price - commissionAmount,
+                netPayout: totalAmount - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
                 status: 'Paid Out',
             });
@@ -120,23 +131,19 @@ export default function BookingPage() {
             router.push(`/dashboard/receipt/${newBookingId}`);
         }
         return () => clearTimeout(timer);
-    }, [bookingStatus, countdown, pitch, selectedSlot, router, toast]);
+    }, [bookingStatus, countdown, pitch, selectedSlot, router, toast, duration, selectedDate]);
 
     const handleConfirmBooking = () => {
+        if (!selectedDate) {
+            toast({ title: "Please select a date.", variant: "destructive" });
+            return;
+        }
         if (!selectedSlot) {
-            toast({
-                title: "Selection required",
-                description: "Please select a time slot before confirming.",
-                variant: "destructive",
-            });
+            toast({ title: "Please select a time slot.", variant: "destructive" });
             return;
         }
         if (!agreedToTerms) {
-            toast({
-                title: "Agreement required",
-                description: "You must agree to the terms and conditions.",
-                variant: "destructive",
-            });
+            toast({ title: "Please agree to the terms.", variant: "destructive" });
             return;
         }
 
@@ -169,7 +176,7 @@ export default function BookingPage() {
         );
     }
 
-    const totalPrice = pitch.price;
+    const totalPrice = pitch.price * duration;
     const virtualAccountNumber = `9${pitch.id.padStart(9, '0')}`;
     const ownerName = "Tunde Ojo";
 
@@ -207,8 +214,12 @@ export default function BookingPage() {
                             <CardContent>
                                 <div className="space-y-2">
                                     <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Pitch Price</span>
+                                        <span className="text-muted-foreground">Price per hour</span>
                                         <span className="font-semibold">₦{pitch.price.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Duration</span>
+                                        <span className="font-semibold">{duration} hour(s)</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between">
@@ -225,12 +236,52 @@ export default function BookingPage() {
                                 <CardTitle>Booking Details</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label htmlFor="date">Select Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-full justify-start text-left font-normal",
+                                                        !selectedDate && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={selectedDate}
+                                                    onSelect={setSelectedDate}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="duration">Duration</Label>
+                                         <Select onValueChange={(value) => setDuration(parseInt(value))} defaultValue="1">
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select duration" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">1 Hour</SelectItem>
+                                                <SelectItem value="2">2 Hours</SelectItem>
+                                                <SelectItem value="3">3 Hours</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
                                 <div>
                                     <h3 className="font-semibold mb-2">Select a Time Slot</h3>
-                                    {pitch.availableSlots.length > 0 ? (
-                                        <RadioGroup onValueChange={setSelectedSlot}>
+                                    {slotsForDate.length > 0 ? (
+                                        <RadioGroup onValueChange={setSelectedSlot} value={selectedSlot || ""}>
                                             <div className="space-y-2">
-                                                {pitch.availableSlots.map(slot => (
+                                                {slotsForDate.map(slot => (
                                                     <div key={slot} className="flex items-center space-x-2">
                                                         <RadioGroupItem value={slot} id={slot} />
                                                         <Label htmlFor={slot}>{slot}</Label>
@@ -243,7 +294,7 @@ export default function BookingPage() {
                                             <AlertCircle className="h-4 w-4" />
                                             <AlertTitle>No Slots</AlertTitle>
                                             <AlertDescription>
-                                                There are currently no available slots for this pitch.
+                                                There are currently no available slots for this date.
                                             </AlertDescription>
                                         </Alert>
                                     )}

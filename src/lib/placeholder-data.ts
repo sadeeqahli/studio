@@ -1,6 +1,7 @@
 
 
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity } from './types';
+import { format } from 'date-fns';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
@@ -41,6 +42,13 @@ export function addUserCredential(user: User) {
 // It is maintained for any legacy components that might still reference it, but `placeholderCredentials` is the source of truth.
 export let placeholderUsers: User[] = placeholderCredentials;
 
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const todayStr = format(today, 'yyyy-MM-dd');
+const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+
 export let placeholderPitches: Pitch[] = [
   {
     id: '1',
@@ -51,7 +59,10 @@ export let placeholderPitches: Pitch[] = [
     amenities: ['Floodlights', 'Changing Rooms', 'Parking'],
     imageUrl: 'https://images.unsplash.com/photo-1596352321429-514303685a97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzb2NjZXIlMjBhc3Ryb3R1cmZ8ZW58MHx8fHwxNzUzNzYwODQ0fDA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'astroturf pitch',
-    availableSlots: ['4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
+    availableSlots: {
+        [todayStr]: ['4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
+        [tomorrowStr]: ['3:00 PM - 4:00 PM', '4:00 PM - 5:00 PM', '5:00 PM - 6:00 PM'],
+    },
     status: 'Active',
   },
   {
@@ -63,7 +74,10 @@ export let placeholderPitches: Pitch[] = [
     amenities: ['Bibs', 'Water', 'Parking'],
     imageUrl: 'https://images.unsplash.com/photo-1521952210435-373f9b234475?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHw1LWEtc2lkZSUyMGZvb3RiYWxsfGVufDB8fHx8MTc1Mzc2MDkwMHww&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: '5-a-side soccer',
-    availableSlots: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM'],
+    availableSlots: {
+        [todayStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM'],
+        [tomorrowStr]: ['6:00 PM - 7:00 PM', '7:00 PM - 8:00 PM', '8:00 PM - 9:00 PM'],
+    },
     status: 'Active',
   },
   {
@@ -75,7 +89,9 @@ export let placeholderPitches: Pitch[] = [
     amenities: ['Floodlights', 'Secure', 'Lounge'],
     imageUrl: 'https://images.unsplash.com/photo-1622953443487-735264b51936?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGZvb3RiYWxsJTIwZmllbGR8ZW58MHx8fHwxNzUzNzYwOTYyfDA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'green field',
-    availableSlots: ['3:00 PM - 4:00 PM'],
+    availableSlots: {
+        [todayStr]: ['3:00 PM - 4:00 PM'],
+    },
     status: 'Active',
   },
   {
@@ -87,7 +103,9 @@ export let placeholderPitches: Pitch[] = [
     amenities: ['Floodlights', 'Parking', 'Cafe'],
     imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHBsYXllcnxlbnwwfHx8fDE3NTM3NjEwMTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
     imageHint: 'football players',
-    availableSlots: ['5:00 PM - 6:00 PM', '8:00 PM - 9:00 PM'],
+    availableSlots: {
+        [tomorrowStr]: ['5:00 PM - 6:00 PM', '8:00 PM - 9:00 PM'],
+    },
     status: 'Active',
   },
 ];

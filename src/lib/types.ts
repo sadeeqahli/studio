@@ -8,7 +8,7 @@ export type Pitch = {
   amenities: string[];
   imageUrl: string;
   imageHint: string;
-  availableSlots: string[];
+  availableSlots: { [date: string]: string[] }; // e.g. { "2024-08-15": ["4:00 PM - 5:00 PM"] }
   status: 'Active' | 'Unlisted' | 'Pending Review';
   ownerId: string;
 };
@@ -99,3 +99,4 @@ export type Activity = {
     action: 'Logged In' | 'Signed Up';
     timestamp: string;
 };
+
