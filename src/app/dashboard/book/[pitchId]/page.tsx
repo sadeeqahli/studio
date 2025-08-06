@@ -2,7 +2,7 @@
 "use client";
 
 import * as React from 'react';
-import { use, useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { placeholderPitches, placeholderBookings, placeholderPayouts } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,7 +61,7 @@ export default function BookingPage() {
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
-    const pitchId = use(Promise.resolve(params.pitchId as string));
+    const pitchId = React.use(Promise.resolve(params.pitchId as string));
     
     const COMMISSION_RATE = 0.05; // 5% commission for this example
     

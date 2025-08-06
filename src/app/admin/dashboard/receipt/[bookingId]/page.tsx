@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from 'react';
-import { use } from 'react';
 import { useParams } from 'next/navigation';
 import { ReceiptBooking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +21,7 @@ export default function ReceiptPage() {
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const receiptRef = React.useRef<HTMLDivElement>(null);
-    const bookingId = use(Promise.resolve(params.bookingId as string));
+    const bookingId = React.use(Promise.resolve(params.bookingId as string));
     
     React.useEffect(() => {
         if (!bookingId) {
@@ -242,3 +241,5 @@ export default function ReceiptPage() {
         </div>
     );
 }
+
+    
