@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { placeholderBookings } from '@/lib/placeholder-data';
+import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
 
 function CommissionCalculatorCard() {
@@ -119,7 +119,7 @@ function RecentBookingsCard() {
                         {placeholderBookings.slice(0, 5).map((booking) => (
                              <TableRow key={booking.id}>
                                 <TableCell>
-                                    <div className="font-medium">{booking.id}</div>
+                                    <div className="font-medium">{booking.customerName}</div>
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
                                 <TableCell>
@@ -145,17 +145,40 @@ function RecentBookingsCard() {
 
 
 export default function OwnerDashboard() {
+  // For prototype purposes, we'll assume the logged-in owner is 'Tunde Ojo'
+  // In a real app, you'd get this from session/auth context.
+  const ownerPitches = placeholderPitches
+    .filter(p => ['Lekki AstroTurf', 'Ikeja 5-a-side'].includes(p.name))
+    .map(p => p.name);
+
+  const ownerBookings = placeholderBookings.filter(b => ownerPitches.includes(b.pitchName));
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const bookingsLast30Days = ownerBookings.filter(b => new Date(b.date) >= thirtyDaysAgo && b.status === 'Paid');
+  
+  const totalRevenue = ownerBookings.filter(b => b.status === 'Paid').reduce((acc, b) => acc + b.amount, 0);
+  const monthlyRevenue = bookingsLast30Days.reduce((acc, b) => acc + b.amount, 0);
+  const annualRevenue = monthlyRevenue * 12;
+  const newBookingsThisMonth = bookingsLast30Days.length;
+
   const stats = [
-    { title: "Total Revenue", value: "₦1,250,000", icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "+20.1% from last month" },
-    { title: "New Bookings", value: "+52", icon: <Users className="h-4 w-4 text-muted-foreground" />, description: "+15 since last week" },
-    { title: "Bookings this Month", value: "128", icon: <Calendar className="h-4 w-4 text-muted-foreground" />, description: "+8.5% from last month" },
-    { title: "Active Pitches", value: "4", icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />, description: "All pitches are online" },
+    { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time gross revenue" },
+    { title: "Active Pitches", value: ownerPitches.length.toString(), icon: <BarChart3 className="h-4 w-4 text-muted-foreground" />, description: "Your listed pitches" },
+    { title: "Bookings this Month", value: newBookingsThisMonth.toString(), icon: <Calendar className="h-4 w-4 text-muted-foreground" />, description: "Paid bookings in last 30 days" },
   ];
+
+  const recurringRevenueStats = [
+      { title: "Monthly Revenue", value: `₦${monthlyRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Based on last 30 days" },
+      { title: "Projected Annual Revenue", value: `₦${annualRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated from monthly revenue" },
+  ]
+
 
   return (
     <div>
         <h1 className="text-lg font-semibold md:text-2xl mb-4">Dashboard Overview</h1>
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
             {stats.map((stat, index) => (
                 <Card key={index}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -173,6 +196,26 @@ export default function OwnerDashboard() {
                 </Card>
             ))}
         </div>
+
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 mt-8">
+             {recurringRevenueStats.map((stat, index) => (
+                <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {stat.title}
+                    </CardTitle>
+                    {stat.icon}
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {stat.description}
+                    </p>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-8">
             <RecentBookingsCard />
             <SubscriptionStatusCard />
