@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderCredentials, placeholderPitches, placeholderBookings } from "@/lib/placeholder-data"
+import { placeholderCredentials, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
 import { User } from "@/lib/types"
 
 const planPricing = {
@@ -30,19 +30,25 @@ export default function AdminDashboard() {
   const totalUsers = placeholderCredentials.length;
   const totalPitches = placeholderPitches.length;
   const totalBookings = placeholderBookings.length;
+  const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
   const monthlyRecurringRevenue = placeholderCredentials
-    .filter(user => user.role === 'Owner' && user.status === 'Active' && user.subscriptionPlan && planPricing[user.subscriptionPlan])
-    .reduce((acc, user) => acc + (planPricing[user.subscriptionPlan!] || 0), 0);
+    .filter(user => user.role === 'Owner' && user.status === 'Active' && user.subscriptionPlan && planPricing[user.subscriptionPlan as keyof typeof planPricing])
+    .reduce((acc, user) => acc + (planPricing[user.subscriptionPlan as keyof typeof planPricing] || 0), 0);
     
   const annualRecurringRevenue = monthlyRecurringRevenue * 12;
 
   const stats = [
-    { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated monthly revenue" },
-    { title: "Annual Recurring Revenue", value: `₦${annualRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated annual revenue" },
+    { title: "Total Revenue", value: `₦${totalRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "All-time commission earned" },
     { title: "Total Users", value: totalUsers.toString(), icon: <Users className="h-4 w-4 text-muted-foreground" />, description: "Players and Owners" },
     { title: "Total Pitches", value: totalPitches.toString(), icon: <List className="h-4 w-4 text-muted-foreground" />, description: "Across all owners" },
+    { title: "Total Bookings", value: totalBookings.toString(), icon: <CalendarCheck className="h-4 w-4 text-muted-foreground" />, description: "All-time bookings" },
   ];
+  
+  const recurringRevenueStats = [
+      { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "From owner subscriptions" },
+      { title: "Annual Recurring Revenue", value: `₦${annualRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Estimated from subscriptions" },
+  ]
 
   return (
     <div>
@@ -50,6 +56,24 @@ export default function AdminDashboard() {
         <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
             {stats.map((stat, index) => (
                 <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {stat.title}
+                    </CardTitle>
+                    {stat.icon}
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {stat.description}
+                    </p>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-4 mt-8">
+             {recurringRevenueStats.map((stat, index) => (
+                <Card key={index} className="lg:col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                         {stat.title}
