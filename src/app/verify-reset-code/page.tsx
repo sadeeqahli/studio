@@ -46,39 +46,37 @@ export default function VerifyResetCodeForm() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-primary/5 p-4">
-        <Card className="mx-auto max-w-sm w-full">
-        <CardHeader>
-            <CardTitle className="text-2xl">Enter Verification Code</CardTitle>
-            <CardDescription>
-            A 6-digit code was sent to {email || 'your email'}. Enter it below.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <form onSubmit={handleVerifyCode} className="grid gap-4">
-            <div className="grid gap-2">
-                <Label htmlFor="code">Verification Code</Label>
-                <Input
-                id="code"
-                type="text"
-                placeholder="123456"
-                required
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                />
-            </div>
-            <Button type="submit" className="w-full">
-                Verify & Proceed
-            </Button>
-            </form>
-            <div className="mt-4 text-center text-sm">
-            <Link href="/forgot-password" className="flex items-center justify-center text-muted-foreground hover:underline">
-                <ArrowLeft className="h-4 w-4 mr-1"/> Didn't get a code?
-            </Link>
-            </div>
-        </CardContent>
-        </Card>
-    </div>
+    <Card className="mx-auto max-w-sm w-full">
+    <CardHeader>
+        <CardTitle className="text-2xl">Enter Verification Code</CardTitle>
+        <CardDescription>
+        A 6-digit code was sent to {email || 'your email'}. Enter it below.
+        </CardDescription>
+    </CardHeader>
+    <CardContent>
+        <form onSubmit={handleVerifyCode} className="grid gap-4">
+        <div className="grid gap-2">
+            <Label htmlFor="code">Verification Code</Label>
+            <Input
+            id="code"
+            type="text"
+            placeholder="123456"
+            required
+            maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            />
+        </div>
+        <Button type="submit" className="w-full">
+            Verify & Proceed
+        </Button>
+        </form>
+        <div className="mt-4 text-center text-sm">
+        <Link href="/forgot-password" className="flex items-center justify-center text-muted-foreground hover:underline">
+            <ArrowLeft className="h-4 w-4 mr-1"/> Didn't get a code?
+        </Link>
+        </div>
+    </CardContent>
+    </Card>
   )
 }
