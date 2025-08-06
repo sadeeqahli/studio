@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import * as React from "react"
@@ -53,11 +52,12 @@ export default function OwnerPitches() {
   const { toast } = useToast();
 
   // For this prototype, we'll hardcode the current owner's ID.
-  // In a real app, this would come from an authentication context.
-  const currentOwnerId = 'USR002'; 
+  // We'll use a unique ID for a "new" owner who has no pitches yet.
+  const currentOwnerId = 'new-owner-123'; 
 
   React.useEffect(() => {
     // Filter pitches to only show those owned by the current owner
+    // This will initially be empty for our 'new-owner-123'
     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
   }, []);
 
@@ -100,7 +100,6 @@ export default function OwnerPitches() {
        toast({ 
             title: "Pitch Deactivated", 
             description: "The pitch has been unlisted and is no longer visible to players.",
-            variant: "destructive"
        });
     }
   }
