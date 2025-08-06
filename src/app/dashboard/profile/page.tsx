@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun } from 'lucide-react';
-import { placeholderUsers, placeholderCredentials } from '@/lib/placeholder-data';
+import { placeholderCredentials } from '@/lib/placeholder-data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +36,7 @@ export default function UserProfile() {
 
   // For this prototype, we'll hardcode the current user. In a real app, this would come from a session.
   const currentUserEmail = 'm@example.com';
-  const currentUser = placeholderUsers.find(u => u.email === currentUserEmail);
+  const currentUser = placeholderCredentials.find(u => u.email === currentUserEmail);
 
   const [firstName, setFirstName] = React.useState(currentUser?.name.split(' ')[0] || '');
   const [lastName, setLastName] = React.useState(currentUser?.name.split(' ')[1] || '');
@@ -50,13 +50,6 @@ export default function UserProfile() {
     
     const newName = `${firstName} ${lastName}`;
 
-    // Update in placeholderUsers
-    const userIndex = placeholderUsers.findIndex(u => u.id === currentUser.id);
-    if (userIndex !== -1) {
-        placeholderUsers[userIndex] = { ...placeholderUsers[userIndex], name: newName, email };
-    }
-
-    // Update in placeholderCredentials
     const credIndex = placeholderCredentials.findIndex(c => c.id === currentUser.id);
     if (credIndex !== -1) {
         placeholderCredentials[credIndex] = { ...placeholderCredentials[credIndex], name: newName, email };

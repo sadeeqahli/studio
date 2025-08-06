@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderUsers, placeholderActivities } from "@/lib/placeholder-data"
+import { placeholderCredentials } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
@@ -46,10 +46,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { ActivityLogCard } from "@/components/admin/activity-log-card"
+import { placeholderActivities } from "@/lib/placeholder-data"
 
 export default function AdminUsersPage() {
     const { toast } = useToast();
-    const [users, setUsers] = React.useState<User[]>(placeholderUsers);
+    const [users, setUsers] = React.useState<User[]>(placeholderCredentials);
     const [searchTerm, setSearchTerm] = React.useState("");
     const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);

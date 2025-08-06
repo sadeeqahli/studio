@@ -17,11 +17,11 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderUsers, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
+import { placeholderCredentials, placeholderPitches, placeholderBookings, placeholderPayouts } from "@/lib/placeholder-data"
 import { User } from "@/lib/types"
 
 export default function AdminDashboard() {
-  const totalUsers = placeholderUsers.length;
+  const totalUsers = placeholderCredentials.length;
   const totalPitches = placeholderPitches.length;
   const totalBookings = placeholderBookings.length;
   const totalRevenue = placeholderPayouts.reduce((acc, payout) => payout.status === 'Paid Out' ? acc + payout.commissionFee : acc, 0);
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {placeholderUsers.slice(0, 5).map((user: User) => (
+                            {placeholderCredentials.slice(0, 5).map((user: User) => (
                                 <TableRow key={user.id}>
                                     <TableCell>
                                         <div className="font-medium">{user.name}</div>
