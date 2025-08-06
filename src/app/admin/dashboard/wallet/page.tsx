@@ -161,6 +161,15 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
         e.preventDefault();
         
         const withdrawalAmount = parseFloat(amount);
+        if (!withdrawalAmount || withdrawalAmount <= 0) {
+            toast({
+                title: "Invalid amount",
+                description: "Please enter a valid amount to withdraw.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (withdrawalAmount > availableBalance) {
             toast({
                 title: "Insufficient funds",
@@ -330,12 +339,8 @@ export default function AdminWalletPage() {
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
 
-    const totalRevenue = placeholderPayouts.reduce((acc, payout) => {
-        if (payout.status === 'Paid Out') {
-            return acc + payout.commissionFee;
-        }
-        return acc;
-    }, 0);
+    // Corrected logic: Total revenue should be all commission earned, regardless of payout status
+    const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
     const totalWithdrawn = withdrawals.reduce((acc, w) => acc + w.amount, 0);
     const availableForWithdrawal = totalRevenue - totalWithdrawn;
@@ -458,5 +463,3 @@ export default function AdminWalletPage() {
         </div>
     )
 }
-
-    

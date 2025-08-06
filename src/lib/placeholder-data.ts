@@ -120,8 +120,8 @@ export const placeholderTransactions: Transaction[] = [
 ];
 
 export const placeholderAdminWithdrawals: AdminWithdrawal[] = [
-    { id: 'WDL001', date: '2024-07-20', amount: 50000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful' },
-    { id: 'WDL002', date: '2024-07-10', amount: 120000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful' },
+    { id: 'WDL001', date: '2024-07-20', amount: 5000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful' },
+    { id: 'WDL002', date: '2024-07-10', amount: 2000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful' },
 ];
 
 export function updatePitch(updatedPitch: Pitch): void {
