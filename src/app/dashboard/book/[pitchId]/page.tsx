@@ -7,7 +7,6 @@ import { placeholderPitches, placeholderBookings, placeholderPayouts } from '@/l
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check } from 'lucide-react';
@@ -21,7 +20,6 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
@@ -58,8 +56,7 @@ export default function BookingPage() {
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-    const [selectedSlot, setSelectedSlot] = React.useState<string | null>(null);
-    const [duration, setDuration] = React.useState(1); // Default to 1 hour
+    const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
@@ -90,8 +87,8 @@ export default function BookingPage() {
     const allDaySlots = pitch?.allDaySlots || [];
     
     React.useEffect(() => {
-        // Reset selected slot if the date changes
-        setSelectedSlot(null);
+        // Reset selected slots if the date changes
+        setSelectedSlots([]);
     }, [selectedDate]);
     
     React.useEffect(() => {
@@ -100,14 +97,14 @@ export default function BookingPage() {
             timer = setTimeout(() => setCountdown(countdown - 1), 1000);
         } else if (bookingStatus === 'confirming' && countdown === 0) {
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-            const totalAmount = pitch!.price * duration;
+            const totalAmount = pitch!.price * selectedSlots.length;
             const userName = 'Max Robinson';
 
             const newBooking = {
                 id: newBookingId,
                 pitchName: pitch!.name,
                 date: format(selectedDate!, 'yyyy-MM-dd'),
-                time: `${selectedSlot!} for ${duration} hour(s)`,
+                time: `${selectedSlots.join(', ')}`,
                 amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: 'Bank Transfer',
@@ -137,22 +134,22 @@ export default function BookingPage() {
 
             toast({
                 title: "Booking Confirmed!",
-                description: `Your booking for ${pitch?.name} at ${selectedSlot} is successful.`,
+                description: `Your booking for ${pitch?.name} at ${selectedSlots[0]} is successful.`,
             });
 
             setBookingStatus('confirmed');
             router.push(`/dashboard/receipt/${newBookingId}`);
         }
         return () => clearTimeout(timer);
-    }, [bookingStatus, countdown, pitch, selectedSlot, router, toast, duration, selectedDate]);
+    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate]);
 
     const handleConfirmBooking = () => {
         if (!selectedDate) {
             toast({ title: "Please select a date.", variant: "destructive" });
             return;
         }
-        if (!selectedSlot) {
-            toast({ title: "Please select a time slot.", variant: "destructive" });
+        if (selectedSlots.length === 0) {
+            toast({ title: "Please select at least one time slot.", variant: "destructive" });
             return;
         }
         if (!agreedToTerms) {
@@ -161,6 +158,16 @@ export default function BookingPage() {
         }
 
         setBookingStatus('confirming');
+    };
+
+    const handleSlotSelection = (slot: string, checked: boolean) => {
+        setSelectedSlots(prev => {
+            if (checked) {
+                return [...prev, slot];
+            } else {
+                return prev.filter(s => s !== slot);
+            }
+        });
     };
 
     if (bookingStatus === 'confirming') {
@@ -189,7 +196,7 @@ export default function BookingPage() {
         );
     }
 
-    const totalPrice = pitch.price * duration;
+    const totalPrice = pitch.price * selectedSlots.length;
     const virtualAccountNumber = `9${pitch.id.padStart(9, '0')}`;
     const ownerName = "Tunde Ojo";
 
@@ -232,7 +239,7 @@ export default function BookingPage() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Duration</span>
-                                        <span className="font-semibold">{duration} hour(s)</span>
+                                        <span className="font-semibold">{selectedSlots.length} hour(s)</span>
                                     </div>
                                     <Separator />
                                     <div className="flex justify-between">
@@ -275,40 +282,31 @@ export default function BookingPage() {
                                             </PopoverContent>
                                         </Popover>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="duration">Duration</Label>
-                                         <Select onValueChange={(value) => setDuration(parseInt(value))} defaultValue="1">
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select duration" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="1">1 Hour</SelectItem>
-                                                <SelectItem value="2">2 Hours</SelectItem>
-                                                <SelectItem value="3">3 Hours</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold mb-2">Select a Time Slot</h3>
-                                     <RadioGroup onValueChange={setSelectedSlot} value={selectedSlot || ""}>
-                                        <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
-                                            {allDaySlots.map(slot => {
-                                                const isBooked = bookedSlotsForDate.has(slot);
-                                                return (
-                                                    <div key={slot} className="flex items-center space-x-2">
-                                                        <RadioGroupItem value={slot} id={slot} disabled={isBooked} />
-                                                        <Label htmlFor={slot} className={cn("flex justify-between items-center w-full", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
-                                                            <span>{slot}</span>
-                                                             {isBooked ? 
-                                                                <Badge variant="destructive">Booked</Badge> 
-                                                                : <Badge variant="outline" className="text-green-600 border-green-400">Available</Badge>}
-                                                        </Label>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </RadioGroup>
+                                    <h3 className="font-semibold mb-2">Select Time Slot(s)</h3>
+                                     <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
+                                        {allDaySlots.map(slot => {
+                                            const isBooked = bookedSlotsForDate.has(slot);
+                                            const isChecked = selectedSlots.includes(slot);
+                                            return (
+                                                <div key={slot} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={slot}
+                                                        checked={isChecked}
+                                                        onCheckedChange={(checked) => handleSlotSelection(slot, checked as boolean)}
+                                                        disabled={isBooked}
+                                                    />
+                                                    <Label htmlFor={slot} className={cn("flex justify-between items-center w-full", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
+                                                        <span>{slot}</span>
+                                                            {isBooked ? 
+                                                            <Badge variant="destructive">Booked</Badge> 
+                                                            : <Badge variant="outline" className="text-green-600 border-green-400">Available</Badge>}
+                                                    </Label>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
                                     {allDaySlots.length === 0 && (
                                          <Alert variant="destructive">
                                             <AlertCircle className="h-4 w-4" />
@@ -374,7 +372,7 @@ export default function BookingPage() {
                                     className="w-full" 
                                     size="lg" 
                                     onClick={handleConfirmBooking} 
-                                    disabled={!selectedSlot || !agreedToTerms || bookingStatus !== 'idle'}
+                                    disabled={selectedSlots.length === 0 || !agreedToTerms || bookingStatus !== 'idle'}
                                 >
                                     {bookingStatus === 'idle' ? `Confirm & Pay ₦${totalPrice.toLocaleString()}` : <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>}
                                 </Button>
@@ -461,3 +459,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    
