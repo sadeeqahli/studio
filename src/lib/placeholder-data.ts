@@ -44,6 +44,7 @@ export let placeholderUsers: User[] = placeholderCredentials;
 export let placeholderPitches: Pitch[] = [
   {
     id: '1',
+    ownerId: 'USR002',
     name: 'Lekki AstroTurf',
     location: 'Lekki Phase 1, Lagos',
     price: 25000,
@@ -55,6 +56,7 @@ export let placeholderPitches: Pitch[] = [
   },
   {
     id: '2',
+    ownerId: 'USR002',
     name: 'Ikeja 5-a-side',
     location: 'Ikeja GRA, Lagos',
     price: 18000,
@@ -66,6 +68,7 @@ export let placeholderPitches: Pitch[] = [
   },
   {
     id: '3',
+    ownerId: 'USR005',
     name: 'Asokoro Green',
     location: 'Asokoro, Abuja',
     price: 22000,
@@ -77,6 +80,7 @@ export let placeholderPitches: Pitch[] = [
   },
   {
     id: '4',
+    ownerId: 'USR005',
     name: 'Port Harcourt Pitch',
     location: 'GRA, Port Harcourt',
     price: 20000,
@@ -128,4 +132,8 @@ export function updatePitch(updatedPitch: Pitch): void {
     if (index !== -1) {
         placeholderPitches[index] = updatedPitch;
     }
+}
+
+export function addPitch(newPitch: Pitch): void {
+    placeholderPitches.push(newPitch);
 }

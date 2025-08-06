@@ -18,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { Pitch } from '@/lib/types';
-import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
 
 const pitchSchema = z.object({
@@ -34,7 +33,7 @@ type PitchForm = z.infer<typeof pitchSchema>;
 interface AddPitchDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots'>) => void;
+  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots' | 'status' | 'ownerId'>) => void;
   onEditPitch: (pitch: Pitch) => void;
   pitch: Pitch | null;
 }

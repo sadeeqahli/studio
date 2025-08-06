@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPitches as initialPitches, updatePitch } from "@/lib/placeholder-data"
+import { placeholderPitches as allPitches, updatePitch, addPitch as addNewPitch } from "@/lib/placeholder-data"
 import { Pitch } from "@/lib/types"
 import { AddPitchDialog } from "@/components/add-pitch-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -47,18 +47,32 @@ import Image from "next/image"
 import Link from "next/link"
 
 export default function OwnerPitches() {
-  const [pitches, setPitches] = React.useState<Pitch[]>(initialPitches);
+  const [pitches, setPitches] = React.useState<Pitch[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
   const { toast } = useToast();
 
-  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots'>) => {
+  // For this prototype, we'll hardcode the current owner's ID.
+  // In a real app, this would come from an authentication context.
+  const currentOwnerId = 'USR002'; 
+
+  React.useEffect(() => {
+    // Filter pitches to only show those owned by the current owner
+    setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
+  }, []);
+
+
+  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'availableSlots' | 'status' | 'ownerId'>) => {
     const newPitch: Pitch = {
       ...newPitchData,
-      id: (pitches.length + 1).toString(),
+      id: `PITCH-${Date.now()}`,
       imageHint: 'football field',
       availableSlots: [],
+      status: 'Active',
+      ownerId: currentOwnerId,
     };
+    addNewPitch(newPitch);
+    // Refresh the component's state to include the new pitch
     setPitches(prev => [...prev, newPitch]);
     toast({ title: "Success!", description: "New pitch has been added." });
     setIsDialogOpen(false);
@@ -78,13 +92,17 @@ export default function OwnerPitches() {
   }
 
   const handleDeactivate = (pitchId: string) => {
-    // In a real app, this would likely be a soft delete or status change
-    setPitches(prev => prev.filter(p => p.id !== pitchId));
-    toast({ 
-        title: "Pitch Deactivated", 
-        description: "The pitch has been removed from your active list.",
-        variant: "destructive"
-     });
+    const pitchToDeactivate = pitches.find(p => p.id === pitchId);
+    if (pitchToDeactivate) {
+       const updatedPitch = { ...pitchToDeactivate, status: 'Unlisted' as const };
+       updatePitch(updatedPitch);
+       setPitches(prev => prev.map(p => p.id === pitchId ? updatedPitch : p));
+       toast({ 
+            title: "Pitch Deactivated", 
+            description: "The pitch has been unlisted and is no longer visible to players.",
+            variant: "destructive"
+       });
+    }
   }
 
   return (
@@ -126,67 +144,75 @@ export default function OwnerPitches() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pitches.map((pitch) => (
-                <TableRow key={pitch.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt="Product image"
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={pitch.imageUrl}
-                      width="64"
-                      data-ai-hint={pitch.imageHint}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{pitch.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-green-600 border-green-400 bg-green-50">Active</Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell font-mono">
-                    ₦{pitch.price.toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-haspopup="true"
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => openEditDialog(pitch)}>Edit Details</DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                           <Link href={`/owner/dashboard/pitches/${pitch.id}/availability`}>Manage Availability</Link>
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                              Deactivate
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              {pitches.length > 0 ? (
+                pitches.map((pitch) => (
+                  <TableRow key={pitch.id}>
+                    <TableCell className="hidden sm:table-cell">
+                      <Image
+                        alt="Product image"
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={pitch.imageUrl}
+                        width="64"
+                        data-ai-hint={pitch.imageHint}
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium">{pitch.name}</TableCell>
+                    <TableCell>
+                      <Badge variant={pitch.status === 'Active' ? 'outline' : 'secondary'} className={pitch.status === 'Active' ? 'text-green-600 border-green-400 bg-green-50' : ''}>{pitch.status}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell font-mono">
+                      ₦{pitch.price.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => openEditDialog(pitch)}>Edit Details</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/owner/dashboard/pitches/${pitch.id}/availability`}>Manage Availability</Link>
+                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                Deactivate
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No pitches found. Add your first pitch to get started.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

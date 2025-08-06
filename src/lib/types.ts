@@ -10,6 +10,7 @@ export type Pitch = {
   imageHint: string;
   availableSlots: string[];
   status: 'Active' | 'Unlisted' | 'Pending Review';
+  ownerId: string;
 };
 
 export type Booking = {
