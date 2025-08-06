@@ -104,6 +104,19 @@ export default function OwnerPitches() {
     }
   }
 
+  const handleActivate = (pitchId: string) => {
+    const pitchToActivate = pitches.find(p => p.id === pitchId);
+    if (pitchToActivate) {
+        const updatedPitch = { ...pitchToActivate, status: 'Active' as const };
+        updatePitch(updatedPitch);
+        setPitches(prev => prev.map(p => p.id === pitchId ? updatedPitch : p));
+        toast({
+            title: "Pitch Activated",
+            description: "The pitch is now active and visible to players.",
+        });
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -181,25 +194,31 @@ export default function OwnerPitches() {
                           <DropdownMenuItem asChild>
                             <Link href={`/owner/dashboard/pitches/${pitch.id}/availability`}>Manage Availability</Link>
                           </DropdownMenuItem>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                Deactivate
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {pitch.status === 'Active' ? (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                  Deactivate
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          ) : (
+                            <DropdownMenuItem onClick={() => handleActivate(pitch.id)}>
+                                Activate
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
