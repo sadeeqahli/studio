@@ -50,8 +50,7 @@ function PaymentConfirmationView({ countdown }: { countdown: number }) {
 }
 
 
-export default function BookingPage() {
-    const params = useParams();
+export default function BookingPage({ params }: { params: { pitchId: string } }) {
     const router = useRouter();
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
@@ -61,9 +60,9 @@ export default function BookingPage() {
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
-    const pitchId = params.pitchId as string;
+    const pitchId = params.pitchId;
     
-    const COMMISSION_RATE = 0.05; // 5% commission for this example
+    const COMMISSION_RATE = 0.10; // 10% commission for Starter plan
     
     React.useEffect(() => {
         const foundPitch = placeholderPitches.find(p => p.id === pitchId);
@@ -74,17 +73,16 @@ export default function BookingPage() {
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
     
-    // New logic to get booked slots for the selected date
     const bookedSlotsForDate = React.useMemo(() => {
         if (!pitch) return new Set();
         return new Set(
             placeholderBookings
                 .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
-                .map(b => b.time) 
+                .flatMap(b => b.time.split(', ')) // Handle multiple slots in one booking
         );
     }, [pitch, dateKey]);
 
-    const allDaySlots = pitch ? pitch.availableSlots[dateKey] || [] : [];
+    const allDaySlots = pitch ? pitch.allDaySlots || [] : [];
     
     React.useEffect(() => {
         // Reset selected slots if the date changes
@@ -104,7 +102,7 @@ export default function BookingPage() {
                 id: newBookingId,
                 pitchName: pitch!.name,
                 date: format(selectedDate!, 'yyyy-MM-dd'),
-                time: `${selectedSlots.join(', ')}`,
+                time: selectedSlots.join(', '),
                 amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: 'Bank Transfer',
@@ -209,177 +207,177 @@ export default function BookingPage() {
     
     return (
         <Dialog>
-            <div>
-                <Button asChild variant="ghost" className="mb-4">
-                    <Link href="/dashboard">
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Pitches
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold tracking-tight mb-6">Confirm Your Booking</h1>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div>
-                        <Card className="overflow-hidden">
-                            <Image 
-                                src={pitch.imageUrl}
-                                alt={pitch.name}
-                                width={600}
-                                height={400}
-                                data-ai-hint={pitch.imageHint}
-                                className="object-cover w-full aspect-video"
-                            />
-                            <CardHeader>
-                                <CardTitle>{pitch.name}</CardTitle>
-                                <CardDescription>{pitch.location}</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Price per hour</span>
-                                        <span className="font-semibold">₦{pitch.price.toLocaleString()}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-muted-foreground">Duration</span>
-                                        <span className="font-semibold">{selectedSlots.length} hour(s)</span>
-                                    </div>
-                                    <Separator />
-                                    <div className="flex justify-between">
-                                        <span className="text-lg font-bold">Total</span>
-                                        <span className="text-lg font-bold text-primary">₦{totalPrice.toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                    <div>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Booking Details</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <Label htmlFor="date">Select Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={"outline"}
-                                                    className={cn(
-                                                        "w-full justify-start text-left font-normal",
-                                                        !selectedDate && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0">
-                                                <Calendar
-                                                    mode="single"
-                                                    selected={selectedDate}
-                                                    onSelect={setSelectedDate}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-semibold mb-2">Select Time Slot(s)</h3>
-                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2">
-                                        {allDaySlots.map(slot => {
-                                            const isBooked = bookedSlotsForDate.has(slot);
-                                            const isChecked = selectedSlots.includes(slot);
-                                            return (
-                                                <div key={slot} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={slot}
-                                                        checked={isChecked}
-                                                        onCheckedChange={(checked) => handleSlotSelection(slot, checked as boolean)}
-                                                        disabled={isBooked}
-                                                    />
-                                                    <Label htmlFor={slot} className={cn("flex justify-between items-center w-full", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
-                                                        <span>{slot}</span>
-                                                            {isBooked ? 
-                                                            <Badge variant="destructive">Booked</Badge> 
-                                                            : <Badge variant="outline" className="text-green-600 border-green-400">Available</Badge>}
-                                                    </Label>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                    {allDaySlots.length === 0 && (
-                                         <Alert variant="destructive">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertTitle>No Slots</AlertTitle>
-                                            <AlertDescription>
-                                                There are currently no available slots for this date.
-                                            </AlertDescription>
-                                        </Alert>
-                                    )}
-                                </div>
-                                
-                                <div>
-                                    <h3 className="font-semibold mb-2">Payment Method</h3>
-                                     <Card>
-                                        <CardHeader>
-                                            <CardTitle className="flex items-center gap-2"><Banknote className="h-5 w-5" /> Bank Transfer</CardTitle>
-                                            <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
-                                        </CardHeader>
-                                        <CardContent className="space-y-3 text-sm">
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Bank Name:</span>
-                                                <span className="font-semibold">Providus Bank (Virtual)</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-muted-foreground">Account Name:</span>
-                                                <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
-                                            </div>
-                                             <div className="flex items-center justify-between">
-                                                <div>
-                                                    <span className="text-muted-foreground">Account Number:</span>
-                                                    <p className="font-semibold font-mono">{virtualAccountNumber}</p>
-                                                </div>
-                                                <Button type="button" variant="ghost" size="icon" onClick={handleCopy}>
-                                                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                                    <span className="sr-only">Copy account number</span>
-                                                </Button>
-                                            </div>
-                                            <Alert className="mt-4">
-                                                <AlertCircle className="h-4 w-4" />
-                                                <AlertDescription>
-                                                  Use your Booking ID as the payment reference to confirm your booking instantly.
-                                                </AlertDescription>
-                                            </Alert>
-                                        </CardContent>
-                                    </Card>
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-xs text-muted-foreground">Please read these Terms carefully before making any payment or booking. If you do not agree with these Terms, you may not use the app or its services.</p>
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="terms" onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
-                                        <Label htmlFor="terms" className="text-sm text-muted-foreground">
-                                            I have read and agree to the {' '}
-                                            <DialogTrigger>
-                                                <span className="underline hover:text-primary cursor-pointer">terms and conditions</span>
-                                            </DialogTrigger>
-                                            .
-                                        </Label>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter>
-                                <Button 
-                                    className="w-full" 
-                                    size="lg" 
-                                    onClick={handleConfirmBooking} 
-                                    disabled={selectedSlots.length === 0 || !agreedToTerms || bookingStatus !== 'idle'}
-                                >
-                                    {bookingStatus === 'idle' ? `Confirm & Pay ₦${totalPrice.toLocaleString()}` : <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>}
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-3">
+                    <Button asChild variant="ghost" className="mb-4 px-0">
+                        <Link href="/dashboard">
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Pitches
+                        </Link>
+                    </Button>
+                    <h1 className="text-2xl font-bold tracking-tight">Confirm Your Booking</h1>
                 </div>
+
+                {/* Left Side */}
+                <div className="lg:col-span-2 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Booking Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div>
+                                <Label htmlFor="date">Select Date</Label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                                "w-full justify-start text-left font-normal mt-1",
+                                                !selectedDate && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={selectedDate}
+                                            onSelect={setSelectedDate}
+                                            initialFocus
+                                            fromDate={new Date()}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            <div>
+                                <h3 className="font-semibold mb-2 text-sm">Select Time Slot(s)</h3>
+                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2 border rounded-md p-2">
+                                    {allDaySlots.map(slot => {
+                                        const isBooked = bookedSlotsForDate.has(slot);
+                                        const isChecked = selectedSlots.includes(slot);
+                                        return (
+                                            <div key={slot} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={slot}
+                                                    checked={isChecked}
+                                                    onCheckedChange={(checked) => handleSlotSelection(slot, checked as boolean)}
+                                                    disabled={isBooked}
+                                                />
+                                                <Label htmlFor={slot} className={cn("flex justify-between items-center w-full text-xs font-normal", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
+                                                    <span>{slot}</span>
+                                                        {isBooked ? 
+                                                        <Badge variant="destructive">Booked</Badge> 
+                                                        : <Badge variant="outline" className="text-green-600 border-green-400">Free</Badge>}
+                                                </Label>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                                {(pitch.availableSlots[dateKey] || pitch.allDaySlots).length === 0 && (
+                                     <Alert variant="destructive" className="mt-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertTitle>No Slots</AlertTitle>
+                                        <AlertDescription>
+                                            There are currently no available slots for this date.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Banknote className="h-5 w-5" /> Payment Method</CardTitle>
+                            <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Bank Name:</span>
+                                <span className="font-semibold">Providus Bank (Virtual)</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Account Name:</span>
+                                <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
+                            </div>
+                             <div className="flex items-center justify-between">
+                                <div>
+                                    <span className="text-muted-foreground">Account Number:</span>
+                                    <p className="font-semibold font-mono text-lg">{virtualAccountNumber}</p>
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" onClick={handleCopy}>
+                                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                    <span className="sr-only">Copy account number</span>
+                                </Button>
+                            </div>
+                            <Alert className="mt-4">
+                                <AlertCircle className="h-4 w-4" />
+                                <AlertDescription>
+                                  Use your phone number as the payment reference to confirm your booking instantly.
+                                </AlertDescription>
+                            </Alert>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right Side */}
+                <div className="lg:col-span-1 space-y-6">
+                    <Card className="overflow-hidden sticky top-20">
+                        <Image 
+                            src={pitch.imageUrl}
+                            alt={pitch.name}
+                            width={600}
+                            height={400}
+                            data-ai-hint={pitch.imageHint}
+                            className="object-cover w-full aspect-video"
+                        />
+                        <CardHeader>
+                            <CardTitle>{pitch.name}</CardTitle>
+                            <CardDescription>{pitch.location}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Price per hour</span>
+                                    <span className="font-semibold">₦{pitch.price.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Duration</span>
+                                    <span className="font-semibold">{selectedSlots.length} hour(s)</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between">
+                                    <span className="text-lg font-bold">Total</span>
+                                    <span className="text-lg font-bold text-primary">₦{totalPrice.toLocaleString()}</span>
+                                </div>
+                            </div>
+                             <div className="mt-4 space-y-2">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="terms" onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)} />
+                                    <Label htmlFor="terms" className="text-xs text-muted-foreground leading-snug">
+                                        I have read and agree to the {' '}
+                                        <DialogTrigger>
+                                            <span className="underline hover:text-primary cursor-pointer">terms and conditions</span>
+                                        </DialogTrigger>
+                                        .
+                                    </Label>
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button 
+                                className="w-full" 
+                                size="lg" 
+                                onClick={handleConfirmBooking} 
+                                disabled={selectedSlots.length === 0 || !agreedToTerms || bookingStatus !== 'idle'}
+                            >
+                                {bookingStatus === 'idle' ? `Confirm & Pay ₦${totalPrice.toLocaleString()}` : <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>}
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
+
                 <TermsDialogContent />
             </div>
         </Dialog>
@@ -459,7 +457,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-    
-
-    

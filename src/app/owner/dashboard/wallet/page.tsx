@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from "react";
@@ -338,8 +339,7 @@ export default function OwnerWalletPage() {
     // Derive transactions from paid out payouts
     React.useEffect(() => {
         const ownerPayouts = placeholderPayouts.filter(payout => {
-            const pitch = placeholderPitches.find(p => p.name === payout.customerName.split(' (')[1]?.replace(')','').trim());
-            return pitch && pitch.ownerId === currentOwnerId;
+             return ownerPitchNames.includes(payout.customerName);
         });
 
         const paidOutTransactions: Transaction[] = ownerPayouts

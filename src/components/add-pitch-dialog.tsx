@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -31,9 +32,11 @@ const pitchSchema = z.object({
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
   image: z.any().optional(),
+  // A dummy field to pass the pitch object to the resolver
+  pitch: z.any().optional(),
 }).refine(data => {
-    // In edit mode (pitch is not null), image is optional.
-    // In add mode (pitch is null), image is required.
+    // In edit mode (data.pitch is not null), image is optional.
+    // In add mode (data.pitch is null), image is required.
     return data.pitch ? true : data.image?.length > 0;
 }, {
     message: 'Image is required.',
@@ -46,7 +49,7 @@ type PitchForm = z.infer<typeof pitchSchema> & { pitch: Pitch | null };
 interface AddPitchDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'imageHint' | 'status' | 'ownerId'>) => void;
+  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => void;
   onEditPitch: (pitch: Pitch) => void;
   pitch: Pitch | null;
 }
@@ -173,6 +176,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           price: data.price,
           amenities: data.amenities,
           imageUrl: imagePreview || "https://placehold.co/600x400.png",
+          imageHint: data.name.toLowerCase().replace(/\s+/g, ' '),
           availableSlots: availableSlots,
           allDaySlots: standardSlots,
       };
@@ -197,14 +201,15 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         if (!open) handleClose();
         else setIsOpen(true);
     }}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>{pitch ? 'Edit Pitch' : 'Add a New Pitch'}</DialogTitle>
           <DialogDescription>
             {pitch ? 'Update the details and availability for your pitch.' : 'Fill in the details and initial availability to list your pitch.'}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-grow overflow-y-auto pr-4">
+        <div className="flex-grow overflow-hidden">
+        <ScrollArea className="h-[70vh] pr-6">
             <form id="pitch-form" onSubmit={handleSubmit(onSubmit)} className="grid md:grid-cols-2 gap-8 py-4">
                 {/* Left side: Pitch Details */}
                 <div className="space-y-4">
@@ -302,7 +307,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                 </div>
                             </div>
                             {slotsForDate.length > 0 ? (
-                                <ScrollArea className="h-40 pr-2 border rounded-md p-2">
+                                <div className="space-y-2 h-40 overflow-y-auto pr-2 border rounded-md p-2">
                                     {slotsForDate.map((slot) => (
                                         <div key={slot} className="flex items-center justify-between p-2 bg-muted rounded-md mb-2">
                                             <span>{slot}</span>
@@ -311,7 +316,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                             </Button>
                                         </div>
                                     ))}
-                                </ScrollArea>
+                                </div>
                             ) : (
                                 <p className="text-sm text-muted-foreground p-4 text-center bg-muted rounded-md">
                                     No available slots for this day.
@@ -320,6 +325,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                     </div>
                 </div>
             </form>
+        </ScrollArea>
         </div>
         <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>Cancel</Button>
@@ -331,5 +337,3 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
     </Dialog>
   );
 }
-
-    

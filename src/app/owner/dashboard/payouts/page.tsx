@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import * as React from 'react';
@@ -35,10 +36,14 @@ export default function OwnerPayouts() {
         .map(p => p.name);
 
     const ownerPayouts = placeholderPayouts.filter(p => {
-        const pitch = placeholderPitches.find(pitch => pitch.name === p.customerName.split(' (')[1]?.replace(')','').trim());
-        return pitch && pitch.ownerId === currentOwnerId;
-    });
+        // Find the pitch associated with the booking
+        const bookingPitch = placeholderPitches.find(pitch => pitch.name === p.customerName.split('(').pop()?.split(')')[0]);
+        // A more robust check might be needed if customerName format changes
+        const pitchForBooking = placeholderPitches.find(pitch => pitch.name === p.customerName);
 
+        // Check if the pitch belongs to the current owner
+        return ownerPitchNames.includes(p.customerName);
+    });
 
     const handleExport = () => {
         const headers = [
@@ -80,7 +85,7 @@ export default function OwnerPayouts() {
         .filter(p => p.status === 'Paid Out')
         .reduce((acc, p) => acc + p.netPayout, 0);
 
-    const totalWithdrawn = placeholderPayoutsToOwners.reduce((acc, w) => acc + w.amount, 0);
+    const totalWithdrawn = placeholderPayoutsToOwners.filter(w => w.ownerName === "Tunde Ojo").reduce((acc, w) => acc + w.amount, 0);
 
     const totalNetPayout = totalNetCredited - totalWithdrawn;
 
@@ -128,7 +133,7 @@ export default function OwnerPayouts() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {placeholderPayoutsToOwners.map((withdrawal: OwnerWithdrawal) => (
+                             {placeholderPayoutsToOwners.filter(w => w.ownerName === "Tunde Ojo").map((withdrawal: OwnerWithdrawal) => (
                                 <TableRow key={withdrawal.id}>
                                     <TableCell>{new Date(withdrawal.date).toLocaleDateString()}</TableCell>
                                     <TableCell>

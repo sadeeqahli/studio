@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -65,11 +66,10 @@ export default function OwnerPitches() {
   }
 
 
-  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'imageHint' | 'status' | 'ownerId'>) => {
+  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
     const newPitch: Pitch = {
       ...newPitchData,
       id: `PITCH-${Date.now()}`,
-      imageHint: 'football field',
       status: 'Active',
       ownerId: currentOwnerId,
     };
