@@ -27,147 +27,152 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { getUserById } from '@/app/actions';
+import { getUserById, updateUser } from '@/app/actions';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 export default function UserProfile() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
   const router = useRouter();
+  
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
   
   React.useEffect(() => {
     async function loadUser() {
-      // In a real app, you'd get this from your auth context/session
-      let userId = null;
-      try {
-        userId = localStorage.getItem('loggedInUserId');
-      } catch (error) {
-        // Handle cases where localStorage is not available (e.g., SSR)
-        console.error("Could not access localStorage:", error);
-      }
-      
+      const userId = localStorage.getItem('loggedInUserId');
       if (userId) {
         const user = await getUserById(userId);
-        setCurrentUser(user || null);
+        if (user) {
+          setCurrentUser(user);
+          setFirstName(user.name.split(' ')[0] || '');
+          setLastName(user.name.split(' ').slice(1).join(' ') || '');
+          setEmail(user.email);
+        } else {
+          router.push('/login');
+        }
       } else {
-        // If no user ID is found, redirect to login
         router.push('/login');
       }
     }
     loadUser();
   }, [router]);
 
-
-  const handleSaveChanges = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) return;
+    
+    const updatedUser: User = {
+        ...currentUser,
+        name: `${firstName} ${lastName}`,
+        email: email,
+    };
+    
+    await updateUser(updatedUser);
+    setCurrentUser(updatedUser); // Update local state to reflect changes
+
     toast({
       title: "Success!",
       description: "Your personal information has been updated.",
     });
   };
 
-  const handleUpdatePassword = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) return;
+
+    if (newPassword !== confirmPassword) {
+        toast({ title: "Passwords do not match", variant: "destructive"});
+        return;
+    }
+
+    // In a real app, you'd verify the currentPassword against the backend
+    // For this prototype, we'll assume it's correct and update the password
+    const updatedUser: User = {
+        ...currentUser,
+        password: newPassword,
+    };
+
+    await updateUser(updatedUser);
+    
     toast({
       title: "Password Successfully Changed",
       description: "Please log in again with your new password.",
     });
-    // In a real app, you'd also update the password in the backend here
-    // and then perform the logout.
+    
     setTimeout(() => {
-        try {
-            localStorage.removeItem('loggedInUserId');
-        } catch (error) {
-             console.error("Could not access localStorage:", error);
-        }
+        localStorage.removeItem('loggedInUserId');
         router.push('/login');
     }, 2000);
   };
   
-  if (!currentUser) {
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Loading profile...</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>Please wait while we fetch your details.</p>
-            </CardContent>
-        </Card>
-    );
-  }
-
+  const isInfoChanged = currentUser ? (firstName !== (currentUser.name.split(' ')[0] || '')) || (lastName !== (currentUser.name.split(' ').slice(1).join(' ') || '')) || (email !== currentUser.email) : false;
+  const isPasswordFormValid = currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
   return (
     <div>
         <h1 className="text-lg font-semibold md:text-2xl mb-4">Profile & Settings</h1>
         <div className="grid gap-6">
             <Card>
-                <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details here.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="first-name">First Name</Label>
-                        <Input id="first-name" defaultValue={currentUser.name.split(' ')[0]} />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="last-name">Last Name</Label>
-                        <Input id="last-name" defaultValue={currentUser.name.split(' ').slice(1).join(' ')} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue={currentUser.email} />
-                    </div>
-                </CardContent>
-                <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                </CardFooter>
+                <form onSubmit={handleSaveChanges}>
+                    <CardHeader>
+                        <CardTitle>Personal Information</CardTitle>
+                        <CardDescription>Update your personal details here.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="first-name">First Name</Label>
+                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="last-name">Last Name</Label>
+                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="border-t px-6 py-4">
+                        <Button type="submit" disabled={!isInfoChanged}>Save Changes</Button>
+                    </CardFooter>
+                </form>
             </Card>
 
+            <Separator />
+
             <Card>
-                <CardHeader>
-                    <CardTitle>Password</CardTitle>
-                    <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" />
-                    </div>
-                </CardContent>
-                <CardFooter className="border-t px-6 py-4">
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button type="button">Update Password</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Password Change</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                You will be logged out after successfully changing your password. Are you sure you want to continue?
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleUpdatePassword}>
-                                Yes, Change Password
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </CardFooter>
+                 <form onSubmit={handleUpdatePassword}>
+                    <CardHeader>
+                        <CardTitle>Password</CardTitle>
+                        <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="current-password">Current Password</Label>
+                            <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="border-t px-6 py-4">
+                        <Button type="submit" disabled={!isPasswordFormValid}>Update Password</Button>
+                    </CardFooter>
+                </form>
             </Card>
 
             <Card>
@@ -188,3 +193,5 @@ export default function UserProfile() {
     </div>
   )
 }
+
+    
