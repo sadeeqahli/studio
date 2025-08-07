@@ -1,5 +1,11 @@
 
 
+export type OperatingHours = {
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+  startTime: string; // "HH:MM"
+  endTime: string; // "HH:MM"
+}
+
 export type Pitch = {
   id: string;
   name: string;
@@ -8,7 +14,8 @@ export type Pitch = {
   amenities: string[];
   imageUrl: string;
   imageHint: string;
-  allDaySlots: string[]; // Master list of all possible slots for a pitch
+  operatingHours: OperatingHours[];
+  slotInterval: number; // in minutes
   manuallyBlockedSlots?: { [date: string]: string[] }; // For owners to block slots
   status: 'Active' | 'Unlisted';
   ownerId: string;
@@ -20,7 +27,7 @@ export type Booking = {
     date: string;
     time: string;
     amount: number;
-    status: 'Paid' | 'Pending' | 'Cancelled';
+    status: 'Paid' | 'Paid' | 'Cancelled';
     customerName: string;
     bookingType: 'Online' | 'Offline'; // To distinguish between player and owner bookings
 };
@@ -51,7 +58,7 @@ export type OwnerBooking = {
   date: string;
   time: string;
   amount: number;
-  status: 'Paid' | 'Pending' | 'Cancelled';
+  status: 'Paid' | 'Paid' | 'Cancelled';
 }
 
 export type User = {

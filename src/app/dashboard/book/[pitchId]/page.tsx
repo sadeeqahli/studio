@@ -19,12 +19,35 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, addDays } from 'date-fns';
+import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 
 type BookingStatus = 'idle' | 'confirming' | 'confirmed';
+
+function generateTimeSlots(pitch: Pitch, date: Date): string[] {
+    const dayOfWeek = format(date, 'EEEE'); // e.g., "Monday"
+    const operatingHours = pitch.operatingHours.find(h => h.day === dayOfWeek);
+
+    if (!operatingHours) {
+        return [];
+    }
+    
+    const slots = [];
+    const [startHour, startMinute] = operatingHours.startTime.split(':').map(Number);
+    const [endHour, endMinute] = operatingHours.endTime.split(':').map(Number);
+
+    let currentTime = setMinutes(setHours(date, startHour), startMinute);
+    const endTime = setMinutes(setHours(date, endHour), endMinute);
+
+    while (currentTime < endTime) {
+        slots.push(format(currentTime, 'hh:mm a'));
+        currentTime = addMinutes(currentTime, pitch.slotInterval);
+    }
+
+    return slots;
+}
 
 function PaymentConfirmationView({ countdown }: { countdown: number }) {
     return (
@@ -64,7 +87,6 @@ export default function BookingPage() {
     const [isCopied, setIsCopied] = React.useState(false);
     const pitchId = params.pitchId as string;
     
-    // In a real app, this would come from a session or context.
     const currentUserName = "Max Robinson";
     
     React.useEffect(() => {
@@ -85,16 +107,12 @@ export default function BookingPage() {
         );
     }, [pitch, dateKey]);
 
-    const manuallyBlockedSlots = React.useMemo(() => {
-        if (!pitch || !dateKey) return new Set();
-        const pitchData = placeholderPitches.find(p => p.id === pitch.id);
-        return new Set(pitchData?.manuallyBlockedSlots?.[dateKey] || []);
-    }, [pitch, dateKey]);
-    
-    const allDaySlots = pitch ? pitch.allDaySlots || [] : [];
+    const allDaySlots = React.useMemo(() => {
+        if (!pitch || !selectedDate) return [];
+        return generateTimeSlots(pitch, selectedDate);
+    }, [pitch, selectedDate])
     
     React.useEffect(() => {
-        // Reset selected slots if the date changes
         setSelectedSlots([]);
     }, [selectedDate]);
     
@@ -133,7 +151,6 @@ export default function BookingPage() {
             
             placeholderBookings.unshift(newBooking as any);
             
-            // Calculate commission based on owner's plan
             const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
             const commissionAmount = totalAmount * commissionRate;
 
@@ -277,8 +294,7 @@ export default function BookingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2 border rounded-md p-2">
                                     {allDaySlots.map(slot => {
                                         const isBooked = bookedSlotsForDate.has(slot);
-                                        const isBlocked = manuallyBlockedSlots.has(slot);
-                                        const isDisabled = isBooked || isBlocked;
+                                        const isDisabled = isBooked;
                                         const isChecked = selectedSlots.includes(slot);
                                         return (
                                             <div key={slot} className="flex items-center space-x-2">
@@ -289,11 +305,9 @@ export default function BookingPage() {
                                                     disabled={isDisabled}
                                                 />
                                                 <Label htmlFor={slot} className={cn("flex justify-between items-center w-full text-xs font-normal", isDisabled ? "cursor-not-allowed text-muted-foreground" : "")}>
-                                                    <span>{slot}</span>
+                                                    <span className="font-mono">{slot}</span>
                                                         {isBooked ? 
                                                             <Badge variant="destructive">Booked</Badge> :
-                                                        isBlocked ?
-                                                            <Badge variant="secondary">Blocked</Badge> :
                                                             <Badge variant="outline" className="text-green-600 border-green-400">Free</Badge>
                                                         }
                                                 </Label>
@@ -304,9 +318,9 @@ export default function BookingPage() {
                                 {allDaySlots.length === 0 && (
                                      <Alert variant="destructive" className="mt-2">
                                         <AlertCircle className="h-4 w-4" />
-                                        <AlertTitle>No Slots</AlertTitle>
+                                        <AlertTitle>No Slots Available</AlertTitle>
                                         <AlertDescription>
-                                            There are currently no available slots for this date.
+                                            The owner has not configured any time slots for this day.
                                         </AlertDescription>
                                     </Alert>
                                 )}
@@ -485,3 +499,4 @@ const TermsDialogContent = () => (
     </DialogContent>
 );
     
+

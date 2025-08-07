@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -17,30 +17,48 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Pitch } from '@/lib/types';
 import { Checkbox } from './ui/checkbox';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { cn } from '@/lib/utils';
+
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
+
+const operatingHoursSchema = z.object({
+  day: z.enum(daysOfWeek),
+  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Use HH:MM format"),
+  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Use HH:MM format"),
+  enabled: z.boolean(),
+});
 
 const pitchSchema = z.object({
   name: z.string().min(3, 'Pitch name is required'),
   location: z.string().min(3, 'Location is required'),
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
-  allDaySlots: z.array(z.object({ value: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s(AM|PM)\s-\s([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s(AM|PM)$/, "Invalid time format. Use HH:MM AM/PM - HH:MM AM/PM") })).min(1, "At least one time slot is required."),
+  operatingHours: z.array(operatingHoursSchema).min(1, "Please configure operating hours for at least one day."),
+  slotInterval: z.coerce.number().min(30, "Interval must be at least 30 minutes"),
   image: z.any().optional(),
-  // A dummy field to pass the pitch object to the resolver
   pitch: z.any().optional(),
 }).refine(data => {
-    // In edit mode (data.pitch is not null), image is optional.
-    // In add mode (data.pitch is null), image is required.
     return data.pitch ? true : data.image?.length > 0;
 }, {
     message: 'Image is required.',
     path: ['image'],
+}).refine(data => {
+    const enabledDays = data.operatingHours.filter(h => h.enabled);
+    if (enabledDays.length === 0) return false;
+    for (const day of enabledDays) {
+        if (day.startTime >= day.endTime) return false;
+    }
+    return true;
+}, {
+    message: "For enabled days, start time must be before end time.",
+    path: ['operatingHours'],
 });
-
 
 type PitchForm = z.infer<typeof pitchSchema> & { pitch: Pitch | null };
 
@@ -72,15 +90,11 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
       location: '',
       price: 0,
       amenities: [],
-      allDaySlots: [{ value: "09:00 AM - 10:00 AM" }],
+      operatingHours: daysOfWeek.map(day => ({ day, startTime: "09:00", endTime: "21:00", enabled: true })),
+      slotInterval: 60,
       image: undefined,
       pitch: null,
     }
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "allDaySlots"
   });
 
   const imageFile = watch('image');
@@ -98,16 +112,25 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
     }
   }, [imageFile, pitch]);
 
-
   useEffect(() => {
     if (isOpen) {
       if (pitch) {
+        const pitchOperatingHours = pitch.operatingHours;
+        const formHours = daysOfWeek.map(day => {
+            const existing = pitchOperatingHours.find(h => h.day === day);
+            if (existing) {
+                return { ...existing, enabled: true };
+            }
+            return { day, startTime: "09:00", endTime: "21:00", enabled: false };
+        });
+
         reset({
           name: pitch.name,
           location: pitch.location,
           price: pitch.price,
           amenities: pitch.amenities,
-          allDaySlots: pitch.allDaySlots.map(s => ({ value: s })),
+          operatingHours: formHours,
+          slotInterval: pitch.slotInterval,
           image: undefined,
           pitch: pitch,
         });
@@ -118,7 +141,8 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           location: '',
           price: 0,
           amenities: [],
-          allDaySlots: [{ value: "09:00 AM - 10:00 AM" }],
+          operatingHours: daysOfWeek.map(day => ({ day, startTime: "09:00", endTime: "21:00", enabled: true })),
+          slotInterval: 60,
           image: undefined,
           pitch: null,
         });
@@ -126,7 +150,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
       }
     }
   }, [pitch, reset, isOpen]);
-  
 
   const onSubmit = (data: PitchForm) => {
     setIsLoading(true);
@@ -137,9 +160,10 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           price: data.price,
           amenities: data.amenities,
           imageUrl: imagePreview || "https://placehold.co/600x400.png",
-          imageHint: data.name, // Use the actual name for image hint
-          allDaySlots: data.allDaySlots.map(s => s.value),
-          manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {}, // Preserve existing blocked slots
+          imageHint: data.name,
+          operatingHours: data.operatingHours.filter(h => h.enabled),
+          slotInterval: data.slotInterval,
+          manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {},
       };
 
       if (pitch) {
@@ -162,7 +186,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
         if (!open) handleClose();
         else setIsOpen(true);
     }}>
-      <DialogContent>
+      <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{pitch ? 'Edit Pitch Details' : 'Add a New Pitch'}</DialogTitle>
           <DialogDescription>
@@ -200,28 +224,60 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
 
                  <Separator />
 
-                <div className="grid gap-2">
-                    <Label>Operating Hours / Time Slots</Label>
-                    <div className='space-y-2'>
-                        {fields.map((field, index) => (
-                            <div key={field.id} className="flex items-center gap-2">
-                                <Input
-                                    {...register(`allDaySlots.${index}.value`)}
-                                    placeholder="e.g., 09:00 AM - 10:00 AM"
-                                />
-                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
-                         {errors.allDaySlots?.message && <p className="text-sm text-destructive">{errors.allDaySlots.message}</p>}
-                         {errors.allDaySlots?.root && <p className="text-sm text-destructive">{errors.allDaySlots.root.message}</p>}
-                         {Array.isArray(errors.allDaySlots) && errors.allDaySlots.map((error, index) => error?.value && <p key={index} className="text-sm text-destructive">{error.value.message}</p>)}
+                <div className="grid gap-4">
+                    <Label>Operating Hours & Slots</Label>
+                    <div className="grid gap-2">
+                        <Label htmlFor="slotInterval" className="text-xs font-normal">Slot Generation Interval (in minutes)</Label>
+                        <Select
+                            onValueChange={(value) => control._formValues.slotInterval = parseInt(value)}
+                            defaultValue={String(watch('slotInterval'))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select interval" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="30">30 minutes</SelectItem>
+                                <SelectItem value="60">60 minutes (1 hour)</SelectItem>
+                                <SelectItem value="90">90 minutes</SelectItem>
+                                <SelectItem value="120">120 minutes (2 hours)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {errors.slotInterval && <p className="text-sm text-destructive">{errors.slotInterval.message}</p>}
                     </div>
-                     <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Time Slot
-                    </Button>
+
+                    <div className="space-y-2 rounded-md border p-4">
+                        {daysOfWeek.map((day, index) => (
+                             <Controller
+                                key={day}
+                                name={`operatingHours.${index}`}
+                                control={control}
+                                render={({ field }) => (
+                                    <div className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-2">
+                                        <Checkbox 
+                                            checked={field.value.enabled}
+                                            onCheckedChange={(checked) => field.onChange({...field.value, enabled: checked})}
+                                        />
+                                        <Label className={cn(!field.value.enabled && "text-muted-foreground")}>{day}</Label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                             <Input 
+                                                type="time" 
+                                                value={field.value.startTime}
+                                                onChange={(e) => field.onChange({...field.value, startTime: e.target.value})}
+                                                disabled={!field.value.enabled}
+                                            />
+                                             <Input 
+                                                type="time" 
+                                                value={field.value.endTime}
+                                                onChange={(e) => field.onChange({...field.value, endTime: e.target.value})}
+                                                disabled={!field.value.enabled}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            />
+                        ))}
+                    </div>
+                     {errors.operatingHours && <p className="text-sm text-destructive">{errors.operatingHours.message}</p>}
                 </div>
 
                 <Separator />
@@ -232,7 +288,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                     name="amenities"
                     control={control}
                     render={({ field }) => (
-                        <div className="grid grid-cols-2 gap-2 p-2 rounded-md border">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-2 rounded-md border">
                         {allAmenities.map((amenity) => (
                             <div key={amenity} className="flex items-center gap-2">
                             <Checkbox
@@ -245,7 +301,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                 field.onChange(newValue);
                                 }}
                             />
-                            <Label htmlFor={`amenity-${amenity}`} className="font-normal">{amenity}</Label>
+                            <Label htmlFor={`amenity-${amenity}`} className="font-normal text-sm">{amenity}</Label>
                             </div>
                         ))}
                         </div>
