@@ -37,6 +37,10 @@ export default function UserProfile() {
   const { setTheme, theme } = useTheme();
   const router = useRouter();
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
+  
+  // State for form fields
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -51,9 +55,12 @@ export default function UserProfile() {
         const user = await getUserById(userId);
         if (user) {
           setCurrentUser(user);
+          // Populate form fields once user is loaded
           setFirstName(user.name.split(' ')[0] || '');
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
+        } else {
+           router.push('/login');
         }
       } else {
         router.push('/login');
@@ -67,13 +74,14 @@ export default function UserProfile() {
         toast({ title: "Error", description: "Could not find user to update.", variant: "destructive" });
         return;
     }
+    setIsSaving(true);
     
     const newName = `${firstName} ${lastName}`.trim();
-    // In a real app, you might have separate logic for email changes (e.g., verification)
     const updatedUser: User = { ...currentUser, name: newName, email };
     
     await updateUser(updatedUser);
 
+    setIsSaving(false);
     toast({
       title: "Success!",
       description: "Your personal information has been updated.",
@@ -93,14 +101,15 @@ export default function UserProfile() {
       toast({ title: "Passwords Do Not Match", description: "The new passwords do not match.", variant: "destructive"});
       return;
     }
-    // In a real app, you'd verify the current password against the one in the DB
     if (currentUser.password !== currentPassword) {
        toast({ title: "Incorrect Password", description: "The current password you entered is incorrect.", variant: "destructive"});
       return;
     }
     
+    setIsUpdatingPassword(true);
     const updatedUser: User = { ...currentUser, password: newPassword };
     await updateUser(updatedUser);
+    setIsUpdatingPassword(false);
 
     toast({
       title: "Password Successfully Changed",
@@ -110,18 +119,9 @@ export default function UserProfile() {
     setTimeout(() => {
         localStorage.removeItem('loggedInUserId');
         router.push('/login');
-    }, 2000)
+    }, 2000);
   };
   
-  if (!currentUser) {
-    return (
-        <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-2">Loading profile...</p>
-        </div>
-    );
-  }
-
   return (
     <div>
         <h1 className="text-lg font-semibold md:text-2xl mb-4">Profile & Settings</h1>
@@ -135,39 +135,22 @@ export default function UserProfile() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={!currentUser} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={!currentUser} />
                         </div>
                     </div>
-                    <Separator />
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!currentUser} />
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button type="button">Save Changes</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will update your profile information with the details you've entered.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleSaveChanges}>
-                                Yes, Save Changes
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <Button onClick={handleSaveChanges} disabled={!currentUser || isSaving}>
+                        {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
+                    </Button>
                 </CardFooter>
             </Card>
 
@@ -179,24 +162,26 @@ export default function UserProfile() {
                 <CardContent className="space-y-4">
                     <div className="grid gap-2">
                         <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                        <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={!currentUser}/>
                     </div>
                     <Separator />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="new-password">New Password</Label>
-                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={!currentUser}/>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={!currentUser}/>
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                    <AlertDialog>
+                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button type="button">Update Password</Button>
+                            <Button type="button" disabled={!currentUser || isUpdatingPassword}>
+                                {isUpdatingPassword ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : 'Update Password'}
+                            </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
@@ -233,5 +218,4 @@ export default function UserProfile() {
         </div>
     </div>
   )
-
-    
+}
