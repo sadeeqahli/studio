@@ -3,7 +3,7 @@
 import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
 import { format } from 'date-fns';
 
-// This is a new data structure to simulate a user credential store.
+// This is the single source of truth for all user credentials.
 export let placeholderCredentials: User[] = [
     { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 0 },
     { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 0, subscriptionPlan: 'Starter' },
