@@ -27,6 +27,7 @@ export default function UserProfile() {
   const router = useRouter();
   
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
@@ -37,6 +38,7 @@ export default function UserProfile() {
   
   React.useEffect(() => {
     async function loadUser() {
+      setIsLoading(true);
       const userId = localStorage.getItem('loggedInUserId');
       if (userId) {
         const user = await getUserById(userId);
@@ -45,15 +47,12 @@ export default function UserProfile() {
           setFirstName(user.name.split(' ')[0] || '');
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
-        } else {
-          router.push('/login');
         }
-      } else {
-        router.push('/login');
       }
+      setIsLoading(false);
     }
     loadUser();
-  }, [router]);
+  }, []);
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,6 +77,7 @@ export default function UserProfile() {
     e.preventDefault();
     if (!currentUser) return;
 
+    // In a real app, this check would be against a hashed password.
     if (currentUser.password !== currentPassword) {
         toast({ title: "Incorrect Current Password", description: "The current password you entered is not correct.", variant: "destructive"});
         return;
@@ -105,13 +105,14 @@ export default function UserProfile() {
       description: "Please log in again with your new password.",
     });
     
+    // Log the user out after a successful password change
     setTimeout(() => {
         localStorage.removeItem('loggedInUserId');
         router.push('/login');
     }, 2000);
   };
   
-  if (!currentUser) {
+  if (isLoading) {
     return (
         <div className="flex items-center justify-center h-full">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -119,8 +120,10 @@ export default function UserProfile() {
     );
   }
   
+  // Check if any personal info has changed to enable/disable the save button
   const isInfoChanged = currentUser ? (firstName !== (currentUser.name.split(' ')[0] || '')) || (lastName !== (currentUser.name.split(' ').slice(1).join(' ') || '')) || (email !== currentUser.email) : false;
   
+  // Check if password form is valid to enable/disable button
   const isPasswordFormValid = currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
   return (
@@ -134,13 +137,15 @@ export default function UserProfile() {
                         <CardDescription>Update your personal details here.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Your first name..."/>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Your last name..."/>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="first-name">First Name</Label>
+                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Your first name..."/>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="last-name">Last Name</Label>
+                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Your last name..."/>
+                            </div>
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
@@ -164,15 +169,15 @@ export default function UserProfile() {
                     <CardContent className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="current-password">Current Password</Label>
-                            <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+                            <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="new-password">New Password</Label>
-                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
