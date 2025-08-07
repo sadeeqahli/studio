@@ -37,8 +37,6 @@ export default function UserProfile() {
   
   React.useEffect(() => {
     async function loadUser() {
-      // This logic now gracefully handles loading without redirecting.
-      // The UI will render instantly, and data will populate when ready.
       const userId = localStorage.getItem('loggedInUserId');
       if (userId) {
         const user = await getUserById(userId);
@@ -47,11 +45,17 @@ export default function UserProfile() {
           setFirstName(user.name.split(' ')[0] || '');
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
+        } else {
+          // If user ID is in storage but not found in DB, it's invalid.
+          router.push('/login');
         }
+      } else {
+        // If no user ID is in storage, redirect to login.
+        router.push('/login');
       }
     }
     loadUser();
-  }, []);
+  }, [router]);
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +115,14 @@ export default function UserProfile() {
     }, 2000);
   };
   
+  if (!currentUser) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    );
+  }
+  
   // Determine if form values have changed from the initial state
   const isInfoChanged = currentUser ? (firstName !== (currentUser.name.split(' ')[0] || '')) || (lastName !== (currentUser.name.split(' ').slice(1).join(' ') || '')) || (email !== currentUser.email) : false;
   
@@ -142,7 +154,7 @@ export default function UserProfile() {
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                        <Button type="submit" disabled={!isInfoChanged || !currentUser}>Save Changes</Button>
+                        <Button type="submit" disabled={!isInfoChanged}>Save Changes</Button>
                     </CardFooter>
                 </form>
             </Card>
@@ -170,7 +182,7 @@ export default function UserProfile() {
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                        <Button type="submit" disabled={!isPasswordFormValid || !currentUser}>Update Password</Button>
+                        <Button type="submit" disabled={!isPasswordFormValid}>Update Password</Button>
                     </CardFooter>
                 </form>
             </Card>
