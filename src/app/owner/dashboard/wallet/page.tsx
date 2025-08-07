@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { placeholderPayouts, placeholderPitches, placeholderOwnerWithdrawals } from "@/lib/placeholder-data"
+import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
@@ -257,7 +257,8 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
                 id: withdrawalId,
                 date: new Date().toISOString(),
                 amount: withdrawalAmount,
-                status: 'Successful'
+                status: 'Successful',
+                ownerName: "Tunde Ojo",
             };
             
             onWithdraw(newTransaction, newReceipt, newWithdrawalRecord);
@@ -336,7 +337,10 @@ export default function OwnerWalletPage() {
 
     // Derive transactions from paid out payouts
     React.useEffect(() => {
-        const ownerPayouts = placeholderPayouts.filter(p => ownerPitchNames.includes(p.customerName.split('(')[1]?.replace(')','').trim()));
+        const ownerPayouts = placeholderPayouts.filter(payout => {
+            const pitch = placeholderPitches.find(p => p.name === payout.customerName.split(' (')[1]?.replace(')','').trim());
+            return pitch && pitch.ownerId === currentOwnerId;
+        });
 
         const paidOutTransactions: Transaction[] = ownerPayouts
             .filter(payout => payout.status === 'Paid Out')
@@ -349,7 +353,7 @@ export default function OwnerWalletPage() {
                 bookingId: payout.bookingId,
             }));
         
-        const withdrawalTransactions: Transaction[] = placeholderOwnerWithdrawals.map(w => ({
+        const withdrawalTransactions: Transaction[] = placeholderPayoutsToOwners.map(w => ({
             id: `TRN-${w.id}`,
             date: w.date,
             description: "Withdrawal to bank account",
@@ -364,7 +368,7 @@ export default function OwnerWalletPage() {
 
     const handleWithdraw = (newTransaction: Transaction, newReceipt: WithdrawalReceipt, newWithdrawalRecord: OwnerWithdrawal) => {
         // Update the global placeholder data
-        placeholderOwnerWithdrawals.unshift(newWithdrawalRecord);
+        placeholderPayoutsToOwners.unshift(newWithdrawalRecord);
         
         // Update the local state to trigger re-render
         setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));

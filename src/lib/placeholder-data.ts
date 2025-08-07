@@ -56,38 +56,7 @@ const standardSlots = [
     "6:00 PM - 7:00 PM", "7:00 PM - 8:00 PM", "8:00 PM - 9:00 PM"
 ];
 
-export let placeholderPitches: Pitch[] = [
-  {
-    id: '3',
-    ownerId: 'USR005',
-    name: 'Asokoro Green',
-    location: 'Asokoro, Abuja',
-    price: 22000,
-    amenities: ['Floodlights', 'Secure', 'Lounge'],
-    imageUrl: 'https://images.unsplash.com/photo-1622953443487-735264b51936?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmVlbiUyMGZvb3RiYWxsJTIwZmllbGR8ZW58MHx8fHwxNzUzNzYwOTYyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'green field',
-    availableSlots: {
-        [todayStr]: ['3:00 PM - 4:00 PM'],
-    },
-    allDaySlots: standardSlots,
-    status: 'Active',
-  },
-  {
-    id: '4',
-    ownerId: 'USR005',
-    name: 'Port Harcourt Pitch',
-    location: 'GRA, Port Harcourt',
-    price: 20000,
-    amenities: ['Floodlights', 'Parking', 'Cafe'],
-    imageUrl: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmb290YmFsbCUyMHBsYXllcnxlbnwwfHx8fDE3NTM3NjEwMTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    imageHint: 'football players',
-    availableSlots: {
-        [tomorrowStr]: ['5:00 PM - 6:00 PM', '8:00 PM - 9:00 PM'],
-    },
-    allDaySlots: standardSlots,
-    status: 'Active',
-  },
-];
+export let placeholderPitches: Pitch[] = [];
 
 
 export const placeholderBookings: Booking[] = [];
@@ -100,11 +69,11 @@ export const ownerBookings: OwnerBooking[] = [];
 export const placeholderTransactions: Transaction[] = [];
 
 export const placeholderAdminWithdrawals: AdminWithdrawal[] = [
-    { id: 'WDL001', date: '2024-07-20', amount: 5000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful' },
-    { id: 'WDL002', date: '2024-07-10', amount: 2000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful' },
+    { id: 'WDL001', date: '2024-07-20', amount: 5000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful', ownerName: 'Admin' },
+    { id: 'WDL002', date: '2024-07-10', amount: 2000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful', ownerName: 'Admin' },
 ];
 
-export let placeholderOwnerWithdrawals: OwnerWithdrawal[] = [];
+export let placeholderPayoutsToOwners: OwnerWithdrawal[] = [];
 
 
 export function updatePitch(updatedPitch: Pitch): void {

@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts, placeholderPitches, placeholderOwnerWithdrawals } from "@/lib/placeholder-data";
+import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners } from "@/lib/placeholder-data";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Download, DollarSign, CheckCircle } from 'lucide-react';
@@ -34,7 +34,10 @@ export default function OwnerPayouts() {
         .filter(p => p.ownerId === currentOwnerId)
         .map(p => p.name);
 
-    const ownerPayouts = placeholderPayouts.filter(p => ownerPitchNames.includes(p.customerName.split('(')[1]?.replace(')','').trim()));
+    const ownerPayouts = placeholderPayouts.filter(p => {
+        const pitch = placeholderPitches.find(pitch => pitch.name === p.customerName.split(' (')[1]?.replace(')','').trim());
+        return pitch && pitch.ownerId === currentOwnerId;
+    });
 
 
     const handleExport = () => {
@@ -77,7 +80,7 @@ export default function OwnerPayouts() {
         .filter(p => p.status === 'Paid Out')
         .reduce((acc, p) => acc + p.netPayout, 0);
 
-    const totalWithdrawn = placeholderOwnerWithdrawals.reduce((acc, w) => acc + w.amount, 0);
+    const totalWithdrawn = placeholderPayoutsToOwners.reduce((acc, w) => acc + w.amount, 0);
 
     const totalNetPayout = totalNetCredited - totalWithdrawn;
 
@@ -125,7 +128,7 @@ export default function OwnerPayouts() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {placeholderOwnerWithdrawals.map((withdrawal: OwnerWithdrawal) => (
+                             {placeholderPayoutsToOwners.map((withdrawal: OwnerWithdrawal) => (
                                 <TableRow key={withdrawal.id}>
                                     <TableCell>{new Date(withdrawal.date).toLocaleDateString()}</TableCell>
                                     <TableCell>

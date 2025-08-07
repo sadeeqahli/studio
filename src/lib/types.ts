@@ -91,6 +91,7 @@ export type AdminWithdrawal = {
     bankName: string;
     accountNumber: string;
     status: 'Successful' | 'Pending' | 'Failed';
+    ownerName: string; // To specify who made the withdrawal (Admin or Owner Name)
 };
 
 export type OwnerWithdrawal = {
@@ -98,6 +99,7 @@ export type OwnerWithdrawal = {
     date: string;
     amount: number;
     status: 'Successful' | 'Pending' | 'Failed';
+    ownerName: string;
 };
 
 export type Activity = {

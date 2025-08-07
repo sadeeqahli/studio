@@ -19,10 +19,10 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts, placeholderAdminWithdrawals } from "@/lib/placeholder-data"
+import { placeholderPayouts, placeholderAdminWithdrawals, placeholderPayoutsToOwners } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck, CheckCircle, Printer, Share2, DollarSign } from "lucide-react"
+import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck, CheckCircle, Printer, Share2, DollarSign, User } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -269,6 +269,8 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
         const date = new Date(withdrawal.date);
         setFormattedDate(`${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
     }, [withdrawal.date]);
+    
+    const isOwnerPayout = withdrawal.ownerName !== 'Admin';
 
     return (
         <TableRow>
@@ -282,6 +284,12 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
                     // Render a placeholder or nothing on the server and initial client render
                     <div className="font-medium">...</div>
                 )}
+            </TableCell>
+            <TableCell>
+                 <div className="font-medium">{isOwnerPayout ? 'Payout to Owner' : 'Admin Withdrawal'}</div>
+                 <div className="text-xs text-muted-foreground flex items-center gap-1">
+                    <User className="h-3 w-3"/> {withdrawal.ownerName}
+                 </div>
             </TableCell>
             <TableCell className="font-mono font-semibold text-destructive">
                 - ₦{withdrawal.amount.toLocaleString()}
@@ -338,11 +346,14 @@ export default function AdminWalletPage() {
     const [withdrawals, setWithdrawals] = React.useState<AdminWithdrawal[]>(placeholderAdminWithdrawals);
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
+    
+    // Combine admin withdrawals and owner payouts for a complete history
+    const allWithdrawals = [...withdrawals, ...placeholderPayoutsToOwners.map(p => ({...p, bankName: 'GTBank', accountNumber: '****1234'} as AdminWithdrawal))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     // Corrected logic: Total revenue should be all commission earned, regardless of payout status
     const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
-    const totalWithdrawn = withdrawals.reduce((acc, w) => acc + w.amount, 0);
+    const totalWithdrawn = allWithdrawals.reduce((acc, w) => acc + w.amount, 0);
     const availableForWithdrawal = totalRevenue - totalWithdrawn;
 
     const handleWithdraw = (newReceipt: WithdrawalReceipt) => {
@@ -353,6 +364,7 @@ export default function AdminWalletPage() {
             bankName: newReceipt.bankName,
             accountNumber: newReceipt.accountNumber,
             status: 'Successful',
+            ownerName: 'Admin', // Admin withdrawals are marked as 'Admin'
         };
         setWithdrawals(prev => [newWithdrawal, ...prev]);
         setReceipt(newReceipt);
@@ -390,7 +402,7 @@ export default function AdminWalletPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">₦{totalWithdrawn.toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                           Total amount withdrawn from the platform.
+                           Total amount paid out to owners and withdrawn by admin.
                         </p>
                     </CardContent>
                 </Card>
@@ -410,9 +422,9 @@ export default function AdminWalletPage() {
             
              <Card>
                 <CardHeader>
-                    <CardTitle>Withdrawal History</CardTitle>
+                    <CardTitle>Withdrawal & Payout History</CardTitle>
                     <CardDescription>
-                        A record of all withdrawals made from the platform wallet.
+                        A record of all payouts to owners and withdrawals by admin.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -420,13 +432,14 @@ export default function AdminWalletPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
+                                <TableHead>Type/Recipient</TableHead>
                                 <TableHead>Amount</TableHead>
                                 <TableHead className="hidden sm:table-cell">Bank</TableHead>
                                 <TableHead className="text-right">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {withdrawals.map((withdrawal) => (
+                            {allWithdrawals.map((withdrawal) => (
                                 <HistoryRow key={withdrawal.id} withdrawal={withdrawal} />
                             ))}
                         </TableBody>
