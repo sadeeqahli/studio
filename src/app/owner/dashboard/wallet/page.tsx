@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { placeholderTransactions } from "@/lib/placeholder-data"
+import { placeholderPayouts } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import type { Transaction, WithdrawalReceipt } from "@/lib/types";
+import type { Transaction, WithdrawalReceipt, Payout } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
@@ -205,7 +205,7 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
     );
 }
 
-function WithdrawDialog({ onWithdraw }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt) => void }) {
+function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt) => void, balance: number }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -213,13 +213,23 @@ function WithdrawDialog({ onWithdraw }: { onWithdraw: (newTransaction: Transacti
 
     const handleWithdraw = (e: React.FormEvent) => {
         e.preventDefault();
+
+        const withdrawalAmount = parseFloat(amount);
+        if (withdrawalAmount > balance) {
+            toast({
+                title: "Insufficient Funds",
+                description: "You cannot withdraw more than your available balance.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         setIsLoading(true);
 
         setTimeout(() => {
             setIsLoading(false);
             setIsOpen(false);
             
-            const withdrawalAmount = parseFloat(amount);
             const transactionId = `TRN-${Date.now()}`;
             const receiptId = `WDR-${Date.now()}`;
 
@@ -305,22 +315,29 @@ function WithdrawDialog({ onWithdraw }: { onWithdraw: (newTransaction: Transacti
 }
 
 export default function OwnerWalletPage() {
-    const [transactions, setTransactions] = React.useState<Transaction[]>(placeholderTransactions);
+    const [transactions, setTransactions] = React.useState<Transaction[]>([]);
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     const { toast } = useToast();
 
+    // Derive transactions from paid out payouts
+    React.useEffect(() => {
+        const paidOutTransactions: Transaction[] = placeholderPayouts
+            .filter(payout => payout.status === 'Paid Out')
+            .map(payout => ({
+                id: `TRN-${payout.bookingId}`,
+                date: payout.date,
+                description: `Credit from booking by ${payout.customerName}`,
+                amount: payout.netPayout,
+                type: 'Credit',
+                bookingId: payout.bookingId,
+            }));
+        setTransactions(paidOutTransactions);
+    }, []);
+
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
 
     const handleWithdraw = (newTransaction: Transaction, newReceipt: WithdrawalReceipt) => {
-        if (Math.abs(newTransaction.amount) > totalBalance) {
-            toast({
-                title: "Insufficient Funds",
-                description: "You do not have enough balance to withdraw that amount.",
-                variant: "destructive"
-            });
-            return;
-        }
         setTransactions(prev => [newTransaction, ...prev]);
         setReceipt(newReceipt);
         setIsReceiptOpen(true);
@@ -344,7 +361,7 @@ export default function OwnerWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} />
+                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} />
             </div>
             
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
@@ -427,5 +444,3 @@ export default function OwnerWalletPage() {
         </div>
     )
 }
-
-    
