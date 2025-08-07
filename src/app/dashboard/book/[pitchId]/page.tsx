@@ -240,7 +240,8 @@ export default function BookingPage() {
     }
 
     const totalPrice = pitch.price * selectedSlots.length;
-    const virtualAccountNumber = `9${pitch.id.replace(/[^0-9]/g, '').padStart(9, '0')}`;
+    const virtualAccountNumber = `9${owner.id.replace(/[^0-9]/g, '').slice(-9).padStart(9, '0')}`;
+
     
     const handleCopy = () => {
         navigator.clipboard.writeText(virtualAccountNumber);

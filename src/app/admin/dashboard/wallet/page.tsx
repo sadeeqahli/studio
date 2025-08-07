@@ -181,7 +181,7 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
         setIsLoading(true);
 
         const newWithdrawal: AdminWithdrawal = {
-            id: `WDR-${Date.now()}`,
+            id: `WDR-ADM-${Date.now()}`,
             date: new Date().toISOString(),
             amount: withdrawalAmount,
             bankName: "GTBank",
@@ -326,7 +326,7 @@ function CommissionRow({ payout }: { payout: Payout }) {
                 Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()} booking
             </TableCell>
             <TableCell className="font-mono font-semibold text-primary">
-                ₦{payout.commissionFee.toLocaleString()}
+                + ₦{payout.commissionFee.toLocaleString()}
             </TableCell>
             <TableCell className="hidden md:table-cell">{formattedDate || '...'}</TableCell>
             <TableCell className="text-right">
@@ -355,7 +355,7 @@ export default function AdminWalletPage() {
         async function loadData() {
             const [payoutsData, ownerWithdrawalsData, adminWithdrawalsData] = await Promise.all([
                 getPayouts(),
-                getOwnerWithdrawals('all'), // Assuming 'all' fetches all owner withdrawals
+                getOwnerWithdrawals('all'),
                 getAdminWithdrawals()
             ]);
             setAllPayouts(payoutsData);
@@ -365,13 +365,15 @@ export default function AdminWalletPage() {
         loadData();
     }, []);
 
-    const allWithdrawals = [...adminWithdrawals, ...ownerWithdrawals.map(p => ({...p, bankName: 'GTBank', accountNumber: '****1234'} as AdminWithdrawal))]
+    const allWithdrawals = [...adminWithdrawals, ...ownerWithdrawals.map(p => ({...p, id: `OWNER-${p.id}`, bankName: 'Various', accountNumber: 'Various'} as AdminWithdrawal))]
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const totalRevenue = allPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
-    const totalWithdrawn = allWithdrawals.reduce((acc, w) => acc + w.amount, 0);
-    const availableForWithdrawal = totalRevenue - totalWithdrawn;
+    const totalWithdrawnByAdmin = adminWithdrawals.reduce((acc, w) => acc + w.amount, 0);
+    const totalPaidToOwners = ownerWithdrawals.reduce((acc, w) => acc + w.amount, 0);
+
+    const availableForWithdrawal = totalRevenue - totalPaidToOwners - totalWithdrawnByAdmin;
 
     const handleWithdraw = (newReceipt: WithdrawalReceipt) => {
         const newWithdrawal: AdminWithdrawal = {
@@ -413,13 +415,13 @@ export default function AdminWalletPage() {
                 </Card>
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Withdrawn</CardTitle>
+                        <CardTitle className="text-sm font-medium">Total Paid Out</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₦{totalWithdrawn.toLocaleString()}</div>
+                        <div className="text-2xl font-bold">₦{(totalPaidToOwners + totalWithdrawnByAdmin).toLocaleString()}</div>
                         <p className="text-xs text-muted-foreground">
-                           Total amount paid out to owners and withdrawn by admin.
+                           Amount paid to owners and withdrawn by admin.
                         </p>
                     </CardContent>
                 </Card>

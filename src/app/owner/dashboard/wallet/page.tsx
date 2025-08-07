@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from "react";
@@ -20,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners, placeholderCredentials } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
@@ -33,6 +31,7 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import type { Transaction, WithdrawalReceipt, Payout, OwnerWithdrawal, User } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getPayoutsByOwner, getOwnerWithdrawals, addOwnerWithdrawal, getUserById } from "@/app/actions";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
 
@@ -140,7 +139,6 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
         if (content) {
             const printWindow = window.open('', '', 'height=600,width=800');
             printWindow?.document.write('<html><head><title>Print Receipt</title>');
-            // A very basic stylesheet for printing
             printWindow?.document.write('<style>body{font-family:sans-serif;padding:20px;} .receipt-card { border: 1px solid #ccc; border-radius: 8px; padding: 20px; } .header{text-align:center;margin-bottom:20px;} .details-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;} .footer{text-align:center;margin-top:20px;font-size:12px;color:#888;}</style>');
             printWindow?.document.write('</head><body>');
             printWindow?.document.write(content.innerHTML);
@@ -206,13 +204,13 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
     );
 }
 
-function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number, ownerName: string }) {
+function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number, ownerName: string }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const [amount, setAmount] = React.useState('');
 
-    const handleWithdraw = (e: React.FormEvent) => {
+    const handleWithdraw = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const withdrawalAmount = parseFloat(amount);
@@ -227,45 +225,29 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (newTr
 
         setIsLoading(true);
 
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsOpen(false);
-            
-            const transactionId = `TRN-${Date.now()}`;
-            const receiptId = `WDR-${Date.now()}`;
-            const withdrawalId = `OWN-WDR-${Date.now()}`;
-
-
-            const newTransaction: Transaction = {
-                id: transactionId,
-                date: new Date().toISOString(),
-                description: "Withdrawal to bank account",
-                amount: -withdrawalAmount,
-                type: 'Withdrawal',
-            };
-
-            const newReceipt: WithdrawalReceipt = {
-                id: receiptId,
-                date: new Date().toISOString(),
-                amount: withdrawalAmount,
-                bankName: "GTBank",
-                accountNumber: "****6789",
-                accountName: ownerName,
-                status: 'Successful'
-            };
-            
-            const newWithdrawalRecord: OwnerWithdrawal = {
-                id: withdrawalId,
-                date: new Date().toISOString(),
-                amount: withdrawalAmount,
-                status: 'Successful',
-                ownerName: ownerName,
-            };
-            
-            onWithdraw(newTransaction, newReceipt, newWithdrawalRecord);
-            setAmount('');
-
-        }, 1500);
+        const newReceipt: WithdrawalReceipt = {
+            id: `WDR-${Date.now()}`,
+            date: new Date().toISOString(),
+            amount: withdrawalAmount,
+            bankName: "GTBank",
+            accountNumber: "****6789",
+            accountName: ownerName,
+            status: 'Successful'
+        };
+        
+        const newWithdrawalRecord: OwnerWithdrawal = {
+            id: `OWN-WDR-${Date.now()}`,
+            date: new Date().toISOString(),
+            amount: withdrawalAmount,
+            status: 'Successful',
+            ownerName: ownerName,
+        };
+        
+        await addOwnerWithdrawal(newWithdrawalRecord);
+        onWithdraw(newReceipt, newWithdrawalRecord);
+        setIsLoading(false);
+        setIsOpen(false);
+        setAmount('');
     }
 
     return (
@@ -333,42 +315,44 @@ export default function OwnerWalletPage() {
     const [currentOwner, setCurrentOwner] = React.useState<User | null>(null);
 
     React.useEffect(() => {
-        const ownerId = localStorage.getItem('loggedInUserId');
-        if (ownerId) {
-            const owner = placeholderCredentials.find(u => u.id === ownerId);
+        const fetchOwnerAndTransactions = async () => {
+            const ownerId = localStorage.getItem('loggedInUserId');
+            if (!ownerId) return;
+
+            const owner = await getUserById(ownerId);
             setCurrentOwner(owner || null);
-        }
+
+            if (owner) {
+                const [payoutsData, withdrawalsData] = await Promise.all([
+                    getPayoutsByOwner(owner.name),
+                    getOwnerWithdrawals(owner.name)
+                ]);
+
+                const creditTransactions: Transaction[] = payoutsData
+                    .filter(payout => payout.status === 'Paid Out')
+                    .map(payout => ({
+                        id: `TRN-CR-${payout.bookingId}`,
+                        date: payout.date,
+                        description: `Credit from booking by ${payout.customerName}`,
+                        amount: payout.netPayout,
+                        type: 'Credit',
+                        bookingId: payout.bookingId,
+                    }));
+
+                const debitTransactions: Transaction[] = withdrawalsData.map(w => ({
+                    id: `TRN-DB-${w.id}`,
+                    date: w.date,
+                    description: "Withdrawal to bank account",
+                    amount: -w.amount,
+                    type: 'Withdrawal'
+                }));
+
+                setTransactions([...creditTransactions, ...debitTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            }
+        };
+
+        fetchOwnerAndTransactions();
     }, []);
-
-    // Derive transactions from paid out payouts
-    React.useEffect(() => {
-        if (!currentOwner) return;
-
-        const ownerPayouts = placeholderPayouts.filter(payout => payout.ownerName === currentOwner.name);
-
-        const paidOutTransactions: Transaction[] = ownerPayouts
-            .filter(payout => payout.status === 'Paid Out')
-            .map(payout => ({
-                id: `TRN-${payout.bookingId}`,
-                date: payout.date,
-                description: `Credit from booking by ${payout.customerName}`,
-                amount: payout.netPayout,
-                type: 'Credit',
-                bookingId: payout.bookingId,
-            }));
-        
-        const withdrawalTransactions: Transaction[] = placeholderPayoutsToOwners
-            .filter(w => w.ownerName === currentOwner.name)
-            .map(w => ({
-                id: `TRN-${w.id}`,
-                date: w.date,
-                description: "Withdrawal to bank account",
-                amount: -w.amount,
-                type: 'Withdrawal'
-            }));
-        
-        setTransactions([...paidOutTransactions, ...withdrawalTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    }, [currentOwner, placeholderPayoutsToOwners]); // Re-run when withdrawals happen
 
     if (!currentOwner) {
         return <div>Loading...</div>;
@@ -376,18 +360,22 @@ export default function OwnerWalletPage() {
 
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
 
-    const handleWithdraw = (newTransaction: Transaction, newReceipt: WithdrawalReceipt, newWithdrawalRecord: OwnerWithdrawal) => {
-        // Update the global placeholder data
-        placeholderPayoutsToOwners.unshift(newWithdrawalRecord);
-        
-        // Update the local state to trigger re-render
+    const handleWithdraw = (newReceipt: WithdrawalReceipt, newWithdrawalRecord: OwnerWithdrawal) => {
+        const newTransaction: Transaction = {
+            id: `TRN-DB-${newWithdrawalRecord.id}`,
+            date: newWithdrawalRecord.date,
+            description: "Withdrawal to bank account",
+            amount: -newWithdrawalRecord.amount,
+            type: 'Withdrawal',
+        };
+
         setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         setReceipt(newReceipt);
         setIsReceiptOpen(true);
     };
 
     const virtualAccount = {
-        number: `9${currentOwner.id.replace(/[^0-9]/g, '').padStart(9, '0')}`,
+        number: `9${currentOwner.id.replace(/[^0-9]/g, '').slice(-9).padStart(9, '0')}`,
         bank: "Providus Bank",
         name: `9ja Pitch Connect - ${currentOwner.name}`
     };

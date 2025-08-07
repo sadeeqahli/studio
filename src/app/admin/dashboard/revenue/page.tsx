@@ -103,9 +103,9 @@ export default function AdminRevenuePage() {
                         />
                         <Tooltip 
                              contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
-                             formatter={(value) => `₦${Number(value).toLocaleString()}`}
+                             formatter={(value, name, props) => [`₦${Number(value).toLocaleString()}`, "Revenue"]}
                         />
-                        <Legend />
+                        <Legend formatter={(value) => <span className="capitalize">{value}</span>} />
                         <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Daily Revenue" />
                     </BarChart>
                 </ResponsiveContainer>
@@ -139,9 +139,9 @@ export default function AdminRevenuePage() {
                             ₦{payout.grossAmount.toLocaleString()}
                         </TableCell>
                          <TableCell className="hidden sm:table-cell font-mono text-primary font-semibold">
-                            + ₦{payout.commissionFee.toLocaleString()} (Commission)
+                            + ₦{payout.commissionFee.toLocaleString()}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">{payout.customerName}</TableCell>
+                        <TableCell className="hidden md:table-cell">{payout.ownerName}</TableCell>
                         <TableCell>{payout.date}</TableCell>
                         <TableCell className="text-right">
                              <Badge variant="outline"

@@ -12,7 +12,8 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
-import { getUserById, getBookingById, getPitchById } from '@/app/actions';
+import { getUserById, getBookingById } from '@/app/actions';
+import { placeholderPitches } from '@/lib/placeholder-data';
 
 
 export default function ReceiptPage() {
@@ -51,7 +52,7 @@ export default function ReceiptPage() {
                 const historyBooking = await getBookingById(bookingId);
                 // Security Check: ensure the user viewing is the one who made the booking
                 if (historyBooking && historyBooking.customerName === currentUser?.name) {
-                    const pitch = await getPitchById(historyBooking.pitchName);
+                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
                     foundBooking = {
                         ...historyBooking,
                         pitchLocation: pitch?.location || 'N/A',

@@ -63,10 +63,13 @@ export async function getOwnerPitches(ownerId: string): Promise<Pitch[]> {
 export async function getPitchById(id: string): Promise<Pitch | undefined> {
     const pitch = placeholderPitches.find(p => p.id === id);
     if (!pitch) {
-        notFound();
+        // Instead of throwing notFound immediately, return undefined.
+        // The calling component can handle the "not found" state.
+        return undefined;
     }
     return pitch;
 }
+
 
 export async function addPitch(pitchData: Pitch): Promise<void> {
     originalAddPitch(pitchData);
@@ -106,30 +109,34 @@ export async function getBookingsByUser(userName: string): Promise<Booking[]> {
 
 export async function addBooking(booking: Booking): Promise<void> {
     placeholderBookings.unshift(booking);
-    // Also create a corresponding payout record
-    const owner = await getUserByPitch(booking.pitchName);
-    const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
-    const commissionAmount = booking.amount * commissionRate;
-    const netPayout = booking.amount - commissionAmount;
+    
+    // For Online bookings, create a corresponding payout record
+    if (booking.bookingType === 'Online') {
+        const owner = await getUserByPitchName(booking.pitchName);
+        const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
+        const commissionAmount = booking.amount * commissionRate;
+        const netPayout = booking.amount - commissionAmount;
 
-    const newPayout: Payout = {
-        bookingId: booking.id,
-        customerName: booking.customerName!,
-        grossAmount: booking.amount,
-        commissionRate: commissionRate * 100,
-        commissionFee: commissionAmount,
-        netPayout: netPayout,
-        date: new Date().toISOString().split('T')[0],
-        status: 'Paid Out', // Or 'Pending' based on logic
-        ownerName: owner!.name,
-    };
-    placeholderPayouts.unshift(newPayout);
+        const newPayout: Payout = {
+            bookingId: booking.id,
+            customerName: booking.customerName!,
+            grossAmount: booking.amount,
+            commissionRate: commissionRate * 100,
+            commissionFee: commissionAmount,
+            netPayout: netPayout,
+            date: new Date().toISOString().split('T')[0],
+            status: 'Paid Out', // Or 'Pending' based on logic
+            ownerName: owner!.name,
+        };
+        placeholderPayouts.unshift(newPayout);
+    }
 
     revalidatePath('/dashboard/history');
     revalidatePath('/owner/dashboard/bookings');
     revalidatePath('/admin/dashboard/bookings');
     revalidatePath('/owner/dashboard');
     revalidatePath('/admin/dashboard');
+    revalidatePath('/owner/dashboard/wallet');
 }
 
 // PAYOUT & REVENUE ACTIONS
@@ -159,9 +166,13 @@ export async function addAdminWithdrawal(withdrawal: AdminWithdrawal): Promise<v
 
 
 // WALLET/TRANSACTION ACTIONS (OWNER)
-export async function getOwnerWithdrawals(ownerName: string): Promise<OwnerWithdrawal[]> {
+export async function getOwnerWithdrawals(ownerName: string | 'all'): Promise<OwnerWithdrawal[]> {
+    if (ownerName === 'all') {
+        return placeholderPayoutsToOwners;
+    }
     return placeholderPayoutsToOwners.filter(w => w.ownerName === ownerName);
 }
+
 
 export async function addOwnerWithdrawal(withdrawal: OwnerWithdrawal): Promise<void> {
     placeholderPayoutsToOwners.unshift(withdrawal);
@@ -170,7 +181,7 @@ export async function addOwnerWithdrawal(withdrawal: OwnerWithdrawal): Promise<v
 
 
 // HELPER ACTIONS
-async function getUserByPitch(pitchName: string): Promise<User | undefined> {
+export async function getUserByPitchName(pitchName: string): Promise<User | undefined> {
     const pitch = placeholderPitches.find(p => p.name === pitchName);
     if (!pitch || !pitch.ownerId) return undefined;
     return await getUserById(pitch.ownerId);
