@@ -51,14 +51,12 @@ export default function UserProfile() {
 
   React.useEffect(() => {
     async function loadUser() {
-      // Use a variable to prevent race conditions
+      setIsLoading(true);
       let userId = null;
       try {
         userId = localStorage.getItem('loggedInUserId');
       } catch (error) {
         console.error("Could not access localStorage:", error);
-        router.push('/login');
-        return;
       }
       
 
@@ -71,16 +69,18 @@ export default function UserProfile() {
           setEmail(user.email);
         } else {
            // If user ID exists in storage but not in DB, it's an invalid session
-           router.push('/login');
+           // We do not redirect here to avoid the flash of login page.
+           // The UI will show a disabled state.
+           setCurrentUser(null);
         }
       } else {
-        // No user ID in storage, redirect to login
-        router.push('/login');
+        // No user ID in storage, do not redirect, UI will be disabled.
+        setCurrentUser(null);
       }
       setIsLoading(false);
     }
     loadUser();
-  }, [router]);
+  }, []);
 
   const handleSaveChanges = async () => {
     if (!currentUser) {
@@ -138,15 +138,6 @@ export default function UserProfile() {
         router.push('/login');
     }, 2000);
   };
-
-  if (isLoading) {
-    return (
-        <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="ml-2">Loading Profile...</p>
-        </div>
-    );
-  }
   
   return (
     <div>
@@ -161,20 +152,20 @@ export default function UserProfile() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={!currentUser} />
+                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={isLoading || !currentUser} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={!currentUser} />
+                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={isLoading || !currentUser} />
                         </div>
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!currentUser} />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading || !currentUser} />
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleSaveChanges} disabled={!currentUser || isSaving}>
+                    <Button onClick={handleSaveChanges} disabled={isLoading || !currentUser || isSaving}>
                         {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Save Changes'}
                     </Button>
                 </CardFooter>
@@ -188,24 +179,24 @@ export default function UserProfile() {
                 <CardContent className="space-y-4">
                     <div className="grid gap-2">
                         <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={!currentUser}/>
+                        <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} disabled={isLoading || !currentUser}/>
                     </div>
                     <Separator />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="new-password">New Password</Label>
-                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={!currentUser}/>
+                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={isLoading || !currentUser}/>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="confirm-password">Confirm New Password</Label>
-                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={!currentUser}/>
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} disabled={isLoading || !currentUser}/>
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
                      <AlertDialog>
                         <AlertDialogTrigger asChild>
-                            <Button type="button" disabled={!currentUser || isUpdatingPassword}>
+                            <Button type="button" disabled={isLoading || !currentUser || isUpdatingPassword}>
                                 {isUpdatingPassword ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</> : 'Update Password'}
                             </Button>
                         </AlertDialogTrigger>
