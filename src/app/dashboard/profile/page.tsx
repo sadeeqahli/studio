@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, LogOut } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +30,7 @@ import {
 import { getUserById, updateUser } from '@/app/actions';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 export default function UserProfile() {
   const { toast } = useToast();
@@ -39,6 +40,9 @@ export default function UserProfile() {
   const [firstName, setFirstName] = React.useState('');
   const [lastName, setLastName] = React.useState('');
   const [email, setEmail] = React.useState('');
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
 
   React.useEffect(() => {
     async function loadUser() {
@@ -65,6 +69,7 @@ export default function UserProfile() {
     }
     
     const newName = `${firstName} ${lastName}`.trim();
+    // In a real app, you might have separate logic for email changes (e.g., verification)
     const updatedUser: User = { ...currentUser, name: newName, email };
     
     await updateUser(updatedUser);
@@ -75,17 +80,45 @@ export default function UserProfile() {
     });
   };
 
-  const handleUpdatePassword = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    // Logic to update password would go here
+  const handleUpdatePassword = async () => {
+    if (!currentUser) {
+        toast({ title: "Error", description: "User not found.", variant: "destructive" });
+        return;
+    }
+    if (newPassword.length < 5) {
+      toast({ title: "Password Too Short", description: "New password must be at least 5 characters.", variant: "destructive"});
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Passwords Do Not Match", description: "The new passwords do not match.", variant: "destructive"});
+      return;
+    }
+    // In a real app, you'd verify the current password against the one in the DB
+    if (currentUser.password !== currentPassword) {
+       toast({ title: "Incorrect Password", description: "The current password you entered is incorrect.", variant: "destructive"});
+      return;
+    }
+    
+    const updatedUser: User = { ...currentUser, password: newPassword };
+    await updateUser(updatedUser);
+
     toast({
-      title: "Success!",
-      description: "Your password has been changed. You will be logged out shortly.",
+      title: "Password Successfully Changed",
+      description: "Please log in again with your new password.",
     });
+
+    setTimeout(() => {
+        localStorage.removeItem('loggedInUserId');
+        router.push('/login');
+    }, 2000)
   };
   
   if (!currentUser) {
-    return <div>Loading profile...</div>;
+    return (
+        <div className="flex items-center justify-center h-full">
+            <p>Loading profile...</p>
+        </div>
+    );
   }
 
   return (
@@ -97,45 +130,42 @@ export default function UserProfile() {
                     <CardTitle>Personal Information</CardTitle>
                     <CardDescription>Update your personal details here.</CardDescription>
                 </CardHeader>
-                <form>
-                    <CardContent className="grid gap-4">
-                        <div className="grid sm:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="first-name">First Name</Label>
-                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="last-name">Last Name</Label>
-                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-                            </div>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                    </CardContent>
-                    <CardFooter className="border-t px-6 py-4">
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button type="button">Save Changes</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will update your profile information with the details you've entered.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleSaveChanges}>
-                                    Yes, Save Changes
-                                </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </CardFooter>
-                </form>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="first-name">First Name</Label>
+                        <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                    </div>
+                     <div className="grid gap-2">
+                        <Label htmlFor="last-name">Last Name</Label>
+                        <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    </div>
+                    <Separator />
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                </CardContent>
+                <CardFooter className="border-t px-6 py-4">
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button type="button">Save Changes</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will update your profile information with the details you've entered.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleSaveChanges}>
+                                Yes, Save Changes
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </CardFooter>
             </Card>
 
             <Card>
@@ -143,22 +173,41 @@ export default function UserProfile() {
                     <CardTitle>Password</CardTitle>
                     <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-4">
+                <CardContent className="space-y-4">
                     <div className="grid gap-2">
                         <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
+                        <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                     </div>
+                    <Separator />
                     <div className="grid gap-2">
                         <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" />
+                        <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
                     </div>
                      <div className="grid gap-2">
                         <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" />
+                        <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleUpdatePassword}>Update Password</Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button type="button">Update Password</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Password Change</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You will be logged out after successfully changing your password. Are you sure you want to continue?
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleUpdatePassword}>
+                                Yes, Change Password
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </CardFooter>
             </Card>
 
