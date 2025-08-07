@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { placeholderPayouts } from "@/lib/placeholder-data"
+import { placeholderPayouts, placeholderPitches, placeholderOwnerWithdrawals } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import type { Transaction, WithdrawalReceipt, Payout } from "@/lib/types";
+import type { Transaction, WithdrawalReceipt, Payout, OwnerWithdrawal } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
@@ -205,7 +205,7 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
     );
 }
 
-function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt) => void, balance: number }) {
+function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -232,6 +232,8 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
             
             const transactionId = `TRN-${Date.now()}`;
             const receiptId = `WDR-${Date.now()}`;
+            const withdrawalId = `OWN-WDR-${Date.now()}`;
+
 
             const newTransaction: Transaction = {
                 id: transactionId,
@@ -251,7 +253,14 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
                 status: 'Successful'
             };
             
-            onWithdraw(newTransaction, newReceipt);
+            const newWithdrawalRecord: OwnerWithdrawal = {
+                id: withdrawalId,
+                date: new Date().toISOString(),
+                amount: withdrawalAmount,
+                status: 'Successful'
+            };
+            
+            onWithdraw(newTransaction, newReceipt, newWithdrawalRecord);
             setAmount('');
 
         }, 1500);
@@ -319,10 +328,17 @@ export default function OwnerWalletPage() {
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     const { toast } = useToast();
+    const currentOwnerId = 'USR002'; // Hardcoded for prototype
+
+    const ownerPitchNames = placeholderPitches
+        .filter(p => p.ownerId === currentOwnerId)
+        .map(p => p.name);
 
     // Derive transactions from paid out payouts
     React.useEffect(() => {
-        const paidOutTransactions: Transaction[] = placeholderPayouts
+        const ownerPayouts = placeholderPayouts.filter(p => ownerPitchNames.includes(p.customerName.split('(')[1]?.replace(')','').trim()));
+
+        const paidOutTransactions: Transaction[] = ownerPayouts
             .filter(payout => payout.status === 'Paid Out')
             .map(payout => ({
                 id: `TRN-${payout.bookingId}`,
@@ -332,13 +348,26 @@ export default function OwnerWalletPage() {
                 type: 'Credit',
                 bookingId: payout.bookingId,
             }));
-        setTransactions(paidOutTransactions);
+        
+        const withdrawalTransactions: Transaction[] = placeholderOwnerWithdrawals.map(w => ({
+            id: `TRN-${w.id}`,
+            date: w.date,
+            description: "Withdrawal to bank account",
+            amount: -w.amount,
+            type: 'Withdrawal'
+        }));
+        
+        setTransactions([...paidOutTransactions, ...withdrawalTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }, []);
 
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
 
-    const handleWithdraw = (newTransaction: Transaction, newReceipt: WithdrawalReceipt) => {
-        setTransactions(prev => [newTransaction, ...prev]);
+    const handleWithdraw = (newTransaction: Transaction, newReceipt: WithdrawalReceipt, newWithdrawalRecord: OwnerWithdrawal) => {
+        // Update the global placeholder data
+        placeholderOwnerWithdrawals.unshift(newWithdrawalRecord);
+        
+        // Update the local state to trigger re-render
+        setTransactions(prev => [newTransaction, ...prev].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         setReceipt(newReceipt);
         setIsReceiptOpen(true);
     };

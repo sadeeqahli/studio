@@ -18,15 +18,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts } from "@/lib/placeholder-data";
+import { placeholderPayouts, placeholderPitches, placeholderOwnerWithdrawals } from "@/lib/placeholder-data";
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Download, DollarSign, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { Payout, OwnerWithdrawal } from '@/lib/types';
 
 
 export default function OwnerPayouts() {
     const { toast } = useToast();
+    const currentOwnerId = 'USR002'; // Hardcoded for prototype
+
+    const ownerPitchNames = placeholderPitches
+        .filter(p => p.ownerId === currentOwnerId)
+        .map(p => p.name);
+
+    const ownerPayouts = placeholderPayouts.filter(p => ownerPitchNames.includes(p.customerName.split('(')[1]?.replace(')','').trim()));
+
 
     const handleExport = () => {
         const headers = [
@@ -40,7 +49,7 @@ export default function OwnerPayouts() {
             "Status"
         ];
         
-        const rows = placeholderPayouts.map(payout => [
+        const rows = ownerPayouts.map(payout => [
             `"${payout.bookingId}"`,
             `"${payout.customerName}"`,
             payout.grossAmount,
@@ -63,9 +72,14 @@ export default function OwnerPayouts() {
         link.click();
         document.body.removeChild(link);
     };
+    
+    const totalNetCredited = ownerPayouts
+        .filter(p => p.status === 'Paid Out')
+        .reduce((acc, p) => acc + p.netPayout, 0);
 
-    const totalNetPayout = placeholderPayouts.filter(p => p.status === 'Paid Out').reduce((acc, p) => acc + p.netPayout, 0);
-    const paidOutPayouts = placeholderPayouts.filter(p => p.status === 'Paid Out');
+    const totalWithdrawn = placeholderOwnerWithdrawals.reduce((acc, w) => acc + w.amount, 0);
+
+    const totalNetPayout = totalNetCredited - totalWithdrawn;
 
 
     return (
@@ -105,20 +119,23 @@ export default function OwnerPayouts() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Date</TableHead>
-                                <TableHead>Booking ID</TableHead>
-                                <TableHead className="text-right">Net Amount Paid</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paidOutPayouts.map((payout) => (
-                                <TableRow key={payout.bookingId}>
-                                    <TableCell>{payout.date}</TableCell>
+                             {placeholderOwnerWithdrawals.map((withdrawal: OwnerWithdrawal) => (
+                                <TableRow key={withdrawal.id}>
+                                    <TableCell>{new Date(withdrawal.date).toLocaleDateString()}</TableCell>
                                     <TableCell>
-                                         <div className="font-medium">{payout.bookingId}</div>
-                                         <div className="text-xs text-muted-foreground">From booking by {payout.customerName}</div>
+                                         <div className="font-medium">Withdrawal to Bank</div>
                                     </TableCell>
-                                    <TableCell className="text-right font-mono font-semibold text-primary">
-                                        + ₦{payout.netPayout.toLocaleString()}
+                                    <TableCell className="text-right font-mono font-semibold text-destructive">
+                                        - ₦{withdrawal.amount.toLocaleString()}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Badge variant="outline" className='bg-green-100 text-green-800 border-green-200'>{withdrawal.status}</Badge>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -147,7 +164,7 @@ export default function OwnerPayouts() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {placeholderPayouts.map((payout) => (
+                            {ownerPayouts.map((payout) => (
                                 <TableRow key={payout.bookingId}>
                                     <TableCell>
                                         <div className="font-medium">{payout.bookingId}</div>

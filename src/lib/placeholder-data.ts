@@ -1,6 +1,6 @@
 
 
-import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity } from './types';
+import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
 import { format } from 'date-fns';
 
 // This is a new data structure to simulate a user credential store.
@@ -90,17 +90,11 @@ export let placeholderPitches: Pitch[] = [
 ];
 
 
-export const placeholderBookings: Booking[] = [
-    { id: 'TXN45612', customerName: 'Aisha Bello', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM - 4:00 PM', amount: 22500, status: 'Paid' },
-];
+export const placeholderBookings: Booking[] = [];
 
-export const placeholderPayouts: Payout[] = [
-    { bookingId: 'TXN45612', customerName: 'Aisha Bello', grossAmount: 22500, commissionRate: 10, commissionFee: 2250, netPayout: 20250, date: '2024-07-22', status: 'Paid Out' },
-];
+export const placeholderPayouts: Payout[] = [];
 
-export const ownerBookings: OwnerBooking[] = [
-    { id: 'BK4', customer: 'Aisha Bello', pitch: 'Asokoro Green', date: '2024-07-30', time: '3:00 PM', amount: 22000, status: 'Paid'},
-];
+export const ownerBookings: OwnerBooking[] = [];
 
 
 export const placeholderTransactions: Transaction[] = [];
@@ -110,6 +104,9 @@ export const placeholderAdminWithdrawals: AdminWithdrawal[] = [
     { id: 'WDL002', date: '2024-07-10', amount: 2000, bankName: 'Kuda MFB', accountNumber: '****9876', status: 'Successful' },
 ];
 
+export let placeholderOwnerWithdrawals: OwnerWithdrawal[] = [];
+
+
 export function updatePitch(updatedPitch: Pitch): void {
     const index = placeholderPitches.findIndex(p => p.id === updatedPitch.id);
     if (index !== -1) {
@@ -118,5 +115,5 @@ export function updatePitch(updatedPitch: Pitch): void {
 }
 
 export function addPitch(newPitch: Pitch): void {
-    placeholderPitches.push(newPitch);
+    placeholderPitches.unshift(newPitch);
 }
