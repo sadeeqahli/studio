@@ -57,9 +57,9 @@ export default function OwnerPitches() {
 
   React.useEffect(() => {
     // This effect now initializes the pitches from the global placeholder data,
-    // which may be updated by adding/editing pitches.
+    // filtering for the current owner.
     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
-  }, []); // Re-running this on every render would be inefficient. It should run once.
+  }, []);
 
   const refreshPitches = () => {
      setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
