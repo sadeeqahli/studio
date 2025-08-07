@@ -228,20 +228,26 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                     <Label>Operating Hours & Slots</Label>
                     <div className="grid gap-2">
                         <Label htmlFor="slotInterval" className="text-xs font-normal">Slot Generation Interval (in minutes)</Label>
-                        <Select
-                            onValueChange={(value) => control._formValues.slotInterval = parseInt(value)}
-                            defaultValue={String(watch('slotInterval'))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select interval" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="30">30 minutes</SelectItem>
-                                <SelectItem value="60">60 minutes (1 hour)</SelectItem>
-                                <SelectItem value="90">90 minutes</SelectItem>
-                                <SelectItem value="120">120 minutes (2 hours)</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Controller
+                            name="slotInterval"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={(value) => field.onChange(parseInt(value))}
+                                    value={String(field.value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select interval" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="30">30 minutes</SelectItem>
+                                        <SelectItem value="60">60 minutes (1 hour)</SelectItem>
+                                        <SelectItem value="90">90 minutes</SelectItem>
+                                        <SelectItem value="120">120 minutes (2 hours)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.slotInterval && <p className="text-sm text-destructive">{errors.slotInterval.message}</p>}
                     </div>
 
@@ -252,12 +258,12 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                 name={`operatingHours.${index}`}
                                 control={control}
                                 render={({ field }) => (
-                                    <div className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-2">
+                                     <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-4">
                                         <Checkbox 
                                             checked={field.value.enabled}
-                                            onCheckedChange={(checked) => field.onChange({...field.value, enabled: checked})}
+                                            onCheckedChange={(checked) => field.onChange({...field.value, enabled: !!checked})}
                                         />
-                                        <Label className={cn(!field.value.enabled && "text-muted-foreground")}>{day}</Label>
+                                        <Label className={cn("font-normal", !field.value.enabled && "text-muted-foreground")}>{day}</Label>
                                         <div className="grid grid-cols-2 gap-2">
                                              <Input 
                                                 type="time" 
@@ -277,7 +283,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                             />
                         ))}
                     </div>
-                     {errors.operatingHours && <p className="text-sm text-destructive">{errors.operatingHours.message}</p>}
+                     {typeof errors.operatingHours === 'object' && !Array.isArray(errors.operatingHours) && <p className="text-sm text-destructive">{errors.operatingHours.message}</p>}
                 </div>
 
                 <Separator />

@@ -71,7 +71,7 @@ function AddManualBookingDialog({
             setAvailableSlots(allSlots.filter(slot => !bookedSlots.has(slot)));
             setSelectedSlot(undefined); // Reset slot selection when date changes
         }
-    }, [selectedDate, pitch, placeholderBookings]);
+    }, [selectedDate, pitch, isOpen]);
     
     const manualBookingsOnDate = placeholderBookings.filter(b => 
         b.pitchName === pitch.name &&

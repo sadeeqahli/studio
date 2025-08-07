@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, DollarSign, Calendar, List, CheckCircle, Image as ImageIcon } from 'lucide-react';
+import { MapPin, DollarSign, Calendar, List, CheckCircle, Image as ImageIcon, Clock } from 'lucide-react';
 import type { Pitch } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import Image from "next/image";
@@ -23,9 +23,6 @@ interface PitchDetailsDialogProps {
 
 export function PitchDetailsDialog({ pitch, isOpen, setIsOpen }: PitchDetailsDialogProps) {
   if (!pitch) return null;
-
-  const todayKey = new Date().toISOString().split('T')[0];
-  const todaySlots = pitch.availableSlots[todayKey] || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -89,15 +86,16 @@ export function PitchDetailsDialog({ pitch, isOpen, setIsOpen }: PitchDetailsDia
                 </div>
             </div>
              <div className="grid grid-cols-[24px_1fr] items-start">
-                <Calendar className="h-4 w-4 text-muted-foreground mt-1" />
+                <Clock className="h-4 w-4 text-muted-foreground mt-1" />
                 <div className="grid gap-1">
-                    <p className="font-medium leading-none">Today's Available Slots</p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                        {todaySlots.length > 0 ? todaySlots.map(slot => (
-                            <Badge key={slot} variant="outline" className="font-mono">{slot}</Badge>
-                        )) : (
-                            <p className="text-sm text-muted-foreground">No slots defined for today.</p>
-                        )}
+                    <p className="font-medium leading-none">Operating Hours</p>
+                    <div className="space-y-1 mt-1">
+                        {pitch.operatingHours.map(hour => (
+                            <div key={hour.day} className="flex justify-between text-sm text-muted-foreground">
+                                <span>{hour.day}</span>
+                                <span className="font-mono">{hour.startTime} - {hour.endTime}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
