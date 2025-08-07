@@ -37,6 +37,7 @@ export default function UserProfile() {
   const { setTheme, theme } = useTheme();
   const router = useRouter();
   const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
   
@@ -50,21 +51,33 @@ export default function UserProfile() {
 
   React.useEffect(() => {
     async function loadUser() {
-      const userId = localStorage.getItem('loggedInUserId');
+      // Use a variable to prevent race conditions
+      let userId = null;
+      try {
+        userId = localStorage.getItem('loggedInUserId');
+      } catch (error) {
+        console.error("Could not access localStorage:", error);
+        router.push('/login');
+        return;
+      }
+      
+
       if (userId) {
         const user = await getUserById(userId);
         if (user) {
           setCurrentUser(user);
-          // Populate form fields once user is loaded
           setFirstName(user.name.split(' ')[0] || '');
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
         } else {
+           // If user ID exists in storage but not in DB, it's an invalid session
            router.push('/login');
         }
       } else {
+        // No user ID in storage, redirect to login
         router.push('/login');
       }
+      setIsLoading(false);
     }
     loadUser();
   }, [router]);
@@ -117,10 +130,23 @@ export default function UserProfile() {
     });
 
     setTimeout(() => {
-        localStorage.removeItem('loggedInUserId');
+        try {
+            localStorage.removeItem('loggedInUserId');
+        } catch (error) {
+             console.error("Could not access localStorage:", error);
+        }
         router.push('/login');
     }, 2000);
   };
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2">Loading Profile...</p>
+        </div>
+    );
+  }
   
   return (
     <div>
