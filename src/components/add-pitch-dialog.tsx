@@ -176,7 +176,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           price: data.price,
           amenities: data.amenities,
           imageUrl: imagePreview || "https://placehold.co/600x400.png",
-          imageHint: data.name.toLowerCase().replace(/\s+/g, ' '),
+          imageHint: data.name, // Use the actual name for image hint
           availableSlots: availableSlots,
           allDaySlots: standardSlots,
       };

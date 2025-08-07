@@ -36,10 +36,12 @@ export type Payout = {
     customerName: string;
     grossAmount: number;
     commissionRate: number;
+
     commissionFee: number;
     netPayout: number;
     date: string;
     status: 'Paid Out' | 'Pending';
+    ownerName: string;
 };
 
 export type OwnerBooking = {

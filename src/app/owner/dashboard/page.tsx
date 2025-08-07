@@ -16,8 +16,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
+import { placeholderBookings, placeholderPitches, placeholderCredentials } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
+import { User } from '@/lib/types';
 
 function CommissionCalculatorCard() {
     const [bookingAmount, setBookingAmount] = React.useState<number | string>("");
@@ -98,7 +99,12 @@ function CommissionCalculatorCard() {
     )
 }
 
-function RecentBookingsCard() {
+function RecentBookingsCard({ownerId}: {ownerId: string}) {
+    const ownerPitches = placeholderPitches.filter(p => p.ownerId === ownerId).map(p => p.name);
+    const recentBookings = placeholderBookings
+        .filter(b => ownerPitches.includes(b.pitchName))
+        .slice(0, 5);
+
     return (
         <Card className="xl:col-span-2">
             <CardHeader>
@@ -116,7 +122,7 @@ function RecentBookingsCard() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {placeholderBookings.slice(0, 5).map((booking) => (
+                        {recentBookings.length > 0 ? recentBookings.map((booking) => (
                              <TableRow key={booking.id}>
                                 <TableCell>
                                     <div className="font-medium">{booking.customerName}</div>
@@ -135,7 +141,13 @@ function RecentBookingsCard() {
                                 </TableCell>
                                 <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
                             </TableRow>
-                        ))}
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No recent bookings.
+                                </TableCell>
+                            </TableRow>
+                        )}
                     </TableBody>
                 </Table>
             </CardContent>
@@ -145,13 +157,12 @@ function RecentBookingsCard() {
 
 
 export default function OwnerDashboard() {
-  // For prototype purposes, we'll assume the logged-in owner is 'Tunde Ojo'
-  // In a real app, you'd get this from session/auth context.
-  const ownerPitches = placeholderPitches
-    .filter(p => ['Lekki AstroTurf', 'Ikeja 5-a-side'].includes(p.name))
-    .map(p => p.name);
+  const currentOwnerId = 'USR002';
+  const owner = placeholderCredentials.find(u => u.id === currentOwnerId) as User;
 
-  const ownerBookings = placeholderBookings.filter(b => ownerPitches.includes(b.pitchName));
+  const ownerPitches = placeholderPitches.filter(p => p.ownerId === currentOwnerId);
+  const ownerPitchNames = ownerPitches.map(p => p.name);
+  const ownerBookings = placeholderBookings.filter(b => ownerPitchNames.includes(b.pitchName));
   
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -217,7 +228,7 @@ export default function OwnerDashboard() {
         </div>
 
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-8">
-            <RecentBookingsCard />
+            <RecentBookingsCard ownerId={currentOwnerId} />
             <SubscriptionStatusCard />
             <div className="lg:col-span-2 xl:col-span-3">
                <CommissionCalculatorCard />

@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners } from "@/lib/placeholder-data"
+import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners, placeholderCredentials } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
@@ -206,7 +206,7 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
     );
 }
 
-function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number }) {
+function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (newTransaction: Transaction, receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number, ownerName: string }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
@@ -250,7 +250,7 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
                 amount: withdrawalAmount,
                 bankName: "GTBank",
                 accountNumber: "****6789",
-                accountName: "Tunde Ojo",
+                accountName: ownerName,
                 status: 'Successful'
             };
             
@@ -259,7 +259,7 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
                 date: new Date().toISOString(),
                 amount: withdrawalAmount,
                 status: 'Successful',
-                ownerName: "Tunde Ojo",
+                ownerName: ownerName,
             };
             
             onWithdraw(newTransaction, newReceipt, newWithdrawalRecord);
@@ -306,7 +306,7 @@ function WithdrawDialog({ onWithdraw, balance }: { onWithdraw: (newTransaction: 
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="account-name">Account Name</Label>
-                            <Input id="account-name" value="Tunde Ojo" disabled />
+                            <Input id="account-name" value={ownerName} disabled />
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="pin">Transaction PIN</Label>
@@ -331,16 +331,12 @@ export default function OwnerWalletPage() {
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     const { toast } = useToast();
     const currentOwnerId = 'USR002'; // Hardcoded for prototype
+    const currentOwner = placeholderCredentials.find(u => u.id === currentOwnerId);
 
-    const ownerPitchNames = placeholderPitches
-        .filter(p => p.ownerId === currentOwnerId)
-        .map(p => p.name);
 
     // Derive transactions from paid out payouts
     React.useEffect(() => {
-        const ownerPayouts = placeholderPayouts.filter(payout => {
-             return ownerPitchNames.includes(payout.customerName);
-        });
+        const ownerPayouts = placeholderPayouts.filter(payout => payout.ownerName === currentOwner?.name);
 
         const paidOutTransactions: Transaction[] = ownerPayouts
             .filter(payout => payout.status === 'Paid Out')
@@ -353,16 +349,18 @@ export default function OwnerWalletPage() {
                 bookingId: payout.bookingId,
             }));
         
-        const withdrawalTransactions: Transaction[] = placeholderPayoutsToOwners.map(w => ({
-            id: `TRN-${w.id}`,
-            date: w.date,
-            description: "Withdrawal to bank account",
-            amount: -w.amount,
-            type: 'Withdrawal'
-        }));
+        const withdrawalTransactions: Transaction[] = placeholderPayoutsToOwners
+            .filter(w => w.ownerName === currentOwner?.name)
+            .map(w => ({
+                id: `TRN-${w.id}`,
+                date: w.date,
+                description: "Withdrawal to bank account",
+                amount: -w.amount,
+                type: 'Withdrawal'
+            }));
         
         setTransactions([...paidOutTransactions, ...withdrawalTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    }, []);
+    }, [currentOwner]);
 
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
 
@@ -377,9 +375,9 @@ export default function OwnerWalletPage() {
     };
 
     const virtualAccount = {
-        number: "9988776655",
+        number: `9${currentOwnerId.replace(/[^0-9]/g, '').padStart(9, '0')}`,
         bank: "Providus Bank",
-        name: "LinkHub - Tunde Ojo"
+        name: `LinkHub - ${currentOwner?.name}`
     };
 
     const handleCopy = () => {
@@ -394,7 +392,7 @@ export default function OwnerWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} />
+                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} ownerName={currentOwner!.name} />
             </div>
             
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}

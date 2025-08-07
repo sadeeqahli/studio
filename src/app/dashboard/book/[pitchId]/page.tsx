@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { placeholderPitches, placeholderBookings, placeholderPayouts } from '@/lib/placeholder-data';
+import { placeholderPitches, placeholderBookings, placeholderPayouts, placeholderCredentials } from '@/lib/placeholder-data';
 import { Pitch } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,7 +62,8 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
     const [isCopied, setIsCopied] = React.useState(false);
     const pitchId = params.pitchId;
     
-    const COMMISSION_RATE = 0.10; // 10% commission for Starter plan
+    // In a real app, this would come from a session or context.
+    const currentUserName = "Max Robinson";
     
     React.useEffect(() => {
         const foundPitch = placeholderPitches.find(p => p.id === pitchId);
@@ -96,7 +97,7 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
         } else if (bookingStatus === 'confirming' && countdown === 0) {
             const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
             const totalAmount = pitch!.price * selectedSlots.length;
-            const userName = 'Max Robinson';
+            const owner = placeholderCredentials.find(u => u.id === pitch?.ownerId);
 
             const newBooking = {
                 id: newBookingId,
@@ -106,8 +107,8 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
                 amount: totalAmount,
                 status: 'Paid' as const,
                 paymentMethod: 'Bank Transfer',
-                userName: userName,
-                customerName: userName,
+                userName: currentUserName,
+                customerName: currentUserName,
                 pitchLocation: pitch!.location,
             };
 
@@ -118,12 +119,16 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
             }
             
             placeholderBookings.unshift(newBooking as any);
-            const commissionAmount = totalAmount * COMMISSION_RATE;
+            
+            // Calculate commission based on owner's plan
+            const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
+            const commissionAmount = totalAmount * commissionRate;
+
             placeholderPayouts.unshift({
                 bookingId: newBookingId,
-                customerName: userName,
+                customerName: owner!.name, // This should be the pitch owner's name for their records
                 grossAmount: totalAmount,
-                commissionRate: COMMISSION_RATE * 100,
+                commissionRate: commissionRate * 100,
                 commissionFee: commissionAmount,
                 netPayout: totalAmount - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
@@ -132,14 +137,14 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
 
             toast({
                 title: "Booking Confirmed!",
-                description: `Your booking for ${pitch?.name} at ${selectedSlots[0]} is successful.`,
+                description: `Your booking for ${pitch?.name} at ${selectedSlots.join(', ')} is successful.`,
             });
 
             setBookingStatus('confirmed');
             router.push(`/dashboard/receipt/${newBookingId}`);
         }
         return () => clearTimeout(timer);
-    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate]);
+    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate, currentUserName]);
 
     const handleConfirmBooking = () => {
         if (!selectedDate) {
@@ -195,8 +200,10 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
     }
 
     const totalPrice = pitch.price * selectedSlots.length;
-    const virtualAccountNumber = `9${pitch.id.padStart(9, '0')}`;
-    const ownerName = "Tunde Ojo";
+    const owner = placeholderCredentials.find(u => u.id === pitch.ownerId);
+    const ownerName = owner ? owner.name : "Pitch Owner";
+    const virtualAccountNumber = `9${pitch.id.replace(/[^0-9]/g, '').padStart(9, '0')}`;
+    
 
     const handleCopy = () => {
         navigator.clipboard.writeText(virtualAccountNumber);
@@ -274,7 +281,7 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
                                         )
                                     })}
                                 </div>
-                                {(pitch.availableSlots[dateKey] || pitch.allDaySlots).length === 0 && (
+                                {allDaySlots.length === 0 && (
                                      <Alert variant="destructive" className="mt-2">
                                         <AlertCircle className="h-4 w-4" />
                                         <AlertTitle>No Slots</AlertTitle>

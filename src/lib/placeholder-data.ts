@@ -5,13 +5,13 @@ import { format } from 'date-fns';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
-    { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
+    { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 0 },
     { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 0, subscriptionPlan: 'Starter' },
-    { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 1 },
-    { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-20', status: 'Active', totalBookings: 1 },
-    { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', password: 'password', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended', pitchesListed: 1, subscriptionPlan: 'Plus' },
-    { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-22', status: 'Active', totalBookings: 1 },
-    { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-25', status: 'Active', totalBookings: 1 },
+    { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 0 },
+    { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-20', status: 'Active', totalBookings: 0 },
+    { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', password: 'password', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended', pitchesListed: 0, subscriptionPlan: 'Plus' },
+    { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-22', status: 'Active', totalBookings: 0 },
+    { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-25', status: 'Active', totalBookings: 0 },
 ];
 
 export let placeholderActivities: Activity[] = [
@@ -41,20 +41,6 @@ export function addUserCredential(user: User) {
 // NOTE: This placeholderUsers variable is now deprecated and should not be used.
 // It is maintained for any legacy components that might still reference it, but `placeholderCredentials` is the source of truth.
 export let placeholderUsers: User[] = placeholderCredentials;
-
-const today = new Date();
-const tomorrow = new Date(today);
-tomorrow.setDate(tomorrow.getDate() + 1);
-
-const todayStr = format(today, 'yyyy-MM-dd');
-const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
-
-const standardSlots = [
-    "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
-    "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM",
-    "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM",
-    "6:00 PM - 7:00 PM", "7:00 PM - 8:00 PM", "8:00 PM - 9:00 PM"
-];
 
 export let placeholderPitches: Pitch[] = [];
 
