@@ -46,11 +46,9 @@ export default function UserProfile() {
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
         } else {
-          // If user ID is in storage but not found in DB, it's invalid.
           router.push('/login');
         }
       } else {
-        // If no user ID is in storage, redirect to login.
         router.push('/login');
       }
     }
@@ -80,7 +78,6 @@ export default function UserProfile() {
     e.preventDefault();
     if (!currentUser) return;
 
-    // In a real app, you'd verify the currentPassword against the one in DB
     if (currentUser.password !== currentPassword) {
         toast({ title: "Incorrect Current Password", description: "The current password you entered is not correct.", variant: "destructive"});
         return;
@@ -108,7 +105,6 @@ export default function UserProfile() {
       description: "Please log in again with your new password.",
     });
     
-    // Log the user out as a security measure after password change
     setTimeout(() => {
         localStorage.removeItem('loggedInUserId');
         router.push('/login');
@@ -123,10 +119,8 @@ export default function UserProfile() {
     );
   }
   
-  // Determine if form values have changed from the initial state
   const isInfoChanged = currentUser ? (firstName !== (currentUser.name.split(' ')[0] || '')) || (lastName !== (currentUser.name.split(' ').slice(1).join(' ') || '')) || (email !== currentUser.email) : false;
   
-  // Determine if the password form is filled and ready for submission
   const isPasswordFormValid = currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
   return (
