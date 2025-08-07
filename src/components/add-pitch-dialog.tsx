@@ -214,9 +214,9 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                                 </Button>
                             </div>
                         ))}
-                         {errors.allDaySlots && <p className="text-sm text-destructive">{errors.allDaySlots.message}</p>}
-                          {errors.allDaySlots?.root && <p className="text-sm text-destructive">{errors.allDaySlots.root.message}</p>}
-                         {errors.allDaySlots?.map((error, index) => error?.value && <p key={index} className="text-sm text-destructive">{error.value.message}</p>)}
+                         {errors.allDaySlots?.message && <p className="text-sm text-destructive">{errors.allDaySlots.message}</p>}
+                         {errors.allDaySlots?.root && <p className="text-sm text-destructive">{errors.allDaySlots.root.message}</p>}
+                         {Array.isArray(errors.allDaySlots) && errors.allDaySlots.map((error, index) => error?.value && <p key={index} className="text-sm text-destructive">{error.value.message}</p>)}
                     </div>
                      <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
                         <PlusCircle className="mr-2 h-4 w-4" />
