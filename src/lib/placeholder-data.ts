@@ -27,7 +27,9 @@ export function addUserCredential(user: User) {
     if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
         return; // Or throw an error
     }
-    placeholderCredentials.unshift(user); // Add to the main user list as well
+    // Add to the definitive credentials list
+    placeholderCredentials.unshift(user);
+    
     // Also add a "Signed Up" activity
     placeholderActivities.unshift({
         id: `ACT-${Date.now()}`,
