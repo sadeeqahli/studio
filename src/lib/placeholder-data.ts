@@ -91,33 +91,19 @@ export let placeholderPitches: Pitch[] = [
 
 
 export const placeholderBookings: Booking[] = [
-    { id: 'TXN72362', customerName: 'Ade Williams', pitchName: 'Lekki AstroTurf', date: todayStr, time: '4:00 PM - 5:00 PM', amount: 25500, status: 'Paid' },
-    { id: 'TXN19873', customerName: 'Femi Adebayo', pitchName: 'Ikeja 5-a-side', date: todayStr, time: '7:00 PM - 8:00 PM', amount: 18500, status: 'Paid' },
     { id: 'TXN45612', customerName: 'Aisha Bello', pitchName: 'Asokoro Green', date: '2024-07-22', time: '3:00 PM - 4:00 PM', amount: 22500, status: 'Paid' },
-    { id: 'TXN88234', customerName: 'Chioma Nwosu', pitchName: 'Lekki AstroTurf', date: tomorrowStr, time: '5:00 PM - 6:00 PM', amount: 25500, status: 'Pending' },
 ];
 
 export const placeholderPayouts: Payout[] = [
-    { bookingId: 'TXN72362', customerName: 'Ade Williams', grossAmount: 25000, commissionRate: 10, commissionFee: 2500, netPayout: 22500, date: '2024-07-28', status: 'Paid Out' },
-    { bookingId: 'TXN19873', customerName: 'Femi Adebayo', grossAmount: 18500, commissionRate: 10, commissionFee: 1850, netPayout: 16650, date: '2024-07-25', status: 'Paid Out' },
     { bookingId: 'TXN45612', customerName: 'Aisha Bello', grossAmount: 22500, commissionRate: 10, commissionFee: 2250, netPayout: 20250, date: '2024-07-22', status: 'Paid Out' },
-    { bookingId: 'TXN88234', customerName: 'Chioma Nwosu', grossAmount: 25500, commissionRate: 10, commissionFee: 2550, netPayout: 22950, date: '2024-08-05', status: 'Pending' },
-    { bookingId: 'BK5', customerName: 'Emeka Okafor', grossAmount: 18000, commissionRate: 10, commissionFee: 1800, netPayout: 16200, date: '2024-08-01', status: 'Pending' },
-]
+];
 
 export const ownerBookings: OwnerBooking[] = [
-    { id: 'BK1', customer: 'Ade Williams', pitch: 'Lekki AstroTurf', date: '2024-07-28', time: '4:00 PM', amount: 25000, status: 'Paid'},
-    { id: 'BK2', customer: 'Chioma Nwosu', pitch: 'Lekki AstroTurf', date: '2024-07-28', time: '5:00 PM', amount: 25000, status: 'Paid'},
-    { id: 'BK3', customer: 'Femi Adebayo', pitch: 'Ikeja 5-a-side', date: '2024-07-29', time: '6:00 PM', amount: 18000, status: 'Pending'},
     { id: 'BK4', customer: 'Aisha Bello', pitch: 'Asokoro Green', date: '2024-07-30', time: '3:00 PM', amount: 22000, status: 'Paid'},
-    { id: 'BK5', customer: 'Emeka Okafor', pitch: 'Lekki AstroTurf', date: '2024-08-01', time: '7:00 PM', amount: 25000, status: 'Cancelled'},
-]
-
-
-export const placeholderTransactions: Transaction[] = [
-    { id: 'TRN003', date: '2024-07-28', description: 'Credit from booking payment', amount: 22500, type: 'Credit', bookingId: 'TXN72362' },
-    { id: 'TRN005', date: '2024-07-27', description: 'Credit from booking payment', amount: 16650, type: 'Credit', bookingId: 'TXN19873'},
 ];
+
+
+export const placeholderTransactions: Transaction[] = [];
 
 export const placeholderAdminWithdrawals: AdminWithdrawal[] = [
     { id: 'WDL001', date: '2024-07-20', amount: 5000, bankName: 'GTBank', accountNumber: '****3456', status: 'Successful' },
