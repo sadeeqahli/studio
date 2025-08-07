@@ -27,7 +27,7 @@ export type Booking = {
     date: string;
     time: string;
     amount: number;
-    status: 'Paid' | 'Paid' | 'Cancelled';
+    status: 'Paid' | 'Pending' | 'Cancelled';
     customerName: string;
     bookingType: 'Online' | 'Offline'; // To distinguish between player and owner bookings
 };
@@ -58,7 +58,7 @@ export type OwnerBooking = {
   date: string;
   time: string;
   amount: number;
-  status: 'Paid' | 'Paid' | 'Cancelled';
+  status: 'Paid' | 'Pending' | 'Cancelled';
 }
 
 export type User = {
