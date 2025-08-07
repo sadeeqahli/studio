@@ -4,7 +4,7 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { placeholderPitches, placeholderBookings } from "@/lib/placeholder-data"
+import { addBooking, getBookingsByPitch, getPitchById } from "@/app/actions"
 import type { Pitch, Booking } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -47,9 +47,11 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
 function AddManualBookingDialog({
     pitch,
     onManualBooking,
+    bookings
 }: {
     pitch: Pitch
-    onManualBooking: (booking: Booking) => void
+    onManualBooking: (booking: Booking) => void,
+    bookings: Booking[]
 }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
@@ -64,16 +66,16 @@ function AddManualBookingDialog({
             const allSlots = generateTimeSlots(pitch, selectedDate);
             const dateKey = format(selectedDate, 'yyyy-MM-dd');
             const bookedSlots = new Set(
-                placeholderBookings
+                bookings
                     .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
-                    .map(b => b.time)
+                    .flatMap(b => b.time.split(', '))
             );
             setAvailableSlots(allSlots.filter(slot => !bookedSlots.has(slot)));
             setSelectedSlot(undefined); // Reset slot selection when date changes
         }
-    }, [selectedDate, pitch, isOpen]);
+    }, [selectedDate, pitch, isOpen, bookings]);
     
-    const manualBookingsOnDate = placeholderBookings.filter(b => 
+    const manualBookingsOnDate = bookings.filter(b => 
         b.pitchName === pitch.name &&
         b.date === (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '') &&
         b.bookingType === 'Offline'
@@ -82,7 +84,7 @@ function AddManualBookingDialog({
     const limitReached = manualBookingsOnDate >= 2;
 
 
-    const handleConfirmBooking = () => {
+    const handleConfirmBooking = async () => {
         if (!customerName) {
             toast({ title: "Customer name is required", variant: "destructive" });
             return;
@@ -102,31 +104,30 @@ function AddManualBookingDialog({
 
         setIsLoading(true);
 
-        setTimeout(() => {
-            const newBookingId = `TXN-OFFLINE-${Math.floor(Math.random() * 90000) + 10000}`;
-            
-            const newBooking: Booking = {
-                id: newBookingId,
-                pitchName: pitch.name,
-                date: format(selectedDate, 'yyyy-MM-dd'),
-                time: selectedSlot,
-                amount: 0,
-                status: 'Paid',
-                customerName: customerName,
-                bookingType: 'Offline',
-            };
-            
-            onManualBooking(newBooking);
+        const newBookingId = `TXN-OFFLINE-${Math.floor(Math.random() * 90000) + 10000}`;
+        
+        const newBooking: Booking = {
+            id: newBookingId,
+            pitchName: pitch.name,
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            time: selectedSlot,
+            amount: 0,
+            status: 'Paid',
+            customerName: customerName,
+            bookingType: 'Offline',
+        };
+        
+        await addBooking(newBooking);
+        onManualBooking(newBooking);
 
-            toast({
-                title: "Manual Booking Created",
-                description: `Slot ${selectedSlot} has been booked for ${customerName}.`,
-            });
-            setIsLoading(false);
-            setIsOpen(false);
-            setCustomerName("");
-            setSelectedSlot(undefined);
-        }, 1000);
+        toast({
+            title: "Manual Booking Created",
+            description: `Slot ${selectedSlot} has been booked for ${customerName}.`,
+        });
+        setIsLoading(false);
+        setIsOpen(false);
+        setCustomerName("");
+        setSelectedSlot(undefined);
     }
 
     return (
@@ -202,22 +203,27 @@ export default function ManageAvailabilityPage() {
     const { toast } = useToast()
     const [pitch, setPitch] = React.useState<Pitch | null>(null)
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
-    const [bookings, setBookings] = React.useState<Booking[]>(placeholderBookings);
+    const [bookings, setBookings] = React.useState<Booking[]>([]);
 
     const pitchId = params.pitchId as string;
 
     React.useEffect(() => {
         if (pitchId) {
-            const foundPitch = placeholderPitches.find(p => p.id === pitchId);
-            if (foundPitch) {
-                setPitch(foundPitch)
-            } else {
-                toast({
-                    title: "Pitch not found",
-                    variant: "destructive"
-                })
-                router.push("/owner/dashboard/pitches")
-            }
+            const loadData = async () => {
+                const foundPitch = await getPitchById(pitchId);
+                if (foundPitch) {
+                    setPitch(foundPitch)
+                    const pitchBookings = await getBookingsByPitch(foundPitch.name);
+                    setBookings(pitchBookings);
+                } else {
+                    toast({
+                        title: "Pitch not found",
+                        variant: "destructive"
+                    })
+                    router.push("/owner/dashboard/pitches")
+                }
+            };
+            loadData();
         }
     }, [pitchId, router, toast])
 
@@ -247,8 +253,7 @@ export default function ManageAvailabilityPage() {
     }, [pitch, dateKey, bookings, selectedDate]);
     
     const handleManualBooking = (newBooking: Booking) => {
-        placeholderBookings.unshift(newBooking);
-        setBookings([...placeholderBookings]);
+        setBookings(prev => [newBooking, ...prev]);
     }
 
     if (!pitch) {
@@ -264,7 +269,7 @@ export default function ManageAvailabilityPage() {
                         Back to Pitches
                     </Link>
                 </Button>
-                 <AddManualBookingDialog pitch={pitch} onManualBooking={handleManualBooking} />
+                 <AddManualBookingDialog pitch={pitch} onManualBooking={handleManualBooking} bookings={bookings} />
             </div>
             <Card>
                 <CardHeader>

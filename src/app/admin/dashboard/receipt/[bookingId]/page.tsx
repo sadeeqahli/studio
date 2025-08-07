@@ -241,10 +241,3 @@ export default function ReceiptPage() {
         </div>
     );
 }
-
-    
-
-    
-
-
-    

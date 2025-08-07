@@ -21,7 +21,7 @@ import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { getPitchById, getBookingsByPitch, addBooking, getUserById } from '@/app/actions';
+import { getPitchById, getBookingsByPitch, addBooking, getUserById, getUserByPitchName } from '@/app/actions';
 
 declare global {
   interface Window {
@@ -167,7 +167,8 @@ export default function BookingPage() {
         // Flutterwave account, so you don't need to specify your own account here.
         // Flutterwave handles keeping the commission and sending the rest to the subaccount.
 
-        const commissionRate = owner.subscriptionPlan === 'Plus' ? 0.05 : owner.subscriptionPlan === 'Pro' ? 0.03 : 0.10; // 10% commission
+        const ownerData = await getUserByPitchName(pitch.name);
+        const commissionRate = ownerData?.subscriptionPlan === 'Plus' ? 0.05 : ownerData?.subscriptionPlan === 'Pro' ? 0.03 : 0.10; // 10% commission
         
         // This is a placeholder. In a real app, you would fetch the owner's
         // Flutterwave subaccount ID from your Firestore database.
@@ -545,5 +546,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-    
