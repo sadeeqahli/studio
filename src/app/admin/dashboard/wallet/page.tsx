@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts, placeholderAdminWithdrawals, placeholderPayoutsToOwners } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Banknote, Landmark, Loader2, Download, Building, ShieldCheck, CheckCircle, Printer, Share2, DollarSign, User } from "lucide-react"
@@ -29,8 +28,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import type { AdminWithdrawal, WithdrawalReceipt, Payout } from "@/lib/types";
-
+import type { AdminWithdrawal, WithdrawalReceipt, Payout, OwnerWithdrawal } from "@/lib/types";
+import { getPayouts, getOwnerWithdrawals, getAdminWithdrawals, addAdminWithdrawal } from "@/app/actions";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
 
@@ -157,7 +156,7 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
     const [isLoading, setIsLoading] = React.useState(false);
     const [amount, setAmount] = React.useState('');
 
-    const handleWithdraw = (e: React.FormEvent) => {
+    const handleWithdraw = async (e: React.FormEvent) => {
         e.preventDefault();
         
         const withdrawalAmount = parseFloat(amount);
@@ -181,26 +180,29 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
 
         setIsLoading(true);
 
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsOpen(false);
-            
-            const receiptId = `WDR-${Date.now()}`;
+        const newWithdrawal: AdminWithdrawal = {
+            id: `WDR-${Date.now()}`,
+            date: new Date().toISOString(),
+            amount: withdrawalAmount,
+            bankName: "GTBank",
+            accountNumber: "****6789",
+            status: 'Successful',
+            ownerName: 'Admin',
+        };
+        
+        await addAdminWithdrawal(newWithdrawal);
+        
+        const newReceipt: WithdrawalReceipt = {
+            ...newWithdrawal,
+            accountName: 'LinkHub Inc.',
+        };
+        
+        onWithdraw(newReceipt);
+        
+        setIsLoading(false);
+        setIsOpen(false);
+        setAmount('');
 
-            const newReceipt: WithdrawalReceipt = {
-                id: receiptId,
-                date: new Date().toISOString(),
-                amount: withdrawalAmount,
-                bankName: "GTBank",
-                accountNumber: "****6789",
-                accountName: "LinkHub Inc.",
-                status: 'Successful'
-            };
-            
-            onWithdraw(newReceipt);
-            setAmount('');
-
-        }, 1500);
     }
 
     return (
@@ -343,15 +345,30 @@ function CommissionRow({ payout }: { payout: Payout }) {
 
 
 export default function AdminWalletPage() {
-    const [withdrawals, setWithdrawals] = React.useState<AdminWithdrawal[]>(placeholderAdminWithdrawals);
+    const [allPayouts, setAllPayouts] = React.useState<Payout[]>([]);
+    const [adminWithdrawals, setAdminWithdrawals] = React.useState<AdminWithdrawal[]>([]);
+    const [ownerWithdrawals, setOwnerWithdrawals] = React.useState<OwnerWithdrawal[]>([]);
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     
-    // Combine admin withdrawals and owner payouts for a complete history
-    const allWithdrawals = [...withdrawals, ...placeholderPayoutsToOwners.map(p => ({...p, bankName: 'GTBank', accountNumber: '****1234'} as AdminWithdrawal))].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    React.useEffect(() => {
+        async function loadData() {
+            const [payoutsData, ownerWithdrawalsData, adminWithdrawalsData] = await Promise.all([
+                getPayouts(),
+                getOwnerWithdrawals('all'), // Assuming 'all' fetches all owner withdrawals
+                getAdminWithdrawals()
+            ]);
+            setAllPayouts(payoutsData);
+            setOwnerWithdrawals(ownerWithdrawalsData);
+            setAdminWithdrawals(adminWithdrawalsData);
+        }
+        loadData();
+    }, []);
 
-    // Corrected logic: Total revenue should be all commission earned, regardless of payout status
-    const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
+    const allWithdrawals = [...adminWithdrawals, ...ownerWithdrawals.map(p => ({...p, bankName: 'GTBank', accountNumber: '****1234'} as AdminWithdrawal))]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const totalRevenue = allPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
 
     const totalWithdrawn = allWithdrawals.reduce((acc, w) => acc + w.amount, 0);
     const availableForWithdrawal = totalRevenue - totalWithdrawn;
@@ -364,9 +381,9 @@ export default function AdminWalletPage() {
             bankName: newReceipt.bankName,
             accountNumber: newReceipt.accountNumber,
             status: 'Successful',
-            ownerName: 'Admin', // Admin withdrawals are marked as 'Admin'
+            ownerName: 'Admin',
         };
-        setWithdrawals(prev => [newWithdrawal, ...prev]);
+        setAdminWithdrawals(prev => [newWithdrawal, ...prev]);
         setReceipt(newReceipt);
         setIsReceiptOpen(true);
     };
@@ -466,7 +483,7 @@ export default function AdminWalletPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {placeholderPayouts.map((payout) => (
+                            {allPayouts.map((payout) => (
                                <CommissionRow key={payout.bookingId} payout={payout} />
                             ))}
                         </TableBody>

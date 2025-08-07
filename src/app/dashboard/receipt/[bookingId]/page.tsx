@@ -3,16 +3,16 @@
 
 import * as React from 'react';
 import { useParams } from 'next/navigation';
-import { ReceiptBooking } from '@/lib/types';
+import { ReceiptBooking, Booking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { placeholderBookings, placeholderPitches, placeholderCredentials } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import { getUserById, getBookingById, getPitchById } from '@/app/actions';
 
 
 export default function ReceiptPage() {
@@ -23,37 +23,35 @@ export default function ReceiptPage() {
     const receiptRef = React.useRef<HTMLDivElement>(null);
     const bookingId = params.bookingId as string;
     
-    // In a real app, this would come from a session/auth context.
-    const currentUserName = "Max Robinson";
-    const currentUser = placeholderCredentials.find(u => u.name === currentUserName);
-
     React.useEffect(() => {
         if (!bookingId) {
             setIsLoading(false);
             return;
         }
 
-        const loadBooking = () => {
+        const loadBooking = async () => {
             let foundBooking: ReceiptBooking | null = null;
+            const currentUserId = localStorage.getItem('loggedInUserId');
+            const currentUser = currentUserId ? await getUserById(currentUserId) : null;
             
-            // Check localStorage for a freshly completed booking
+            // Check localStorage for a freshly completed booking first
             const storedBooking = localStorage.getItem('latestBooking');
             if (storedBooking) {
                 const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
                 if (parsedBooking.id === bookingId) {
                     // Security Check: ensure the user viewing is the one who made the booking
-                    if (parsedBooking.userName === currentUserName) {
+                    if (parsedBooking.userName === currentUser?.name) {
                         foundBooking = parsedBooking;
                     }
                 }
             }
             
-            // If not found in localStorage, check the main placeholder data
+            // If not found in localStorage, fetch from the "database"
             if (!foundBooking) {
-                const historyBooking = placeholderBookings.find(b => b.id === bookingId);
+                const historyBooking = await getBookingById(bookingId);
                 // Security Check: ensure the user viewing is the one who made the booking
-                if (historyBooking && historyBooking.customerName === currentUserName) {
-                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
+                if (historyBooking && historyBooking.customerName === currentUser?.name) {
+                    const pitch = await getPitchById(historyBooking.pitchName);
                     foundBooking = {
                         ...historyBooking,
                         pitchLocation: pitch?.location || 'N/A',
@@ -65,11 +63,15 @@ export default function ReceiptPage() {
             
             setBooking(foundBooking);
             setIsLoading(false);
+             // Clean up localStorage after use
+            if (foundBooking) {
+                localStorage.removeItem('latestBooking');
+            }
         };
 
         loadBooking();
 
-    }, [bookingId, currentUserName]);
+    }, [bookingId]);
 
     const handlePrint = () => {
         window.print();
@@ -245,5 +247,3 @@ export default function ReceiptPage() {
         </div>
     );
 }
-
-    

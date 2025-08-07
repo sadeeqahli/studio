@@ -18,13 +18,25 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DollarSign } from "lucide-react"
+import { getPayouts } from "@/app/actions"
+import type { Payout } from "@/lib/types"
 
-// Aggregate data for the chart
-const chartData = placeholderPayouts.reduce((acc, payout) => {
+
+export default function AdminRevenuePage() {
+  const [payouts, setPayouts] = React.useState<Payout[]>([]);
+
+  React.useEffect(() => {
+    async function loadData() {
+      const payoutsData = await getPayouts();
+      setPayouts(payoutsData);
+    }
+    loadData();
+  }, []);
+  
+  const chartData = payouts.reduce((acc, payout) => {
     const date = new Date(payout.date).toLocaleDateString('en-CA'); // Format to YYYY-MM-DD for grouping
     const dailyRevenue = payout.commissionFee;
     const existing = acc.find(item => item.date === date);
@@ -34,12 +46,11 @@ const chartData = placeholderPayouts.reduce((acc, payout) => {
         acc.push({ date, revenue: dailyRevenue });
     }
     return acc;
-}, [] as {date: string, revenue: number}[]).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [] as {date: string, revenue: number}[]).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
 
-export default function AdminRevenuePage() {
-  const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
-  const pendingCommission = placeholderPayouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee, 0);
+  const totalRevenue = payouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
+  const pendingCommission = payouts.filter(p => p.status === 'Pending').reduce((acc, p) => acc + p.commissionFee, 0);
 
   return (
     <div className="grid gap-6">
@@ -121,7 +132,7 @@ export default function AdminRevenuePage() {
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {placeholderPayouts.map((payout) => (
+                {payouts.map((payout) => (
                     <TableRow key={payout.bookingId}>
                         <TableCell className="font-medium">{payout.bookingId}</TableCell>
                         <TableCell className="hidden sm:table-cell font-mono">
@@ -151,5 +162,3 @@ export default function AdminRevenuePage() {
     </div>
   )
 }
-
-    

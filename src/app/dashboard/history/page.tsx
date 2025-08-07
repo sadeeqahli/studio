@@ -12,27 +12,29 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { placeholderBookings, placeholderCredentials } from "@/lib/placeholder-data"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
 import { Eye, Inbox } from "lucide-react";
 import type { Booking } from "@/lib/types";
+import { getUserById, getBookingsByUser } from "@/app/actions";
 
 export default function BookingHistory() {
   const [userBookings, setUserBookings] = React.useState<Booking[]>([]);
   
-  // In a real app, you'd get the current user's ID from a session or auth context.
-  // For this prototype, we'll hardcode the user's name to filter their bookings.
-  const currentUserName = "Max Robinson"; 
-
   React.useEffect(() => {
-    // In a real app, you'd fetch this from the server based on the user's ID.
-    // For the prototype, we filter the shared placeholder data.
-    const filteredBookings = placeholderBookings.filter(
-      booking => booking.customerName === currentUserName
-    );
-    setUserBookings(filteredBookings);
+    const loadData = async () => {
+      // In a real app, you'd get the current user's ID from a session or auth context.
+      const userId = localStorage.getItem('loggedInUserId');
+      if (userId) {
+        const user = await getUserById(userId);
+        if (user) {
+            const bookings = await getBookingsByUser(user.name);
+            setUserBookings(bookings);
+        }
+      }
+    };
+    loadData();
   }, []);
 
   return (
@@ -106,5 +108,3 @@ export default function BookingHistory() {
     </div>
   )
 }
-
-    

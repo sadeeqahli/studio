@@ -3,23 +3,33 @@
 
 import * as React from 'react';
 import { PitchCard } from '@/components/pitch-card';
-import { placeholderPitches } from '@/lib/placeholder-data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Pitch } from '@/lib/types';
+import { getPitches } from '../actions';
 
 export default function UserDashboard() {
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [filteredPitches, setFilteredPitches] = React.useState<Pitch[]>(placeholderPitches);
+  const [allPitches, setAllPitches] = React.useState<Pitch[]>([]);
+  const [filteredPitches, setFilteredPitches] = React.useState<Pitch[]>([]);
 
   React.useEffect(() => {
-    const results = placeholderPitches.filter(pitch =>
+    const fetchPitches = async () => {
+      const pitches = await getPitches();
+      setAllPitches(pitches);
+      setFilteredPitches(pitches);
+    };
+    fetchPitches();
+  }, []);
+
+  React.useEffect(() => {
+    const results = allPitches.filter(pitch =>
       pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredPitches(results);
-  }, [searchTerm]);
+  }, [searchTerm, allPitches]);
 
   return (
     <>

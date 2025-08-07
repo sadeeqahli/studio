@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { useTheme } from 'next-themes';
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Moon, Sun } from 'lucide-react';
-import { placeholderCredentials } from '@/lib/placeholder-data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,32 +27,47 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { cn } from '@/lib/utils';
+import { getUserById, updateUser } from '@/app/actions';
+import type { User } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 export default function UserProfile() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+  const [firstName, setFirstName] = React.useState('');
+  const [lastName, setLastName] = React.useState('');
+  const [email, setEmail] = React.useState('');
 
-  // For this prototype, we'll hardcode the current user. In a real app, this would come from a session.
-  const currentUserEmail = 'm@example.com';
-  const currentUser = placeholderCredentials.find(u => u.email === currentUserEmail);
+  React.useEffect(() => {
+    async function loadUser() {
+      const userId = localStorage.getItem('loggedInUserId');
+      if (userId) {
+        const user = await getUserById(userId);
+        if (user) {
+          setCurrentUser(user);
+          setFirstName(user.name.split(' ')[0] || '');
+          setLastName(user.name.split(' ').slice(1).join(' ') || '');
+          setEmail(user.email);
+        }
+      } else {
+        router.push('/login');
+      }
+    }
+    loadUser();
+  }, [router]);
 
-  const [firstName, setFirstName] = React.useState(currentUser?.name.split(' ')[0] || '');
-  const [lastName, setLastName] = React.useState(currentUser?.name.split(' ')[1] || '');
-  const [email, setEmail] = React.useState(currentUser?.email || '');
-
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (!currentUser) {
         toast({ title: "Error", description: "Could not find user to update.", variant: "destructive" });
         return;
     }
     
-    const newName = `${firstName} ${lastName}`;
-
-    const credIndex = placeholderCredentials.findIndex(c => c.id === currentUser.id);
-    if (credIndex !== -1) {
-        placeholderCredentials[credIndex] = { ...placeholderCredentials[credIndex], name: newName, email };
-    }
+    const newName = `${firstName} ${lastName}`.trim();
+    const updatedUser: User = { ...currentUser, name: newName, email };
+    
+    await updateUser(updatedUser);
 
     toast({
       title: "Success!",
@@ -63,11 +77,16 @@ export default function UserProfile() {
 
   const handleUpdatePassword = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    // Logic to update password would go here
     toast({
       title: "Success!",
       description: "Your password has been changed. You will be logged out shortly.",
     });
   };
+  
+  if (!currentUser) {
+    return <div>Loading profile...</div>;
+  }
 
   return (
     <div>
@@ -98,7 +117,7 @@ export default function UserProfile() {
                     <CardFooter className="border-t px-6 py-4">
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button>Save Changes</Button>
+                                <Button type="button">Save Changes</Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>

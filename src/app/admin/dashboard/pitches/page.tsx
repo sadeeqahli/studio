@@ -27,46 +27,52 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPitches } from "@/lib/placeholder-data"
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import type { Pitch } from "@/lib/types"
 import { PitchDetailsDialog } from "@/components/admin/pitch-details-dialog"
+import { getPitches, updatePitch, getUsers } from "@/app/actions"
 
 export default function AdminPitchesPage() {
     const { toast } = useToast();
     const [searchTerm, setSearchTerm] = React.useState("");
-    const [pitches, setPitches] = React.useState<Pitch[]>(placeholderPitches);
+    const [pitches, setPitches] = React.useState<Pitch[]>([]);
+    const [users, setUsers] = React.useState<any[]>([]);
     const [selectedPitch, setSelectedPitch] = React.useState<Pitch | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
 
+    React.useEffect(() => {
+        async function loadData() {
+            const [pitchesData, usersData] = await Promise.all([getPitches(), getUsers()]);
+            setPitches(pitchesData);
+            setUsers(usersData);
+        }
+        loadData();
+    }, []);
+
+    const getOwnerName = (ownerId: string) => {
+        const owner = users.find(u => u.id === ownerId);
+        return owner ? owner.name : 'Unknown Owner';
+    }
 
     const filteredPitches = pitches.filter(pitch => 
         pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleTogglePitchStatus = (pitchId: string) => {
-        let updatedPitch: Pitch | undefined;
-        const newPitches = pitches.map(pitch => {
-            if (pitch.id === pitchId) {
-                const newStatus = pitch.status === 'Active' ? 'Unlisted' : 'Active';
-                updatedPitch = { ...pitch, status: newStatus };
-                return updatedPitch;
-            }
-            return pitch;
-        });
-
-        setPitches(newPitches);
+    const handleTogglePitchStatus = async (pitchToUpdate: Pitch) => {
+        const newStatus = pitchToUpdate.status === 'Active' ? 'Unlisted' : 'Active';
+        const updatedPitch = { ...pitchToUpdate, status: newStatus };
         
-        if (updatedPitch) {
-            toast({
-                title: `Pitch ${updatedPitch.status}`,
-                description: `The pitch "${updatedPitch.name}" has been ${updatedPitch.status.toLowerCase()}.`,
-            });
-        }
+        await updatePitch(updatedPitch);
+        setPitches(pitches.map(p => p.id === pitchToUpdate.id ? updatedPitch : p));
+        
+        toast({
+            title: `Pitch ${updatedPitch.status}`,
+            description: `The pitch "${updatedPitch.name}" has been ${updatedPitch.status.toLowerCase()}.`,
+        });
     };
 
     const handleViewDetails = (pitch: Pitch) => {
@@ -124,7 +130,7 @@ export default function AdminPitchesPage() {
                         {pitch.name}
                         <div className="text-sm text-muted-foreground">{pitch.location}</div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">Tunde Ojo</TableCell>
+                    <TableCell className="hidden md:table-cell">{getOwnerName(pitch.ownerId)}</TableCell>
                      <TableCell>
                          <Badge
                             variant={pitch.status === 'Active' ? 'outline' : 'destructive'}
@@ -151,7 +157,7 @@ export default function AdminPitchesPage() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleViewDetails(pitch)}>View Details</DropdownMenuItem>
-                             <DropdownMenuItem onClick={() => handleTogglePitchStatus(pitch.id)}>
+                             <DropdownMenuItem onClick={() => handleTogglePitchStatus(pitch)}>
                                 {pitch.status === 'Active' ? 'Unlist Pitch' : 'Re-list Pitch'}
                             </DropdownMenuItem>
                         </DropdownMenuContent>

@@ -19,15 +19,26 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderBookings } from "@/lib/placeholder-data"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Eye } from "lucide-react"
+import { getBookings } from "@/app/actions"
+import type { Booking } from "@/lib/types"
 
 export default function AdminBookingsPage() {
   const [searchTerm, setSearchTerm] = React.useState("");
-  const filteredBookings = placeholderBookings.filter(booking => 
+  const [bookings, setBookings] = React.useState<Booking[]>([]);
+
+  React.useEffect(() => {
+    async function loadData() {
+        const bookingsData = await getBookings();
+        setBookings(bookingsData);
+    }
+    loadData();
+  }, []);
+
+  const filteredBookings = bookings.filter(booking => 
       booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       booking.pitchName.toLowerCase().includes(searchTerm.toLowerCase())
   );

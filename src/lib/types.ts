@@ -1,22 +1,28 @@
 
 export type Pitch = {
   id: string;
+  ownerId: string;
   name: string;
   location: string;
   price: number; // in Naira
   amenities: string[];
   imageUrl: string;
   imageHint: string;
-  availableSlots: string[];
+  operatingHours: { day: string; startTime: string; endTime: string; }[];
+  slotInterval: number; // in minutes
+  status: 'Active' | 'Unlisted';
+  manuallyBlockedSlots: Record<string, string[]>; // e.g. { '2024-08-15': ['10:00 AM', '11:00 AM'] }
 };
 
 export type Booking = {
     id: string;
     pitchName: string;
-    date: string;
-    time: string;
+    date: string; // YYYY-MM-DD
+    time: string; // e.g. "09:00 AM, 10:00 AM"
     amount: number;
     status: 'Paid' | 'Pending' | 'Cancelled';
+    customerName: string;
+    bookingType: 'Online' | 'Offline';
 };
 
 // Extended type for receipt page
@@ -35,6 +41,7 @@ export type Payout = {
     netPayout: number;
     date: string;
     status: 'Paid Out' | 'Pending';
+    ownerName: string;
 };
 
 export type OwnerBooking = {

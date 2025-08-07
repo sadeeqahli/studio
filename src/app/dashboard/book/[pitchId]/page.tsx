@@ -1,11 +1,9 @@
 
-
 "use client";
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { placeholderPitches, placeholderBookings, placeholderPayouts, placeholderCredentials } from '@/lib/placeholder-data';
-import { Pitch, Booking } from '@/lib/types';
+import { Pitch, Booking, User } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -23,6 +21,7 @@ import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { getPitchById, getBookingsByPitch, addBooking, getUserById } from '@/app/actions';
 
 type BookingStatus = 'idle' | 'confirming' | 'confirmed';
 
@@ -79,6 +78,9 @@ export default function BookingPage() {
     const params = useParams();
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
+    const [owner, setOwner] = React.useState<User | null>(null);
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+    const [pitchBookings, setPitchBookings] = React.useState<Booking[]>([]);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
@@ -87,13 +89,28 @@ export default function BookingPage() {
     const [isCopied, setIsCopied] = React.useState(false);
     const pitchId = params.pitchId as string;
     
-    const currentUserName = "Max Robinson";
-    
     React.useEffect(() => {
-        const foundPitch = placeholderPitches.find(p => p.id === pitchId);
-        if (foundPitch) {
-            setPitch(foundPitch);
-        }
+        if (!pitchId) return;
+
+        const loadData = async () => {
+            const pitchData = await getPitchById(pitchId);
+            setPitch(pitchData || null);
+
+            if (pitchData) {
+                const bookingsData = await getBookingsByPitch(pitchData.name);
+                setPitchBookings(bookingsData);
+                const ownerData = await getUserById(pitchData.ownerId);
+                setOwner(ownerData || null);
+            }
+
+            const currentUserId = localStorage.getItem('loggedInUserId');
+            if (currentUserId) {
+                const currentUserData = await getUserById(currentUserId);
+                setCurrentUser(currentUserData || null);
+            }
+        };
+
+        loadData();
     }, [pitchId]);
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
@@ -101,16 +118,16 @@ export default function BookingPage() {
     const bookedSlotsForDate = React.useMemo(() => {
         if (!pitch) return new Set();
         return new Set(
-            placeholderBookings
-                .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
+            pitchBookings
+                .filter(b => b.date === dateKey && b.status === 'Paid')
                 .flatMap(b => b.time.split(', '))
         );
-    }, [pitch, dateKey]);
+    }, [pitch, dateKey, pitchBookings]);
 
     const allDaySlots = React.useMemo(() => {
         if (!pitch || !selectedDate) return [];
         return generateTimeSlots(pitch, selectedDate);
-    }, [pitch, selectedDate])
+    }, [pitch, selectedDate]);
     
     React.useEffect(() => {
         setSelectedSlots([]);
@@ -121,61 +138,52 @@ export default function BookingPage() {
         if (bookingStatus === 'confirming' && countdown > 0) {
             timer = setTimeout(() => setCountdown(countdown - 1), 1000);
         } else if (bookingStatus === 'confirming' && countdown === 0) {
-            const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-            const totalAmount = pitch!.price * selectedSlots.length;
-            const owner = placeholderCredentials.find(u => u.id === pitch?.ownerId);
+            
+            const processBooking = async () => {
+                if (!pitch || !selectedDate || !currentUser) return;
+                
+                const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
+                const totalAmount = pitch!.price * selectedSlots.length;
+                
+                const newBooking: Booking = {
+                    id: newBookingId,
+                    pitchName: pitch.name,
+                    date: format(selectedDate, 'yyyy-MM-dd'),
+                    time: selectedSlots.join(', '),
+                    amount: totalAmount,
+                    status: 'Paid',
+                    customerName: currentUser.name,
+                    bookingType: 'Online',
+                };
+                
+                await addBooking(newBooking);
 
-            const newBooking: Booking = {
-                id: newBookingId,
-                pitchName: pitch!.name,
-                date: format(selectedDate!, 'yyyy-MM-dd'),
-                time: selectedSlots.join(', '),
-                amount: totalAmount,
-                status: 'Paid',
-                customerName: currentUserName,
-                bookingType: 'Online',
+                const receiptDetails = {
+                    ...newBooking,
+                    pitchLocation: pitch.location,
+                    userName: currentUser.name,
+                    paymentMethod: 'Bank Transfer',
+                };
+
+                try {
+                    localStorage.setItem('latestBooking', JSON.stringify(receiptDetails));
+                } catch (error) {
+                    console.error("Could not save to localStorage", error);
+                }
+                
+                toast({
+                    title: "Booking Confirmed!",
+                    description: `Your booking for ${pitch.name} at ${selectedSlots.join(', ')} is successful.`,
+                });
+
+                setBookingStatus('confirmed');
+                router.push(`/dashboard/receipt/${newBookingId}`);
             };
 
-            const receiptDetails = {
-                ...newBooking,
-                pitchLocation: pitch!.location,
-                userName: currentUserName,
-                paymentMethod: 'Bank Transfer',
-            };
-
-            try {
-                localStorage.setItem('latestBooking', JSON.stringify(receiptDetails));
-            } catch (error) {
-                console.error("Could not save to localStorage", error);
-            }
-            
-            placeholderBookings.unshift(newBooking as any);
-            
-            const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
-            const commissionAmount = totalAmount * commissionRate;
-
-            placeholderPayouts.unshift({
-                bookingId: newBookingId,
-                customerName: currentUserName,
-                grossAmount: totalAmount,
-                commissionRate: commissionRate * 100,
-                commissionFee: commissionAmount,
-                netPayout: totalAmount - commissionAmount,
-                date: new Date().toISOString().split('T')[0],
-                status: 'Paid Out',
-                ownerName: owner!.name,
-            });
-
-            toast({
-                title: "Booking Confirmed!",
-                description: `Your booking for ${pitch?.name} at ${selectedSlots.join(', ')} is successful.`,
-            });
-
-            setBookingStatus('confirmed');
-            router.push(`/dashboard/receipt/${newBookingId}`);
+            processBooking();
         }
         return () => clearTimeout(timer);
-    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate, currentUserName]);
+    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate, currentUser]);
 
     const handleConfirmBooking = () => {
         if (!selectedDate) {
@@ -208,15 +216,16 @@ export default function BookingPage() {
         return <PaymentConfirmationView countdown={countdown} />;
     }
 
-    if (!pitch) {
+    if (!pitch || !owner) {
         return (
             <div className="flex items-center justify-center h-full">
                 <Card className="max-w-md w-full">
                     <CardHeader>
-                        <CardTitle>Pitch Not Found</CardTitle>
+                        <CardTitle>Loading Pitch...</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p>The pitch you are looking for does not exist or could not be loaded.</p>
+                        <p>Loading pitch details, please wait.</p>
+                        <Loader2 className="h-8 w-8 animate-spin text-primary mt-4" />
                     </CardContent>
                     <CardFooter>
                          <Button asChild variant="outline">
@@ -231,11 +240,8 @@ export default function BookingPage() {
     }
 
     const totalPrice = pitch.price * selectedSlots.length;
-    const owner = placeholderCredentials.find(u => u.id === pitch.ownerId);
-    const ownerName = owner ? owner.name : "Pitch Owner";
     const virtualAccountNumber = `9${pitch.id.replace(/[^0-9]/g, '').padStart(9, '0')}`;
     
-
     const handleCopy = () => {
         navigator.clipboard.writeText(virtualAccountNumber);
         setIsCopied(true);
@@ -340,7 +346,7 @@ export default function BookingPage() {
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">Account Name:</span>
-                                <span className="font-semibold">9ja Pitch Connect - {ownerName}</span>
+                                <span className="font-semibold">9ja Pitch Connect - {owner.name}</span>
                             </div>
                              <div className="flex items-center justify-between">
                                 <div>
@@ -498,4 +504,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-    

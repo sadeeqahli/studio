@@ -27,11 +27,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderCredentials } from "@/lib/placeholder-data"
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { UserDetailsDialog } from "@/components/admin/user-details-dialog"
-import type { User } from "@/lib/types"
+import type { User, Activity } from "@/lib/types"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -43,17 +42,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { ActivityLogCard } from "@/components/admin/activity-log-card"
-import { placeholderActivities } from "@/lib/placeholder-data"
+import { getUsers, updateUser, deleteUser, getActivities } from "@/app/actions"
 
 export default function AdminUsersPage() {
     const { toast } = useToast();
-    const [users, setUsers] = React.useState<User[]>(placeholderCredentials);
+    const [users, setUsers] = React.useState<User[]>([]);
+    const [activities, setActivities] = React.useState<Activity[]>([]);
     const [searchTerm, setSearchTerm] = React.useState("");
     const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
     const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+    
+    React.useEffect(() => {
+        async function loadData() {
+            const usersData = await getUsers();
+            const activitiesData = await getActivities();
+            setUsers(usersData);
+            setActivities(activitiesData.filter(a => a.action === 'Logged In' || a.action === 'Signed Up'));
+        }
+        loadData();
+    }, []);
 
     const filteredUsers = users.filter(user => 
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,30 +74,23 @@ export default function AdminUsersPage() {
         setIsDetailsOpen(true);
     };
 
-    const handleToggleUserStatus = (userId: string) => {
-        let updatedUser: User | undefined;
-        const newUsers = users.map(user => {
-            if (user.id === userId) {
-                const newStatus = user.status === 'Active' ? 'Suspended' : 'Active';
-                updatedUser = { ...user, status: newStatus };
-                return updatedUser;
-            }
-            return user;
+    const handleToggleUserStatus = async (userToUpdate: User) => {
+        const newStatus = userToUpdate.status === 'Active' ? 'Suspended' : 'Active';
+        const updatedUser = { ...userToUpdate, status: newStatus };
+        
+        await updateUser(updatedUser);
+        setUsers(users.map(u => u.id === userToUpdate.id ? updatedUser : u));
+
+        toast({
+            title: `User ${newStatus}`,
+            description: `${updatedUser.name}'s account has been ${newStatus.toLowerCase()}.`,
         });
-
-        setUsers(newUsers);
-
-        if (updatedUser) {
-             toast({
-                title: `User ${updatedUser.status}`,
-                description: `${updatedUser.name}'s account has been ${updatedUser.status.toLowerCase()}.`,
-            });
-        }
     };
 
-    const handleDeleteUser = (userId: string) => {
+    const handleDeleteUser = async (userId: string) => {
         const userToDelete = users.find(u => u.id === userId);
         if (userToDelete) {
+            await deleteUser(userId);
             setUsers(users.filter(user => user.id !== userId));
             toast({
                 title: "User Deleted",
@@ -159,7 +161,7 @@ export default function AdminUsersPage() {
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                             <DropdownMenuItem onClick={() => handleViewDetails(user)}>View Details</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => handleToggleUserStatus(user.id)}>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleToggleUserStatus(user)}>{user.status === 'Active' ? 'Suspend User' : 'Reactivate User'}</DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <AlertDialog>
                                                 <AlertDialogTrigger asChild>
@@ -200,7 +202,7 @@ export default function AdminUsersPage() {
             </Card>
         </div>
         <div className="lg:col-span-1">
-             <ActivityLogCard activities={placeholderActivities.filter(a => a.action === 'Logged In' || a.action === 'Signed Up')} />
+             <ActivityLogCard activities={activities} />
         </div>
         {selectedUser && (
             <UserDetailsDialog
