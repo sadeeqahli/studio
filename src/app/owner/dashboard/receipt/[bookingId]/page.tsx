@@ -15,12 +15,13 @@ import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
 
-export default function ReceiptPage({ params }: { params: { bookingId: string } }) {
+export default function ReceiptPage() {
+    const params = useParams();
     const { toast } = useToast();
     const [booking, setBooking] = React.useState<ReceiptBooking | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
     const receiptRef = React.useRef<HTMLDivElement>(null);
-    const bookingId = params.bookingId;
+    const bookingId = params.bookingId as string;
     
     React.useEffect(() => {
         if (!bookingId) {
@@ -240,3 +241,5 @@ export default function ReceiptPage({ params }: { params: { bookingId: string } 
         </div>
     );
 }
+
+    

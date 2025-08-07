@@ -50,8 +50,9 @@ function PaymentConfirmationView({ countdown }: { countdown: number }) {
 }
 
 
-export default function BookingPage({ params }: { params: { pitchId: string } }) {
+export default function BookingPage() {
     const router = useRouter();
+    const params = useParams();
     const { toast } = useToast();
     const [pitch, setPitch] = React.useState<Pitch | null>(null);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
@@ -60,7 +61,7 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [countdown, setCountdown] = React.useState(5);
     const [isCopied, setIsCopied] = React.useState(false);
-    const pitchId = params.pitchId;
+    const pitchId = params.pitchId as string;
     
     // In a real app, this would come from a session or context.
     const currentUserName = "Max Robinson";
@@ -126,13 +127,14 @@ export default function BookingPage({ params }: { params: { pitchId: string } })
 
             placeholderPayouts.unshift({
                 bookingId: newBookingId,
-                customerName: owner!.name, // This should be the pitch owner's name for their records
+                customerName: currentUserName,
                 grossAmount: totalAmount,
                 commissionRate: commissionRate * 100,
                 commissionFee: commissionAmount,
                 netPayout: totalAmount - commissionAmount,
                 date: new Date().toISOString().split('T')[0],
                 status: 'Paid Out',
+                ownerName: owner!.name,
             });
 
             toast({
@@ -464,3 +466,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    
