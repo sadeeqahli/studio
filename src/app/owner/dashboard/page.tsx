@@ -99,7 +99,9 @@ function CommissionCalculatorCard() {
     )
 }
 
-function RecentBookingsCard({ownerId}: {ownerId: string}) {
+function RecentBookingsCard({ownerId}: {ownerId: string | null}) {
+    if (!ownerId) return null;
+
     const ownerPitches = placeholderPitches.filter(p => p.ownerId === ownerId).map(p => p.name);
     const recentBookings = placeholderBookings
         .filter(b => ownerPitches.includes(b.pitchName))
@@ -157,7 +159,17 @@ function RecentBookingsCard({ownerId}: {ownerId: string}) {
 
 
 export default function OwnerDashboard() {
-  const currentOwnerId = 'USR002';
+  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const ownerId = localStorage.getItem('loggedInUserId');
+    setCurrentOwnerId(ownerId);
+  }, []);
+
+  if (!currentOwnerId) {
+    return <div>Loading owner data...</div>; // Or a more sophisticated loading state
+  }
+  
   const owner = placeholderCredentials.find(u => u.id === currentOwnerId) as User;
 
   const ownerPitches = placeholderPitches.filter(p => p.ownerId === currentOwnerId);

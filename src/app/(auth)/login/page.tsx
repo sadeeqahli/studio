@@ -41,6 +41,18 @@ export default function LoginForm() {
     if (user && user.password === password) {
       const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
       const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
+      
+      try {
+        if (isOwner) {
+            localStorage.setItem('loggedInUserId', user.id);
+        } else {
+            // We can also store player ID if needed for player dashboard personalization
+            localStorage.setItem('loggedInUserId', user.id);
+        }
+      } catch (error) {
+        console.error("Could not save to localStorage", error);
+      }
+
 
       // Simulate adding a login activity
       placeholderActivities.unshift({

@@ -28,7 +28,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { placeholderCredentials } from '@/lib/placeholder-data';
+import { User } from '@/lib/types';
 
 
 function SetPinDialog() {
@@ -102,10 +104,35 @@ export default function OwnerProfile() {
   const { toast } = useToast();
   const { setTheme, theme } = useTheme();
   const router = useRouter();
+  const [owner, setOwner] = React.useState<User | null>(null);
+  const [fullName, setFullName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+
+  React.useEffect(() => {
+    const ownerId = localStorage.getItem('loggedInUserId');
+    if (ownerId) {
+      const currentOwner = placeholderCredentials.find(u => u.id === ownerId);
+      if (currentOwner) {
+        setOwner(currentOwner);
+        setFullName(currentOwner.name);
+        setEmail(currentOwner.email);
+      }
+    }
+  }, []);
 
 
   const handleSaveChanges = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+    if (!owner) return;
+
+    // In a real app, you'd make an API call here.
+    // For this prototype, we update the placeholder data.
+    const ownerIndex = placeholderCredentials.findIndex(u => u.id === owner.id);
+    if (ownerIndex !== -1) {
+      placeholderCredentials[ownerIndex].name = fullName;
+      placeholderCredentials[ownerIndex].email = email;
+    }
+
     toast({
       title: "Success!",
       description: "Your profile information has been updated.",
@@ -122,6 +149,7 @@ export default function OwnerProfile() {
   };
   
   const handleLogout = () => {
+    localStorage.removeItem('loggedInUserId');
     toast({ title: "Logged Out", description: "You have been successfully logged out."});
     router.push('/login?type=owner');
   };
@@ -133,6 +161,10 @@ export default function OwnerProfile() {
       variant: "destructive",
     });
     router.push('/');
+  }
+
+  if (!owner) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -147,11 +179,11 @@ export default function OwnerProfile() {
                 <CardContent className="grid gap-4">
                      <div className="grid gap-2">
                         <Label htmlFor="owner-name">Full Name</Label>
-                        <Input id="owner-name" defaultValue="Tunde Ojo" />
+                        <Input id="owner-name" value={fullName} onChange={e => setFullName(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="tunde.ojo@example.com" />
+                        <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">

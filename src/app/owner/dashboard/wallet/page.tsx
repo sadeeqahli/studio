@@ -31,7 +31,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
-import type { Transaction, WithdrawalReceipt, Payout, OwnerWithdrawal } from "@/lib/types";
+import type { Transaction, WithdrawalReceipt, Payout, OwnerWithdrawal, User } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
@@ -330,13 +330,21 @@ export default function OwnerWalletPage() {
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     const { toast } = useToast();
-    const currentOwnerId = 'USR002'; // Hardcoded for prototype
-    const currentOwner = placeholderCredentials.find(u => u.id === currentOwnerId);
+    const [currentOwner, setCurrentOwner] = React.useState<User | null>(null);
 
+    React.useEffect(() => {
+        const ownerId = localStorage.getItem('loggedInUserId');
+        if (ownerId) {
+            const owner = placeholderCredentials.find(u => u.id === ownerId);
+            setCurrentOwner(owner || null);
+        }
+    }, []);
 
     // Derive transactions from paid out payouts
     React.useEffect(() => {
-        const ownerPayouts = placeholderPayouts.filter(payout => payout.ownerName === currentOwner?.name);
+        if (!currentOwner) return;
+
+        const ownerPayouts = placeholderPayouts.filter(payout => payout.ownerName === currentOwner.name);
 
         const paidOutTransactions: Transaction[] = ownerPayouts
             .filter(payout => payout.status === 'Paid Out')
@@ -350,7 +358,7 @@ export default function OwnerWalletPage() {
             }));
         
         const withdrawalTransactions: Transaction[] = placeholderPayoutsToOwners
-            .filter(w => w.ownerName === currentOwner?.name)
+            .filter(w => w.ownerName === currentOwner.name)
             .map(w => ({
                 id: `TRN-${w.id}`,
                 date: w.date,
@@ -360,7 +368,11 @@ export default function OwnerWalletPage() {
             }));
         
         setTransactions([...paidOutTransactions, ...withdrawalTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    }, [currentOwner]);
+    }, [currentOwner, placeholderPayoutsToOwners]); // Re-run when withdrawals happen
+
+    if (!currentOwner) {
+        return <div>Loading...</div>;
+    }
 
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
 
@@ -375,9 +387,9 @@ export default function OwnerWalletPage() {
     };
 
     const virtualAccount = {
-        number: `9${currentOwnerId.replace(/[^0-9]/g, '').padStart(9, '0')}`,
+        number: `9${currentOwner.id.replace(/[^0-9]/g, '').padStart(9, '0')}`,
         bank: "Providus Bank",
-        name: `LinkHub - ${currentOwner?.name}`
+        name: `9ja Pitch Connect - ${currentOwner.name}`
     };
 
     const handleCopy = () => {
@@ -392,7 +404,7 @@ export default function OwnerWalletPage() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} ownerName={currentOwner!.name} />
+                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} ownerName={currentOwner.name} />
             </div>
             
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}

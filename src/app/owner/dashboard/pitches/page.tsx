@@ -51,22 +51,25 @@ export default function OwnerPitches() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
   const { toast } = useToast();
-
-  // For this prototype, we'll hardcode the current owner's ID.
-  const currentOwnerId = 'USR002';
-
+  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+  
   React.useEffect(() => {
-    // This effect now initializes the pitches from the global placeholder data,
-    // filtering for the current owner.
-    setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
+    const ownerId = localStorage.getItem('loggedInUserId');
+    setCurrentOwnerId(ownerId);
+    if (ownerId) {
+      setPitches(allPitches.filter(p => p.ownerId === ownerId));
+    }
   }, []);
 
   const refreshPitches = () => {
-     setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
+     if (currentOwnerId) {
+      setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
+    }
   }
 
 
   const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
+    if (!currentOwnerId) return;
     const newPitch: Pitch = {
       ...newPitchData,
       id: `PITCH-${Date.now()}`,

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import * as React from 'react';
@@ -29,11 +28,17 @@ import type { Booking } from '@/lib/types';
 
 export default function OwnerBookings() {
   const [ownerBookings, setOwnerBookings] = React.useState<Booking[]>([]);
+  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    const ownerId = localStorage.getItem('loggedInUserId');
+    setCurrentOwnerId(ownerId);
+  }, []);
 
-  // For prototype purposes, we'll assume the logged-in owner is 'Tunde Ojo' (USR002)
-  const currentOwnerId = 'USR002';
 
   React.useEffect(() => {
+    if (!currentOwnerId) return;
+    
     // 1. Find pitches belonging to the current owner
     const ownerPitchNames = placeholderPitches
         .filter(p => p.ownerId === currentOwnerId)
@@ -44,7 +49,7 @@ export default function OwnerBookings() {
         .filter(b => ownerPitchNames.includes(b.pitchName));
     
     setOwnerBookings(filteredBookings);
-  }, []);
+  }, [currentOwnerId]);
 
 
   return (
