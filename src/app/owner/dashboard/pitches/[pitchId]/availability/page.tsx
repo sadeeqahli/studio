@@ -25,11 +25,13 @@ function AddManualBookingDialog({
     pitch,
     date,
     onManualBooking,
+    disabled = false
 }: {
     slot: string
     pitch: Pitch
     date: Date
     onManualBooking: (booking: Booking) => void
+    disabled?: boolean
 }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
@@ -75,7 +77,7 @@ function AddManualBookingDialog({
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                 <Button variant="outline" size="sm" className="h-8">
+                 <Button variant="outline" size="sm" className="h-8" disabled={disabled}>
                     <UserPlus className="mr-2 h-4 w-4" />
                     Book Manually
                 </Button>
@@ -134,18 +136,23 @@ export default function ManageAvailabilityPage() {
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
-    const bookedSlotsForDate = React.useMemo(() => {
-        if (!pitch) return new Map();
+    const { bookedSlotsForDate, manualBookingsToday } = React.useMemo(() => {
+        if (!pitch) return { bookedSlotsForDate: new Map(), manualBookingsToday: 0 };
         
         const slotMap = new Map<string, Booking>();
+        let manualCount = 0;
+
         bookings
             .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
             .forEach(b => {
                  b.time.split(', ').forEach(timeSlot => {
                     slotMap.set(timeSlot, b);
                 });
+                if (b.bookingType === 'Offline') {
+                    manualCount++;
+                }
             });
-        return slotMap;
+        return { bookedSlotsForDate: slotMap, manualBookingsToday: manualCount };
 
     }, [pitch, dateKey, bookings]);
     
@@ -155,6 +162,8 @@ export default function ManageAvailabilityPage() {
         // Refresh local state to trigger re-render
         setBookings([...placeholderBookings]);
     }
+    
+    const manualBookingLimitReached = manualBookingsToday >= 2;
 
 
     if (!pitch) {
@@ -174,7 +183,7 @@ export default function ManageAvailabilityPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Manage Schedule for "{pitch.name}"</CardTitle>
-                    <CardDescription>Select a date to view its schedule. You can create manual bookings for walk-in customers.</CardDescription>
+                    <CardDescription>Select a date to view its schedule. You can create up to 2 manual bookings per day.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
                     <div className="flex justify-center">
@@ -186,9 +195,14 @@ export default function ManageAvailabilityPage() {
                         />
                     </div>
                     <div className="space-y-4">
-                        <CardTitle className="text-lg">
-                           Schedule for <span className="font-semibold text-primary">{selectedDate ? format(selectedDate, "PPP") : "..."}</span>
-                        </CardTitle>
+                        <div className="flex justify-between items-center">
+                            <CardTitle className="text-lg">
+                               Schedule for <span className="font-semibold text-primary">{selectedDate ? format(selectedDate, "PPP") : "..."}</span>
+                            </CardTitle>
+                             <Badge variant={manualBookingLimitReached ? "destructive" : "secondary"}>
+                                {manualBookingsToday}/2 Manual Bookings
+                            </Badge>
+                        </div>
                         
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-md p-2">
                              {allDaySlots.length > 0 ? (
@@ -212,6 +226,7 @@ export default function ManageAvailabilityPage() {
                                                     pitch={pitch}
                                                     date={selectedDate}
                                                     onManualBooking={handleManualBooking}
+                                                    disabled={manualBookingLimitReached}
                                                 />
                                             )}
                                         </div>
@@ -227,7 +242,7 @@ export default function ManageAvailabilityPage() {
                 </CardContent>
                  <CardFooter>
                     <p className="text-xs text-muted-foreground">
-                        Slots booked by players online cannot be changed. You can add manual bookings for any available time slots.
+                        The daily limit for manual bookings resets at midnight. Slots booked by players online cannot be changed.
                     </p>
                 </CardFooter>
             </Card>
