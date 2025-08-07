@@ -62,7 +62,7 @@ export default function OwnerBookings() {
                             <TableHead>Booking ID</TableHead>
                             <TableHead className="hidden sm:table-cell">Pitch</TableHead>
                             <TableHead className="hidden sm:table-cell">Date</TableHead>
-                            <TableHead>Status</TableHead>
+                            <TableHead>Type</TableHead>
                             <TableHead className="text-right">Amount</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -78,14 +78,13 @@ export default function OwnerBookings() {
                                     <TableCell className="hidden sm:table-cell">{booking.pitchName}</TableCell>
                                     <TableCell className="hidden sm:table-cell">{booking.date} at {booking.time}</TableCell>
                                     <TableCell>
-                                        <Badge variant={booking.status === 'Paid' ? 'default' : 'secondary'} 
+                                         <Badge variant={booking.bookingType === 'Online' ? 'default' : 'secondary'} 
                                             className={cn(
                                                 'text-xs',
-                                                booking.status === 'Paid' && 'bg-green-100 text-green-800 border-green-200',
-                                                booking.status === 'Pending' && 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                                                booking.status === 'Cancelled' && 'bg-red-100 text-red-800 border-red-200'
+                                                booking.bookingType === 'Online' && 'bg-blue-100 text-blue-800 border-blue-200',
+                                                booking.bookingType === 'Offline' && 'bg-purple-100 text-purple-800 border-purple-200',
                                             )}>
-                                            {booking.status}
+                                            {booking.bookingType}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right font-mono">₦{booking.amount.toLocaleString()}</TableCell>
@@ -93,7 +92,7 @@ export default function OwnerBookings() {
                                         {booking.status === 'Paid' && (
                                             <Button asChild variant="outline" size="sm">
                                                 <Link href={`/owner/dashboard/receipt/${booking.id}`}>
-                                                    <Eye className="mr-2 h-4 w-4" /> View Receipt
+                                                    <Eye className="mr-2 h-4 w-4" /> View Details
                                                 </Link>
                                             </Button>
                                         )}

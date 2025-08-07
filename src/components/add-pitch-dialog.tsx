@@ -3,7 +3,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -17,16 +17,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { Pitch } from '@/lib/types';
 import { Checkbox } from './ui/checkbox';
 import { ScrollArea } from './ui/scroll-area';
+import { Separator } from './ui/separator';
 
 const pitchSchema = z.object({
   name: z.string().min(3, 'Pitch name is required'),
   location: z.string().min(3, 'Location is required'),
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
+  allDaySlots: z.array(z.object({ value: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s(AM|PM)\s-\s([0-1]?[0-9]|2[0-3]):[0-5][0-9]\s(AM|PM)$/, "Invalid time format. Use HH:MM AM/PM - HH:MM AM/PM") })).min(1, "At least one time slot is required."),
   image: z.any().optional(),
   // A dummy field to pass the pitch object to the resolver
   pitch: z.any().optional(),
@@ -51,13 +53,6 @@ interface AddPitchDialogProps {
 }
 
 const allAmenities = ['Floodlights', 'Changing Rooms', 'Parking', 'Bibs', 'Water', 'Lounge', 'Cafe', 'Secure'];
-const standardSlots = [
-    "9:00 AM - 10:00 AM", "10:00 AM - 11:00 AM", "11:00 AM - 12:00 PM",
-    "12:00 PM - 1:00 PM", "1:00 PM - 2:00 PM", "2:00 PM - 3:00 PM",
-    "3:00 PM - 4:00 PM", "4:00 PM - 5:00 PM", "5:00 PM - 6:00 PM",
-    "6:00 PM - 7:00 PM", "7:00 PM - 8:00 PM", "8:00 PM - 9:00 PM"
-];
-
 
 export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pitch }: AddPitchDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -77,9 +72,15 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
       location: '',
       price: 0,
       amenities: [],
+      allDaySlots: [{ value: "09:00 AM - 10:00 AM" }],
       image: undefined,
       pitch: null,
     }
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "allDaySlots"
   });
 
   const imageFile = watch('image');
@@ -106,6 +107,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           location: pitch.location,
           price: pitch.price,
           amenities: pitch.amenities,
+          allDaySlots: pitch.allDaySlots.map(s => ({ value: s })),
           image: undefined,
           pitch: pitch,
         });
@@ -116,6 +118,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           location: '',
           price: 0,
           amenities: [],
+          allDaySlots: [{ value: "09:00 AM - 10:00 AM" }],
           image: undefined,
           pitch: null,
         });
@@ -135,7 +138,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
           amenities: data.amenities,
           imageUrl: imagePreview || "https://placehold.co/600x400.png",
           imageHint: data.name, // Use the actual name for image hint
-          allDaySlots: standardSlots,
+          allDaySlots: data.allDaySlots.map(s => s.value),
           manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {}, // Preserve existing blocked slots
       };
 
@@ -194,6 +197,35 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
                         </div>
                     )}
                 </div>
+
+                 <Separator />
+
+                <div className="grid gap-2">
+                    <Label>Operating Hours / Time Slots</Label>
+                    <div className='space-y-2'>
+                        {fields.map((field, index) => (
+                            <div key={field.id} className="flex items-center gap-2">
+                                <Input
+                                    {...register(`allDaySlots.${index}.value`)}
+                                    placeholder="e.g., 09:00 AM - 10:00 AM"
+                                />
+                                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                         {errors.allDaySlots && <p className="text-sm text-destructive">{errors.allDaySlots.message}</p>}
+                          {errors.allDaySlots?.root && <p className="text-sm text-destructive">{errors.allDaySlots.root.message}</p>}
+                         {errors.allDaySlots?.map((error, index) => error?.value && <p key={index} className="text-sm text-destructive">{error.value.message}</p>)}
+                    </div>
+                     <Button type="button" variant="outline" size="sm" onClick={() => append({ value: "" })}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Time Slot
+                    </Button>
+                </div>
+
+                <Separator />
+
                 <div className="grid gap-2">
                     <Label>Amenities</Label>
                     <Controller

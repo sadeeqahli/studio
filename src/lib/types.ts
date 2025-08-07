@@ -22,6 +22,7 @@ export type Booking = {
     amount: number;
     status: 'Paid' | 'Pending' | 'Cancelled';
     customerName: string;
+    bookingType: 'Online' | 'Offline'; // To distinguish between player and owner bookings
 };
 
 // Extended type for receipt page

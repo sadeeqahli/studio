@@ -1,10 +1,11 @@
 
+
 "use client";
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { placeholderPitches, placeholderBookings, placeholderPayouts, placeholderCredentials } from '@/lib/placeholder-data';
-import { Pitch } from '@/lib/types';
+import { Pitch, Booking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -105,21 +106,26 @@ export default function BookingPage() {
             const totalAmount = pitch!.price * selectedSlots.length;
             const owner = placeholderCredentials.find(u => u.id === pitch?.ownerId);
 
-            const newBooking = {
+            const newBooking: Booking = {
                 id: newBookingId,
                 pitchName: pitch!.name,
                 date: format(selectedDate!, 'yyyy-MM-dd'),
                 time: selectedSlots.join(', '),
                 amount: totalAmount,
-                status: 'Paid' as const,
-                paymentMethod: 'Bank Transfer',
-                userName: currentUserName,
+                status: 'Paid',
                 customerName: currentUserName,
+                bookingType: 'Online',
+            };
+
+            const receiptDetails = {
+                ...newBooking,
                 pitchLocation: pitch!.location,
+                userName: currentUserName,
+                paymentMethod: 'Bank Transfer',
             };
 
             try {
-                localStorage.setItem('latestBooking', JSON.stringify(newBooking));
+                localStorage.setItem('latestBooking', JSON.stringify(receiptDetails));
             } catch (error) {
                 console.error("Could not save to localStorage", error);
             }
@@ -477,5 +483,4 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
     
