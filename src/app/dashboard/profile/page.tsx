@@ -15,18 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { Moon, Sun, LogOut } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Moon, Sun, Loader2 } from 'lucide-react';
 import { getUserById, updateUser } from '@/app/actions';
 import type { User } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -48,6 +37,8 @@ export default function UserProfile() {
   
   React.useEffect(() => {
     async function loadUser() {
+      // This logic now gracefully handles loading without redirecting.
+      // The UI will render instantly, and data will populate when ready.
       const userId = localStorage.getItem('loggedInUserId');
       if (userId) {
         const user = await getUserById(userId);
@@ -56,15 +47,11 @@ export default function UserProfile() {
           setFirstName(user.name.split(' ')[0] || '');
           setLastName(user.name.split(' ').slice(1).join(' ') || '');
           setEmail(user.email);
-        } else {
-          router.push('/login');
         }
-      } else {
-        router.push('/login');
       }
     }
     loadUser();
-  }, [router]);
+  }, []);
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,13 +76,22 @@ export default function UserProfile() {
     e.preventDefault();
     if (!currentUser) return;
 
-    if (newPassword !== confirmPassword) {
-        toast({ title: "Passwords do not match", variant: "destructive"});
+    // In a real app, you'd verify the currentPassword against the one in DB
+    if (currentUser.password !== currentPassword) {
+        toast({ title: "Incorrect Current Password", description: "The current password you entered is not correct.", variant: "destructive"});
         return;
     }
 
-    // In a real app, you'd verify the currentPassword against the backend
-    // For this prototype, we'll assume it's correct and update the password
+    if (newPassword.length < 5) {
+        toast({ title: "New Password Too Short", description: "Your new password must be at least 5 characters long.", variant: "destructive"});
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        toast({ title: "Passwords do not match", description: "Your new password and confirmation do not match.", variant: "destructive"});
+        return;
+    }
+    
     const updatedUser: User = {
         ...currentUser,
         password: newPassword,
@@ -108,13 +104,17 @@ export default function UserProfile() {
       description: "Please log in again with your new password.",
     });
     
+    // Log the user out as a security measure after password change
     setTimeout(() => {
         localStorage.removeItem('loggedInUserId');
         router.push('/login');
     }, 2000);
   };
   
+  // Determine if form values have changed from the initial state
   const isInfoChanged = currentUser ? (firstName !== (currentUser.name.split(' ')[0] || '')) || (lastName !== (currentUser.name.split(' ').slice(1).join(' ') || '')) || (email !== currentUser.email) : false;
+  
+  // Determine if the password form is filled and ready for submission
   const isPasswordFormValid = currentPassword.length > 0 && newPassword.length > 0 && confirmPassword.length > 0;
 
   return (
@@ -130,19 +130,19 @@ export default function UserProfile() {
                     <CardContent className="space-y-4">
                         <div className="grid gap-2">
                             <Label htmlFor="first-name">First Name</Label>
-                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Your first name..."/>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="last-name">Last Name</Label>
-                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Your last name..."/>
                         </div>
-                        <div className="grid gap-2">
+                         <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email address..." />
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                        <Button type="submit" disabled={!isInfoChanged}>Save Changes</Button>
+                        <Button type="submit" disabled={!isInfoChanged || !currentUser}>Save Changes</Button>
                     </CardFooter>
                 </form>
             </Card>
@@ -170,12 +170,12 @@ export default function UserProfile() {
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                        <Button type="submit" disabled={!isPasswordFormValid}>Update Password</Button>
+                        <Button type="submit" disabled={!isPasswordFormValid || !currentUser}>Update Password</Button>
                     </CardFooter>
                 </form>
             </Card>
 
-            <Card>
+             <Card>
                 <CardHeader>
                     <CardTitle>Theme</CardTitle>
                     <CardDescription>Switch between light and dark mode.</CardDescription>
@@ -193,5 +193,3 @@ export default function UserProfile() {
     </div>
   )
 }
-
-    
