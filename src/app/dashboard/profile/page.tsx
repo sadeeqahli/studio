@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut, Loader2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -116,7 +116,8 @@ export default function UserProfile() {
   if (!currentUser) {
     return (
         <div className="flex items-center justify-center h-full">
-            <p>Loading profile...</p>
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2">Loading profile...</p>
         </div>
     );
   }
@@ -131,13 +132,15 @@ export default function UserProfile() {
                     <CardDescription>Update your personal details here.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="first-name">First Name</Label>
-                        <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="last-name">Last Name</Label>
-                        <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="first-name">First Name</Label>
+                            <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="last-name">Last Name</Label>
+                            <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                        </div>
                     </div>
                     <Separator />
                     <div className="grid gap-2">
@@ -179,13 +182,15 @@ export default function UserProfile() {
                         <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
                     </div>
                     <Separator />
-                    <div className="grid gap-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="confirm-password">Confirm New Password</Label>
+                            <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+                        </div>
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
@@ -228,4 +233,5 @@ export default function UserProfile() {
         </div>
     </div>
   )
-}
+
+    
