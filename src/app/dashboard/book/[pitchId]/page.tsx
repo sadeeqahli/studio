@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check, Lock } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -80,10 +80,15 @@ export default function BookingPage() {
         return new Set(
             placeholderBookings
                 .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
-                .flatMap(b => b.time.split(', ')) // Handle multiple slots in one booking
+                .flatMap(b => b.time.split(', '))
         );
     }, [pitch, dateKey]);
 
+    const manuallyBlockedSlots = React.useMemo(() => {
+        if (!pitch || !dateKey) return new Set();
+        return new Set(pitch.manuallyBlockedSlots?.[dateKey] || []);
+    }, [pitch, dateKey]);
+    
     const allDaySlots = pitch ? pitch.allDaySlots || [] : [];
     
     React.useEffect(() => {
@@ -264,6 +269,8 @@ export default function BookingPage() {
                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-60 overflow-y-auto pr-2 border rounded-md p-2">
                                     {allDaySlots.map(slot => {
                                         const isBooked = bookedSlotsForDate.has(slot);
+                                        const isBlocked = manuallyBlockedSlots.has(slot);
+                                        const isDisabled = isBooked || isBlocked;
                                         const isChecked = selectedSlots.includes(slot);
                                         return (
                                             <div key={slot} className="flex items-center space-x-2">
@@ -271,13 +278,16 @@ export default function BookingPage() {
                                                     id={slot}
                                                     checked={isChecked}
                                                     onCheckedChange={(checked) => handleSlotSelection(slot, checked as boolean)}
-                                                    disabled={isBooked}
+                                                    disabled={isDisabled}
                                                 />
-                                                <Label htmlFor={slot} className={cn("flex justify-between items-center w-full text-xs font-normal", isBooked ? "cursor-not-allowed text-muted-foreground" : "")}>
+                                                <Label htmlFor={slot} className={cn("flex justify-between items-center w-full text-xs font-normal", isDisabled ? "cursor-not-allowed text-muted-foreground" : "")}>
                                                     <span>{slot}</span>
                                                         {isBooked ? 
-                                                        <Badge variant="destructive">Booked</Badge> 
-                                                        : <Badge variant="outline" className="text-green-600 border-green-400">Free</Badge>}
+                                                            <Badge variant="destructive">Booked</Badge> :
+                                                        isBlocked ?
+                                                            <Badge variant="secondary">Blocked</Badge> :
+                                                            <Badge variant="outline" className="text-green-600 border-green-400">Free</Badge>
+                                                        }
                                                 </Label>
                                             </div>
                                         )
@@ -466,5 +476,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-    

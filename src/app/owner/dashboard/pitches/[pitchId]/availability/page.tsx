@@ -1,19 +1,20 @@
 
+
 "use client"
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { placeholderPitches, updatePitch } from "@/lib/placeholder-data"
+import { placeholderPitches, updatePitch, placeholderBookings } from "@/lib/placeholder-data"
 import type { Pitch } from "@/lib/types"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { X, ArrowLeft, PlusCircle } from "lucide-react"
+import { ArrowLeft, Lock, Unlock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 export default function ManageAvailabilityPage() {
     const params = useParams()
@@ -21,8 +22,6 @@ export default function ManageAvailabilityPage() {
     const { toast } = useToast()
     const [pitch, setPitch] = React.useState<Pitch | null>(null)
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
-    const [slotsForDate, setSlotsForDate] = React.useState<Set<string>>(new Set())
-    const [newSlot, setNewSlot] = React.useState("")
     const pitchId = params.pitchId as string;
 
     React.useEffect(() => {
@@ -40,68 +39,50 @@ export default function ManageAvailabilityPage() {
         }
     }, [pitchId, router, toast])
 
-    React.useEffect(() => {
-        if (pitch && selectedDate) {
-            const dateKey = format(selectedDate, 'yyyy-MM-dd')
-            // Use allDaySlots as the base and filter out booked slots for that day if needed
-            // For now, we just manage the availableSlots object
-            const existingSlots = pitch.availableSlots[dateKey] || pitch.allDaySlots || []
-            setSlotsForDate(new Set(existingSlots))
-        }
-    }, [pitch, selectedDate])
+    const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
-    const handleAddSlot = () => {
-        const trimmedSlot = newSlot.trim()
-        if (trimmedSlot && !slotsForDate.has(trimmedSlot)) {
-            const newSlots = new Set(slotsForDate)
-            newSlots.add(trimmedSlot)
-            setSlotsForDate(newSlots)
-            setNewSlot("")
-        } else {
-             toast({
-                title: "Invalid Slot",
-                description: "Time slot cannot be empty or a duplicate.",
-                variant: "destructive"
-            })
-        }
-    }
+    const bookedSlotsForDate = React.useMemo(() => {
+        if (!pitch) return new Set();
+        return new Set(
+            placeholderBookings
+                .filter(b => b.pitchName === pitch.name && b.date === dateKey && b.status === 'Paid')
+                .flatMap(b => b.time.split(', '))
+        );
+    }, [pitch, dateKey]);
 
-    const handleRemoveSlot = (slotToRemove: string) => {
-        const newSlots = new Set(slotsForDate)
-        newSlots.delete(slotToRemove)
-        setSlotsForDate(newSlots)
-    }
+    const handleToggleSlotBlock = (slotToToggle: string) => {
+        if (!pitch || !selectedDate) return;
 
-    const handleSaveChanges = () => {
-        if (pitch && selectedDate) {
-            const dateKey = format(selectedDate, 'yyyy-MM-dd');
-            const updatedSlots = { ...pitch.availableSlots, [dateKey]: Array.from(slotsForDate) };
-            const updatedPitchData = { ...pitch, availableSlots: updatedSlots };
-            
-            updatePitch(updatedPitchData);
-            setPitch(updatedPitchData);
-            
-            toast({
-                title: "Success",
-                description: `Availability for ${format(selectedDate, 'PPP')} has been updated.`
-            });
-        }
-    }
-    
-    const addAllSlots = () => {
-        if (pitch) {
-            setSlotsForDate(new Set(pitch.allDaySlots));
-        }
-    }
+        const currentBlockedSlots = pitch.manuallyBlockedSlots?.[dateKey] || [];
+        const isBlocked = currentBlockedSlots.includes(slotToToggle);
 
-    const clearAllSlots = () => {
-        setSlotsForDate(new Set());
-    }
+        const newBlockedSlots = isBlocked
+            ? currentBlockedSlots.filter(s => s !== slotToToggle)
+            : [...currentBlockedSlots, slotToToggle];
 
+        const updatedPitch = {
+            ...pitch,
+            manuallyBlockedSlots: {
+                ...pitch.manuallyBlockedSlots,
+                [dateKey]: newBlockedSlots
+            }
+        };
+
+        updatePitch(updatedPitch);
+        setPitch(updatedPitch); // Update local state to trigger re-render
+        
+        toast({
+            title: `Slot ${isBlocked ? 'Unblocked' : 'Blocked'}`,
+            description: `The slot "${slotToToggle}" is now ${isBlocked ? 'available' : 'unavailable'} for booking.`
+        });
+    }
 
     if (!pitch) {
         return <div>Loading...</div>
     }
+
+    const allDaySlots = pitch.allDaySlots || [];
+    const manuallyBlockedSlotsForDate = new Set(pitch.manuallyBlockedSlots?.[dateKey] || []);
 
     return (
         <div>
@@ -114,7 +95,7 @@ export default function ManageAvailabilityPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Manage Availability for "{pitch.name}"</CardTitle>
-                    <CardDescription>Select a date to add or remove available time slots.</CardDescription>
+                    <CardDescription>Select a date to view its schedule. You can block unbooked time slots to prevent bookings.</CardDescription>
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
                     <div className="flex justify-center">
@@ -126,68 +107,50 @@ export default function ManageAvailabilityPage() {
                         />
                     </div>
                     <div className="space-y-4">
-                        <div>
-                             <Label>
-                                Availability for <span className="font-semibold text-primary">{selectedDate ? format(selectedDate, "PPP") : "..."}</span>
-                            </Label>
-                        </div>
-                        <div>
-                            <Label htmlFor="new-slot">New Time Slot (e.g., 6PM-7PM)</Label>
-                            <div className="flex gap-2 mt-1">
-                                <Input
-                                    id="new-slot"
-                                    value={newSlot}
-                                    onChange={(e) => setNewSlot(e.target.value)}
-                                    placeholder="e.g., 6:00 PM - 7:00 PM"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            e.preventDefault();
-                                            handleAddSlot();
-                                        }
-                                    }}
-                                />
-                                <Button onClick={handleAddSlot}>
-                                    <PlusCircle className="h-4 w-4 mr-2" /> Add
-                                </Button>
-                            </div>
-                        </div>
+                        <CardTitle className="text-lg">
+                           Schedule for <span className="font-semibold text-primary">{selectedDate ? format(selectedDate, "PPP") : "..."}</span>
+                        </CardTitle>
+                        
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-md p-2">
+                             {allDaySlots.length > 0 ? (
+                                allDaySlots.map((slot) => {
+                                    const isBooked = bookedSlotsForDate.has(slot);
+                                    const isBlocked = manuallyBlockedSlotsForDate.has(slot);
+                                    const isDisabled = isBooked;
 
-                        <div>
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-sm font-medium">Current Slots:</h3>
-                                <div className="flex gap-2">
-                                     <Button variant="outline" size="sm" onClick={addAllSlots}>All</Button>
-                                     <Button variant="outline" size="sm" onClick={clearAllSlots}>None</Button>
-                                </div>
-                            </div>
-                            {slotsForDate.size > 0 ? (
-                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 border rounded-md p-2">
-                                    {Array.from(slotsForDate).sort().map((slot) => (
-                                        <div key={slot} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                                            <span>{slot}</span>
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveSlot(slot)}>
-                                                <X className="h-4 w-4" />
+                                    return (
+                                        <div key={slot} className={cn("flex items-center justify-between p-2 rounded-md", isBooked && "bg-destructive/10", isBlocked && "bg-yellow-400/20")}>
+                                            <div className="flex flex-col">
+                                                <span>{slot}</span>
+                                                {isBooked && <Badge variant="destructive" className="w-fit mt-1">Booked by Customer</Badge>}
+                                                {isBlocked && <Badge variant="secondary" className="w-fit mt-1">Manually Blocked</Badge>}
+                                            </div>
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                onClick={() => handleToggleSlotBlock(slot)}
+                                                disabled={isDisabled}
+                                                aria-label={isBlocked ? "Unblock slot" : "Block slot"}
+                                            >
+                                                {isBlocked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                                             </Button>
                                         </div>
-                                    ))}
-                                </div>
+                                    )
+                                })
                             ) : (
                                 <p className="text-sm text-muted-foreground p-4 text-center bg-muted rounded-md">
-                                    No available slots for this day.
+                                    No time slots have been configured for this pitch.
                                 </p>
                             )}
                         </div>
-
-                        <Button onClick={handleSaveChanges} className="w-full">
-                            Save Changes for this Date
-                        </Button>
                     </div>
                 </CardContent>
+                 <CardFooter>
+                    <p className="text-xs text-muted-foreground">
+                        Booked slots cannot be changed. To block a slot from being booked, click the lock icon. Click it again to unblock it.
+                    </p>
+                </CardFooter>
             </Card>
         </div>
     )
 }
-
-    
-
-    

@@ -8,8 +8,8 @@ export type Pitch = {
   amenities: string[];
   imageUrl: string;
   imageHint: string;
-  availableSlots: { [date: string]: string[] }; // e.g. { "2024-08-15": ["4:00 PM - 5:00 PM"] }
-  allDaySlots: string[]; // Add this to represent all possible slots for a pitch
+  allDaySlots: string[]; // Master list of all possible slots for a pitch
+  manuallyBlockedSlots?: { [date: string]: string[] }; // For owners to block slots
   status: 'Active' | 'Unlisted';
   ownerId: string;
 };
