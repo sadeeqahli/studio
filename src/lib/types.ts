@@ -111,3 +111,9 @@ export type Activity = {
     action: 'Logged In' | 'Signed Up';
     timestamp: string;
 };
+
+export type PaymentVerificationResponse = {
+    status: 'success' | 'error';
+    message: string;
+    bookingId?: string;
+}

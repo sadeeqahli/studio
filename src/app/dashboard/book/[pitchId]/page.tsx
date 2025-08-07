@@ -3,12 +3,12 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Pitch, Booking, User } from '@/lib/types';
+import { Pitch, Booking, User, PaymentVerificationResponse } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check, Lock } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check, Lock, CreditCard } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -23,55 +23,42 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { getPitchById, getBookingsByPitch, addBooking, getUserById } from '@/app/actions';
 
-type BookingStatus = 'idle' | 'confirming' | 'confirmed';
-
-function generateTimeSlots(pitch: Pitch, date: Date): string[] {
-    const dayOfWeek = format(date, 'EEEE'); // e.g., "Monday"
-    const operatingHours = pitch.operatingHours.find(h => h.day === dayOfWeek);
-
-    if (!operatingHours) {
-        return [];
-    }
-    
-    const slots = [];
-    const [startHour, startMinute] = operatingHours.startTime.split(':').map(Number);
-    const [endHour, endMinute] = operatingHours.endTime.split(':').map(Number);
-
-    let currentTime = setMinutes(setHours(date, startHour), startMinute);
-    const endTime = setMinutes(setHours(date, endHour), endMinute);
-
-    while (currentTime < endTime) {
-        slots.push(format(currentTime, 'hh:mm a'));
-        currentTime = addMinutes(currentTime, pitch.slotInterval);
-    }
-
-    return slots;
+declare global {
+  interface Window {
+    FlutterwaveCheckout: (options: any) => void;
+  }
 }
 
-function PaymentConfirmationView({ countdown }: { countdown: number }) {
+type BookingStatus = 'idle' | 'processing_payment' | 'verifying';
+
+function PaymentConfirmationView({ status }: { status: 'processing_payment' | 'verifying' }) {
+    const messages = {
+        processing_payment: {
+            title: 'Processing Your Payment...',
+            description: 'Please complete the payment in the popup. Do not close this page.',
+        },
+        verifying: {
+            title: 'Verifying Your Payment...',
+            description: 'This will just take a moment. Please do not close or refresh this page.',
+        }
+    }
+
     return (
         <Card className="max-w-md mx-auto">
             <CardHeader className="text-center">
-                <CardTitle>Confirming Your Payment...</CardTitle>
-                <CardDescription>Please do not close or refresh this page.</CardDescription>
+                <CardTitle>{messages[status].title}</CardTitle>
+                <CardDescription>{messages[status].description}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center space-y-4">
-                <div className="relative h-24 w-24">
-                    <Loader2 className="absolute h-full w-full animate-spin text-primary" />
-                    <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-primary">
-                        {countdown}
-                    </span>
-                </div>
-                <p className="text-sm text-muted-foreground">Securely processing your transaction.</p>
+            <CardContent className="flex flex-col items-center justify-center space-y-4 p-8">
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <ShieldCheck className="h-4 w-4 text-green-500" />
-                    <span>SSL Encrypted</span>
+                    <span>Securely processing your transaction.</span>
                 </div>
             </CardContent>
         </Card>
     );
 }
-
 
 export default function BookingPage() {
     const router = useRouter();
@@ -85,8 +72,6 @@ export default function BookingPage() {
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
-    const [countdown, setCountdown] = React.useState(5);
-    const [isCopied, setIsCopied] = React.useState(false);
     const pitchId = params.pitchId as string;
     
     React.useEffect(() => {
@@ -132,61 +117,19 @@ export default function BookingPage() {
     React.useEffect(() => {
         setSelectedSlots([]);
     }, [selectedDate]);
+
+    const handleSlotSelection = (slot: string, checked: boolean) => {
+        setSelectedSlots(prev => {
+            if (checked) {
+                return [...prev, slot];
+            } else {
+                return prev.filter(s => s !== slot);
+            }
+        });
+    };
     
-    React.useEffect(() => {
-        let timer: NodeJS.Timeout;
-        if (bookingStatus === 'confirming' && countdown > 0) {
-            timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-        } else if (bookingStatus === 'confirming' && countdown === 0) {
-            
-            const processBooking = async () => {
-                if (!pitch || !selectedDate || !currentUser) return;
-                
-                const newBookingId = `TXN${Math.floor(Math.random() * 90000) + 10000}`;
-                const totalAmount = pitch!.price * selectedSlots.length;
-                
-                const newBooking: Booking = {
-                    id: newBookingId,
-                    pitchName: pitch.name,
-                    date: format(selectedDate, 'yyyy-MM-dd'),
-                    time: selectedSlots.join(', '),
-                    amount: totalAmount,
-                    status: 'Paid',
-                    customerName: currentUser.name,
-                    bookingType: 'Online',
-                };
-                
-                await addBooking(newBooking);
-
-                const receiptDetails = {
-                    ...newBooking,
-                    pitchLocation: pitch.location,
-                    userName: currentUser.name,
-                    paymentMethod: 'Bank Transfer',
-                };
-
-                try {
-                    localStorage.setItem('latestBooking', JSON.stringify(receiptDetails));
-                } catch (error) {
-                    console.error("Could not save to localStorage", error);
-                }
-                
-                toast({
-                    title: "Booking Confirmed!",
-                    description: `Your booking for ${pitch.name} at ${selectedSlots.join(', ')} is successful.`,
-                });
-
-                setBookingStatus('confirmed');
-                router.push(`/dashboard/receipt/${newBookingId}`);
-            };
-
-            processBooking();
-        }
-        return () => clearTimeout(timer);
-    }, [bookingStatus, countdown, pitch, selectedSlots, router, toast, selectedDate, currentUser]);
-
-    const handleConfirmBooking = () => {
-        if (!selectedDate) {
+    const handleFlutterwavePayment = async () => {
+         if (!selectedDate) {
             toast({ title: "Please select a date.", variant: "destructive" });
             return;
         }
@@ -198,22 +141,98 @@ export default function BookingPage() {
             toast({ title: "Please agree to the terms.", variant: "destructive" });
             return;
         }
+        if (!currentUser || !pitch) {
+            toast({ title: "Could not retrieve user or pitch data.", variant: "destructive" });
+            return;
+        }
 
-        setBookingStatus('confirming');
+        setBookingStatus('processing_payment');
+
+        const totalAmount = pitch.price * selectedSlots.length;
+        const bookingId = `TXN-${pitch.id.slice(-4)}-${Date.now()}`;
+
+        const bookingDetailsForVerification: Booking = {
+            id: bookingId,
+            pitchName: pitch.name,
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            time: selectedSlots.join(', '),
+            amount: totalAmount,
+            status: 'Paid',
+            customerName: currentUser.name,
+            bookingType: 'Online',
+        };
+
+        const paymentConfig = {
+            public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
+            tx_ref: bookingId,
+            amount: totalAmount,
+            currency: "NGN",
+            payment_options: "card,mobilemoney,ussd",
+            redirect_url: '', // This will be handled by the callback
+            customer: {
+                email: currentUser.email,
+                name: currentUser.name,
+            },
+            customizations: {
+                title: "9ja Pitch Connect Booking",
+                description: `Payment for ${pitch.name}`,
+                logo: "https://www.linkpicture.com/q/logo_6.svg",
+            },
+            callback: async function (data: any) {
+                // This function is called when the user completes the payment popup.
+                setBookingStatus('verifying');
+                const transaction_id = data.transaction_id;
+                
+                // Now, send the transaction ID to our secure backend to verify.
+                const response = await fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ transaction_id, bookingDetails: bookingDetailsForVerification }),
+                });
+
+                const result: PaymentVerificationResponse = await response.json();
+
+                if (result.status === 'success' && result.bookingId) {
+                    toast({
+                        title: "Payment Successful!",
+                        description: result.message,
+                    });
+                    // Redirect to the receipt page
+                    router.push(`/dashboard/receipt/${result.bookingId}`);
+                } else {
+                    toast({
+                        title: "Payment Failed",
+                        description: result.message || "An unknown error occurred.",
+                        variant: "destructive",
+                    });
+                    setBookingStatus('idle'); // Reset status on failure
+                }
+            },
+            onclose: function() {
+                // This is called if the user closes the popup without paying.
+                setBookingStatus('idle');
+                toast({
+                    title: "Payment Cancelled",
+                    description: "You have cancelled the payment process.",
+                    variant: "destructive"
+                });
+            },
+        };
+
+        if (window.FlutterwaveCheckout) {
+            window.FlutterwaveCheckout(paymentConfig);
+        } else {
+            toast({
+                title: "Error",
+                description: "Payment gateway script could not be loaded. Please refresh the page.",
+                variant: "destructive",
+            });
+            setBookingStatus('idle');
+        }
     };
 
-    const handleSlotSelection = (slot: string, checked: boolean) => {
-        setSelectedSlots(prev => {
-            if (checked) {
-                return [...prev, slot];
-            } else {
-                return prev.filter(s => s !== slot);
-            }
-        });
-    };
-
-    if (bookingStatus === 'confirming') {
-        return <PaymentConfirmationView countdown={countdown} />;
+    if (bookingStatus === 'processing_payment' || bookingStatus === 'verifying') {
+        return <PaymentConfirmationView status={bookingStatus} />;
     }
 
     if (!pitch || !owner) {
@@ -240,15 +259,6 @@ export default function BookingPage() {
     }
 
     const totalPrice = pitch.price * selectedSlots.length;
-    const virtualAccountNumber = `9${owner.id.replace(/[^0-9]/g, '').slice(-9).padStart(9, '0')}`;
-
-    
-    const handleCopy = () => {
-        navigator.clipboard.writeText(virtualAccountNumber);
-        setIsCopied(true);
-        toast({ title: 'Copied!', description: 'Account number copied to clipboard.' });
-        setTimeout(() => setIsCopied(false), 2000);
-    };
     
     return (
         <Dialog>
@@ -334,39 +344,6 @@ export default function BookingPage() {
                             </div>
                         </CardContent>
                     </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><Banknote className="h-5 w-5" /> Payment Method</CardTitle>
-                            <CardDescription>Transfer the total amount to the account below. Your booking will be confirmed upon receipt of payment.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Bank Name:</span>
-                                <span className="font-semibold">Providus Bank (Virtual)</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Account Name:</span>
-                                <span className="font-semibold">9ja Pitch Connect - {owner.name}</span>
-                            </div>
-                             <div className="flex items-center justify-between">
-                                <div>
-                                    <span className="text-muted-foreground">Account Number:</span>
-                                    <p className="font-semibold font-mono text-lg">{virtualAccountNumber}</p>
-                                </div>
-                                <Button type="button" variant="ghost" size="icon" onClick={handleCopy}>
-                                    {isCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                    <span className="sr-only">Copy account number</span>
-                                </Button>
-                            </div>
-                            <Alert className="mt-4">
-                                <AlertCircle className="h-4 w-4" />
-                                <AlertDescription>
-                                  Use your phone number as the payment reference to confirm your booking instantly.
-                                </AlertDescription>
-                            </Alert>
-                        </CardContent>
-                    </Card>
                 </div>
 
                 {/* Right Side */}
@@ -417,10 +394,11 @@ export default function BookingPage() {
                             <Button 
                                 className="w-full" 
                                 size="lg" 
-                                onClick={handleConfirmBooking} 
+                                onClick={handleFlutterwavePayment} 
                                 disabled={selectedSlots.length === 0 || !agreedToTerms || bookingStatus !== 'idle'}
                             >
-                                {bookingStatus === 'idle' ? `Confirm & Pay ₦${totalPrice.toLocaleString()}` : <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>}
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                {`Pay with Flutterwave ₦${totalPrice.toLocaleString()}`}
                             </Button>
                         </CardFooter>
                     </Card>
@@ -430,6 +408,29 @@ export default function BookingPage() {
             </div>
         </Dialog>
     );
+}
+
+function generateTimeSlots(pitch: Pitch, date: Date): string[] {
+    const dayOfWeek = format(date, 'EEEE'); // e.g., "Monday"
+    const operatingHours = pitch.operatingHours.find(h => h.day === dayOfWeek);
+
+    if (!operatingHours) {
+        return [];
+    }
+    
+    const slots = [];
+    const [startHour, startMinute] = operatingHours.startTime.split(':').map(Number);
+    const [endHour, endMinute] = operatingHours.endTime.split(':').map(Number);
+
+    let currentTime = setMinutes(setHours(date, startHour), startMinute);
+    const endTime = setMinutes(setHours(date, endHour), endMinute);
+
+    while (currentTime < endTime) {
+        slots.push(format(currentTime, 'hh:mm a'));
+        currentTime = addMinutes(currentTime, pitch.slotInterval);
+    }
+
+    return slots;
 }
 
 const TermsDialogContent = () => (
