@@ -87,7 +87,8 @@ export default function BookingPage() {
 
     const manuallyBlockedSlots = React.useMemo(() => {
         if (!pitch || !dateKey) return new Set();
-        return new Set(pitch.manuallyBlockedSlots?.[dateKey] || []);
+        const pitchData = placeholderPitches.find(p => p.id === pitch.id);
+        return new Set(pitchData?.manuallyBlockedSlots?.[dateKey] || []);
     }, [pitch, dateKey]);
     
     const allDaySlots = pitch ? pitch.allDaySlots || [] : [];

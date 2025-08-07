@@ -46,34 +46,19 @@ function AddManualBookingDialog({
 
         setTimeout(() => {
             const newBookingId = `TXN-OFFLINE-${Math.floor(Math.random() * 90000) + 10000}`;
-            const owner = placeholderCredentials.find(u => u.id === pitch.ownerId);
             
             const newBooking: Booking = {
                 id: newBookingId,
                 pitchName: pitch.name,
                 date: format(date, 'yyyy-MM-dd'),
                 time: slot,
-                amount: pitch.price,
-                status: 'Paid',
+                amount: 0, // Manual bookings have no platform transaction
+                status: 'Paid', // Considered paid offline
                 customerName: customerName,
                 bookingType: 'Offline',
             };
             
-             // Calculate commission based on owner's plan
-            const commissionRate = owner?.subscriptionPlan === 'Plus' ? 0.05 : owner?.subscriptionPlan === 'Pro' ? 0.03 : 0.10;
-            const commissionAmount = pitch.price * commissionRate;
-
-            placeholderPayouts.unshift({
-                bookingId: newBookingId,
-                customerName: customerName,
-                grossAmount: pitch.price,
-                commissionRate: commissionRate * 100,
-                commissionFee: commissionAmount,
-                netPayout: pitch.price - commissionAmount,
-                date: new Date().toISOString().split('T')[0],
-                status: 'Paid Out',
-                ownerName: owner!.name,
-            });
+            // No payout/commission is generated for manual bookings
             
             onManualBooking(newBooking);
 
@@ -99,7 +84,7 @@ function AddManualBookingDialog({
                 <DialogHeader>
                     <DialogTitle>Create Manual Booking</DialogTitle>
                     <DialogDescription>
-                        Manually book the slot for <span className="font-bold">{slot}</span> on <span className="font-bold">{format(date, "PPP")}</span>. This will be recorded in your history.
+                        Manually book the slot for <span className="font-bold">{slot}</span> on <span className="font-bold">{format(date, "PPP")}</span>. This will be recorded in your history. No payment will be processed through the platform.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">

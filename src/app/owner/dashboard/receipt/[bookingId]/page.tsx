@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { ReceiptBooking } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2, Info } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -30,32 +30,17 @@ export default function ReceiptPage() {
         }
 
         const loadBooking = () => {
-            // In a real app, you'd fetch this from your database.
-            // For this demo, we check localStorage first (for just-completed bookings)
-            // and then the main placeholder data (for history).
-            const storedBooking = localStorage.getItem('latestBooking');
+            const historyBooking = placeholderBookings.find(b => b.id === bookingId);
             let foundBooking: ReceiptBooking | null = null;
             
-            if (storedBooking) {
-                const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
-                if (parsedBooking.id === bookingId) {
-                    foundBooking = parsedBooking;
-                }
-            }
-            
-            if (!foundBooking) {
-                const historyBooking = placeholderBookings.find(b => b.id === bookingId);
-                if (historyBooking) {
-                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
-                    // We need to augment the history booking with the extra details for the receipt.
-                    // In a real app, this data would already be part of the booking object from the DB.
-                    foundBooking = {
-                        ...historyBooking,
-                        pitchLocation: pitch?.location || 'N/A', // get location from pitch data
-                        userName: historyBooking.customerName, // use the name from the booking
-                        paymentMethod: 'Bank Transfer', // Placeholder, ideally this is stored with the booking
-                    };
-                }
+            if (historyBooking) {
+                const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
+                foundBooking = {
+                    ...historyBooking,
+                    pitchLocation: pitch?.location || 'N/A',
+                    userName: historyBooking.customerName,
+                    paymentMethod: historyBooking.bookingType === 'Online' ? 'Bank Transfer' : 'Offline/Direct',
+                };
             }
             
             setBooking(foundBooking);
@@ -77,8 +62,8 @@ export default function ReceiptPage() {
 
         try {
             const canvas = await html2canvas(receiptRef.current, {
-                useCORS: true, // Important for external images
-                scale: 2 // Higher scale for better quality
+                useCORS: true,
+                scale: 2 
             });
             
             canvas.toBlob(async (blob) => {
@@ -97,7 +82,6 @@ export default function ReceiptPage() {
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share(shareData);
                 } else {
-                    // Fallback for desktop or non-supporting browsers
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = `receipt-${booking.id}.png`;
@@ -124,7 +108,7 @@ export default function ReceiptPage() {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-2">Loading your receipt...</p>
+                <p className="ml-2">Loading booking details...</p>
             </div>
         );
     }
@@ -135,7 +119,7 @@ export default function ReceiptPage() {
                 <Card className="max-w-md w-full text-center">
                     <CardHeader>
                         <CardTitle>Booking Not Found</CardTitle>
-                        <CardDescription>The booking receipt you are looking for does not exist or has expired.</CardDescription>
+                        <CardDescription>The booking you are looking for does not exist.</CardDescription>
                     </CardHeader>
                     <CardFooter className="flex justify-center">
                          <Button asChild variant="outline">
@@ -149,6 +133,7 @@ export default function ReceiptPage() {
         );
     }
 
+    const isOfflineBooking = booking.bookingType === 'Offline';
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(JSON.stringify({bookingId: booking.id, pitch: booking.pitchName, user: booking.userName, time: booking.time}))}`;
     
     return (
@@ -171,9 +156,9 @@ export default function ReceiptPage() {
             
             <Card ref={receiptRef} className="p-2 print:shadow-none print:border-none bg-background">
                 <CardHeader className="text-center bg-primary/5 rounded-t-lg p-6">
-                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
-                    <CardTitle className="text-2xl mt-2">Booking Confirmed!</CardTitle>
-                    <CardDescription>Payment was successful and the pitch is reserved.</CardDescription>
+                    {isOfflineBooking ? <Info className="h-12 w-12 text-blue-500 mx-auto" /> : <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />}
+                    <CardTitle className="text-2xl mt-2">{isOfflineBooking ? 'Manual Booking Confirmation' : 'Online Booking Confirmed!'}</CardTitle>
+                    <CardDescription>{isOfflineBooking ? 'This is a record of a booking made offline.' : 'Payment was successful and the pitch is reserved.'}</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                     <div className="flex flex-col sm:flex-row justify-between gap-6">
@@ -189,18 +174,28 @@ export default function ReceiptPage() {
                             </div>
                         </div>
                         <div className="flex sm:flex-col sm:items-end gap-4">
-                             <Image 
-                                src={qrCodeUrl}
-                                alt="Booking QR Code"
-                                width={120}
-                                height={120}
-                                className="rounded-md"
-                             />
-                             <div className="text-left sm:text-right">
-                                <h3 className="text-sm font-semibold text-muted-foreground">BOOKING ID</h3>
-                                <p className="font-mono text-sm">{booking.id}</p>
-                                <p className="text-xs text-muted-foreground">Show QR code for verification</p>
-                             </div>
+                            {!isOfflineBooking && (
+                                <>
+                                    <Image 
+                                        src={qrCodeUrl}
+                                        alt="Booking QR Code"
+                                        width={120}
+                                        height={120}
+                                        className="rounded-md"
+                                    />
+                                    <div className="text-left sm:text-right">
+                                        <h3 className="text-sm font-semibold text-muted-foreground">BOOKING ID</h3>
+                                        <p className="font-mono text-sm">{booking.id}</p>
+                                        <p className="text-xs text-muted-foreground">Show QR code for verification</p>
+                                    </div>
+                                </>
+                            )}
+                             {isOfflineBooking && (
+                                <div className="text-left sm:text-right">
+                                    <h3 className="text-sm font-semibold text-muted-foreground">BOOKING ID</h3>
+                                    <p className="font-mono text-sm">{booking.id}</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -216,8 +211,8 @@ export default function ReceiptPage() {
                             <p className="font-medium">{booking.time}</p>
                         </div>
                          <div>
-                            <h3 className="text-sm font-semibold text-muted-foreground">PAYMENT METHOD</h3>
-                            <p className="font-medium">{booking.paymentMethod}</p>
+                            <h3 className="text-sm font-semibold text-muted-foreground">BOOKING TYPE</h3>
+                            <p className="font-medium">{booking.bookingType}</p>
                         </div>
                         <div>
                             <h3 className="text-sm font-semibold text-muted-foreground">STATUS</h3>
@@ -225,23 +220,27 @@ export default function ReceiptPage() {
                         </div>
                     </div>
                     
-                    <Separator className="my-6" />
-
-                    <div className="flex justify-end items-center bg-muted/50 p-4 rounded-lg">
-                         <div className="text-right">
-                            <p className="text-sm text-muted-foreground">Total Paid</p>
-                            <p className="text-2xl font-bold text-primary mt-1">₦{booking.amount.toLocaleString()}</p>
-                        </div>
-                    </div>
+                    {!isOfflineBooking && (
+                        <>
+                            <Separator className="my-6" />
+                            <div className="flex justify-end items-center bg-muted/50 p-4 rounded-lg">
+                                <div className="text-right">
+                                    <p className="text-sm text-muted-foreground">Total Paid</p>
+                                    <p className="text-2xl font-bold text-primary mt-1">₦{booking.amount.toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </CardContent>
                 <CardFooter className="text-center text-xs text-muted-foreground p-6">
-                    <p>Thank you for booking with 9ja Pitch Connect. Please arrive at least 10 minutes before your scheduled time. This receipt is your proof of payment.</p>
+                     <p>
+                        {isOfflineBooking 
+                            ? "This booking was created manually by the pitch owner. No payment was processed through 9ja Pitch Connect."
+                            : "Thank you for booking with 9ja Pitch Connect. Please arrive at least 10 minutes before your scheduled time. This receipt is your proof of payment."
+                        }
+                    </p>
                 </CardFooter>
             </Card>
         </div>
     );
 }
-
-    
-
-    
