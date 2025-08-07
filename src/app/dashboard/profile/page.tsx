@@ -155,7 +155,7 @@ export default function UserProfile() {
   }, [currentPassword, newPassword, confirmPassword]);
 
   if (isLoading) {
-    // Return a skeleton or minimal loading state to prevent layout shift
+    // Render a skeleton or minimal loading state to prevent layout shift
     // but avoid showing "Loading profile..." text
     return (
         <div>
