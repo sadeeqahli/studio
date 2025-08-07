@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { placeholderBookings } from "@/lib/placeholder-data"
+import { placeholderBookings, placeholderCredentials } from "@/lib/placeholder-data"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ export default function BookingHistory() {
   const currentUserName = "Max Robinson"; 
 
   React.useEffect(() => {
+    // In a real app, you'd fetch this from the server based on the user's ID.
+    // For the prototype, we filter the shared placeholder data.
     const filteredBookings = placeholderBookings.filter(
       booking => booking.customerName === currentUserName
     );
@@ -104,3 +106,5 @@ export default function BookingHistory() {
     </div>
   )
 }
+
+    

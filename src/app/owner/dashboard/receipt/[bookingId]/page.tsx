@@ -53,7 +53,7 @@ export default function ReceiptPage() {
                         ...historyBooking,
                         pitchLocation: pitch?.location || 'N/A', // get location from pitch data
                         userName: historyBooking.customerName, // use the name from the booking
-                        paymentMethod: 'Card', // Placeholder, ideally this is stored with the booking
+                        paymentMethod: 'Bank Transfer', // Placeholder, ideally this is stored with the booking
                     };
                 }
             }
@@ -241,5 +241,7 @@ export default function ReceiptPage() {
         </div>
     );
 }
+
+    
 
     

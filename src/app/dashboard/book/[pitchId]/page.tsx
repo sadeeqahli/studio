@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -260,6 +260,7 @@ export default function BookingPage() {
                                             onSelect={setSelectedDate}
                                             initialFocus
                                             fromDate={new Date()}
+                                            toDate={addDays(new Date(), 7)}
                                         />
                                     </PopoverContent>
                                 </Popover>
@@ -476,3 +477,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    

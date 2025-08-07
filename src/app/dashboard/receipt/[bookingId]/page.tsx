@@ -10,7 +10,7 @@ import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2 } from '
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
+import { placeholderBookings, placeholderPitches, placeholderCredentials } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
@@ -25,6 +25,7 @@ export default function ReceiptPage() {
     
     // In a real app, this would come from a session/auth context.
     const currentUserName = "Max Robinson";
+    const currentUser = placeholderCredentials.find(u => u.name === currentUserName);
 
     React.useEffect(() => {
         if (!bookingId) {
@@ -57,7 +58,7 @@ export default function ReceiptPage() {
                         ...historyBooking,
                         pitchLocation: pitch?.location || 'N/A',
                         userName: historyBooking.customerName,
-                        paymentMethod: 'Card', // Placeholder
+                        paymentMethod: 'Bank Transfer', // Match the booking page
                     };
                 }
             }
@@ -244,3 +245,5 @@ export default function ReceiptPage() {
         </div>
     );
 }
+
+    
