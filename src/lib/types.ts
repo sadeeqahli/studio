@@ -36,7 +36,6 @@ export type Payout = {
     customerName: string;
     grossAmount: number;
     commissionRate: number;
-
     commissionFee: number;
     netPayout: number;
     date: string;
