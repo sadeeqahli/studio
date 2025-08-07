@@ -40,10 +40,6 @@ export function addUserCredential(user: User) {
     });
 }
 
-// NOTE: This placeholderUsers variable is now deprecated and should not be used.
-// It is maintained for any legacy components that might still reference it, but `placeholderCredentials` is the source of truth.
-export let placeholderUsers: User[] = placeholderCredentials;
-
 export let placeholderPitches: Pitch[] = [];
 
 
