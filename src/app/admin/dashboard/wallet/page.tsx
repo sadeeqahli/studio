@@ -291,8 +291,8 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
                     <User className="h-3 w-3"/> {withdrawal.ownerName}
                  </div>
             </TableCell>
-            <TableCell className="font-mono font-semibold text-destructive">
-                - ₦{withdrawal.amount.toLocaleString()}
+            <TableCell className="font-mono font-semibold">
+                ₦{withdrawal.amount.toLocaleString()}
             </TableCell>
             <TableCell className="hidden sm:table-cell">
                 {withdrawal.bankName} ({withdrawal.accountNumber})
@@ -324,7 +324,7 @@ function CommissionRow({ payout }: { payout: Payout }) {
                 Commission ({payout.commissionRate}%) on ₦{payout.grossAmount.toLocaleString()} booking
             </TableCell>
             <TableCell className="font-mono font-semibold text-primary">
-                + ₦{payout.commissionFee.toLocaleString()}
+                ₦{payout.commissionFee.toLocaleString()}
             </TableCell>
             <TableCell className="hidden md:table-cell">{formattedDate || '...'}</TableCell>
             <TableCell className="text-right">

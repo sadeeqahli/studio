@@ -200,7 +200,7 @@ export default function AdminUsersPage() {
             </Card>
         </div>
         <div className="lg:col-span-1">
-             <ActivityLogCard activities={placeholderActivities} />
+             <ActivityLogCard activities={placeholderActivities.filter(a => a.action === 'Logged In' || a.action === 'Signed Up')} />
         </div>
         {selectedUser && (
             <UserDetailsDialog
