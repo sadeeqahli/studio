@@ -1,10 +1,15 @@
 
 "use client";
 
-// This file is intentionally left blank to resolve a route conflict.
-// The primary login logic has been consolidated into /src/app/(auth)/login/page.tsx.
-// Returning null from a page component makes it not render anything, resolving the conflict.
+import { redirect } from 'next/navigation';
+import { useEffect } from 'react';
 
-export default function ConflictingLoginPage() {
+// This file now acts as a redirect to resolve the route conflict.
+// It redirects any traffic from /login to the canonical /login page handled by (auth)/login.
+export default function RedirectToLogin() {
+    useEffect(() => {
+        redirect('/login');
+    }, []);
+    
     return null;
 }

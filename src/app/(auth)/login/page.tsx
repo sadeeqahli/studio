@@ -17,8 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { placeholderCredentials, placeholderActivities } from "@/lib/placeholder-data";
 import { addUser, getUsers } from "@/app/actions";
+import { User } from "@/lib/types";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -56,6 +56,7 @@ export default function LoginForm() {
       const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
       
       // Set a cookie that's accessible by server components
+      localStorage.setItem('loggedInUserId', user.id); // Also set in localStorage for client-side access
       setCookie('loggedInUserId', user.id, {
           maxAge: 60 * 60 * 24, // 1 day
       });
