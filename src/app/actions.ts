@@ -121,9 +121,9 @@ export async function getPitchById(id: string): Promise<Pitch | undefined> {
 export async function addPitch(pitchData: Pitch): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'pitches', pitchData.id), pitchData)`
     originalAddPitch(pitchData);
-    revalidatePath('/owner/dashboard/pitches');
-    revalidatePath('/admin/dashboard/pitches');
-    revalidatePath('/dashboard');
+    revalidatePath('/owner/dashboard/pitches', 'layout');
+    revalidatePath('/admin/dashboard/pitches', 'layout');
+    revalidatePath('/dashboard', 'layout');
 }
 
 export async function updatePitch(pitchData: Pitch): Promise<void> {
