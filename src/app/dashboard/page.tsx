@@ -12,24 +12,19 @@ import { getPitches } from '../actions';
 export default function UserDashboard() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allPitches, setAllPitches] = React.useState<Pitch[]>([]);
-  const [filteredPitches, setFilteredPitches] = React.useState<Pitch[]>([]);
 
   React.useEffect(() => {
     const fetchPitches = async () => {
       const pitches = await getPitches();
       setAllPitches(pitches);
-      setFilteredPitches(pitches);
     };
     fetchPitches();
   }, []);
 
-  React.useEffect(() => {
-    const results = allPitches.filter(pitch =>
-      pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredPitches(results);
-  }, [searchTerm, allPitches]);
+  const filteredPitches = allPitches.filter(pitch =>
+    pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>

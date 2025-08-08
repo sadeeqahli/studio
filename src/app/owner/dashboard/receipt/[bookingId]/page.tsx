@@ -10,7 +10,7 @@ import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2, Info } 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { getBookings, getPitchById } from '@/app/actions';
+import { getBookings, getPitchById, getPitches } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
@@ -36,8 +36,8 @@ export default function ReceiptPage() {
             
             if (historyBooking) {
                 // This is inefficient but necessary with placeholder data. A real DB would be better.
-                const allPitches = await getPitchById(historyBooking.pitchName); // This action needs to be created or data structure changed
-                const pitch = allPitches; // Assuming a getPitches action returning all pitches
+                const allPitches = await getPitches();
+                const pitch = allPitches.find(p => p.name === historyBooking.pitchName);
                 
                 foundBooking = {
                     ...historyBooking,

@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldCheck } from "lucide-react";
-import { addUserCredential } from "@/lib/placeholder-data";
+import { addUser } from "@/app/actions";
 
 export default function OwnerSignupForm() {
     const router = useRouter();
@@ -29,7 +29,7 @@ export default function OwnerSignupForm() {
     const [password, setPassword] = React.useState('');
     const [confirmPassword, setConfirmPassword] = React.useState('');
 
-    const handleSignup = (event: React.FormEvent) => {
+    const handleSignup = async (event: React.FormEvent) => {
         event.preventDefault();
 
         if (password.length < 5) {
@@ -51,7 +51,7 @@ export default function OwnerSignupForm() {
         }
         
         // Add new user to our placeholder data
-        addUserCredential({
+        await addUser({
             id: `USR-${Date.now()}`,
             name: fullName,
             email: email,

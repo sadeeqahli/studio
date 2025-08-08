@@ -313,49 +313,67 @@ export default function OwnerWalletPage() {
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
     const { toast } = useToast();
     const [currentOwner, setCurrentOwner] = React.useState<User | null>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     React.useEffect(() => {
-        const fetchOwnerAndTransactions = async () => {
+        const fetchOwner = async () => {
             const ownerId = localStorage.getItem('loggedInUserId');
-            if (!ownerId) return;
-
-            const owner = await getUserById(ownerId);
-            setCurrentOwner(owner || null);
-
-            if (owner) {
-                const [payoutsData, withdrawalsData] = await Promise.all([
-                    getPayoutsByOwner(owner.name),
-                    getOwnerWithdrawals(owner.name)
-                ]);
-
-                const creditTransactions: Transaction[] = payoutsData
-                    .filter(payout => payout.status === 'Paid Out')
-                    .map(payout => ({
-                        id: `TRN-CR-${payout.bookingId}`,
-                        date: payout.date,
-                        description: `Credit from booking by ${payout.customerName}`,
-                        amount: payout.netPayout,
-                        type: 'Credit',
-                        bookingId: payout.bookingId,
-                    }));
-
-                const debitTransactions: Transaction[] = withdrawalsData.map(w => ({
-                    id: `TRN-DB-${w.id}`,
-                    date: w.date,
-                    description: "Withdrawal to bank account",
-                    amount: -w.amount,
-                    type: 'Withdrawal'
-                }));
-
-                setTransactions([...creditTransactions, ...debitTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            if (ownerId) {
+                const owner = await getUserById(ownerId);
+                setCurrentOwner(owner || null);
+            } else {
+                setIsLoading(false);
             }
         };
-
-        fetchOwnerAndTransactions();
+        fetchOwner();
     }, []);
 
+    React.useEffect(() => {
+        if (!currentOwner) return;
+
+        const fetchTransactions = async () => {
+            const [payoutsData, withdrawalsData] = await Promise.all([
+                getPayoutsByOwner(currentOwner.name),
+                getOwnerWithdrawals(currentOwner.name)
+            ]);
+
+            const creditTransactions: Transaction[] = payoutsData
+                .filter(payout => payout.status === 'Paid Out')
+                .map(payout => ({
+                    id: `TRN-CR-${payout.bookingId}`,
+                    date: payout.date,
+                    description: `Credit from booking by ${payout.customerName}`,
+                    amount: payout.netPayout,
+                    type: 'Credit',
+                    bookingId: payout.bookingId,
+                }));
+
+            const debitTransactions: Transaction[] = withdrawalsData.map(w => ({
+                id: `TRN-DB-${w.id}`,
+                date: w.date,
+                description: "Withdrawal to bank account",
+                amount: -w.amount,
+                type: 'Withdrawal'
+            }));
+
+            setTransactions([...creditTransactions, ...debitTransactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            setIsLoading(false);
+        };
+        
+        fetchTransactions();
+    }, [currentOwner]);
+
+    if (isLoading) {
+        return (
+             <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading wallet...</p>
+            </div>
+        )
+    }
+
     if (!currentOwner) {
-        return <div>Loading...</div>;
+        return <div>Could not load owner information. Please try logging in again.</div>;
     }
 
     const totalBalance = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);

@@ -42,7 +42,6 @@ import {
   placeholderActivities,
   placeholderAdminWithdrawals,
   placeholderPayoutsToOwners,
-  addUserCredential as originalAddUser,
   updatePitch as originalUpdatePitch,
   addPitch as originalAddPitch,
 } from '@/lib/placeholder-data';
@@ -62,7 +61,17 @@ export async function getUserById(id: string): Promise<User | undefined> {
 
 export async function addUser(user: User): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'users', user.id), user)`
-    originalAddUser(user);
+    if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
+        return;
+    }
+    placeholderCredentials.push(user);
+    placeholderActivities.unshift({
+        id: `ACT-${Date.now()}`,
+        userName: user.name,
+        userRole: user.role as 'Player' | 'Owner',
+        action: 'Signed Up',
+        timestamp: new Date().toISOString(),
+    });
     revalidatePath('/admin/dashboard/users');
     revalidatePath('/(auth)/login');
 }
@@ -114,6 +123,7 @@ export async function addPitch(pitchData: Pitch): Promise<void> {
     originalAddPitch(pitchData);
     revalidatePath('/owner/dashboard/pitches');
     revalidatePath('/admin/dashboard/pitches');
+    revalidatePath('/dashboard');
 }
 
 export async function updatePitch(pitchData: Pitch): Promise<void> {
@@ -241,5 +251,3 @@ export async function getUserByPitchName(pitchName: string): Promise<User | unde
     if (!pitch || !pitch.ownerId) return undefined;
     return await getUserById(pitch.ownerId);
 }
-
-    

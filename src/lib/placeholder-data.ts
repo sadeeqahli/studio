@@ -26,21 +26,6 @@ export let placeholderActivities: Activity[] = [
     { id: '4', userName: 'Max Robinson', userRole: 'Player', action: 'Logged In', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
 ];
 
-
-export function addUserCredential(user: User) {
-    if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
-        return;
-    }
-    placeholderCredentials.push(user);
-    placeholderActivities.unshift({
-        id: `ACT-${Date.now()}`,
-        userName: user.name,
-        userRole: user.role as 'Player' | 'Owner',
-        action: 'Signed Up',
-        timestamp: new Date().toISOString(),
-    });
-}
-
 export let placeholderPitches: Pitch[] = [
 ];
 
