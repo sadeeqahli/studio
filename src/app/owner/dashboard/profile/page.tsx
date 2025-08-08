@@ -1,288 +1,44 @@
-
-"use client";
-
-import * as React from 'react';
-import { useTheme } from 'next-themes';
-import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import { Moon, Sun, ShieldCheck, Loader2, LogOut, AlertTriangle } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRouter } from 'next/navigation';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { placeholderCredentials } from '@/lib/placeholder-data';
-import { User } from '@/lib/types';
+import { ThemeSwitcher } from "@/components/owner/theme-switcher"
+import { AccountActions } from "@/components/owner/account-actions"
+import { ProfileForm } from "@/components/owner/profile-form"
+import { PasswordForm } from "@/components/owner/password-form"
+import { PinManagementCard } from "@/components/owner/pin-management-card"
+import { getUserById } from "@/app/actions"
+import { getCookie } from "cookies-next"
+import { cookies } from "next/headers"
+import { notFound } from "next/navigation"
 
+export default async function OwnerProfile() {
+  const ownerId = getCookie('loggedInUserId', { cookies });
 
-function SetPinDialog() {
-    const { toast } = useToast();
-    const [isOpen, setIsOpen] = React.useState(false);
-    const [isLoading, setIsLoading] = React.useState(false);
-    const [pin, setPin] = React.useState("");
-    const [confirmPin, setConfirmPin] = React.useState("");
-
-    const handleSetPin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (pin !== confirmPin) {
-            toast({
-                title: "PINs do not match",
-                description: "Please ensure both PINs are the same.",
-                variant: "destructive",
-            });
-            return;
-        }
-        setIsLoading(true);
-
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsOpen(false);
-            setPin("");
-            setConfirmPin("");
-            toast({
-                title: "PIN Set Successfully",
-                description: "Your transaction PIN has been updated."
-            });
-        }, 1500);
-    }
-    
-    return (
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">Set/Change PIN</Button>
-            </DialogTrigger>
-            <DialogContent>
-                 <DialogHeader>
-                    <DialogTitle>Set Your Transaction PIN</DialogTitle>
-                    <DialogDescription>
-                       This 4-digit PIN will be required for all withdrawals. Keep it secure.
-                    </DialogDescription>
-                </DialogHeader>
-                 <form onSubmit={handleSetPin}>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="pin">New PIN</Label>
-                            <Input id="pin" type="password" placeholder="****" required maxLength={4} value={pin} onChange={(e) => setPin(e.target.value)} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="confirm-pin">Confirm New PIN</Label>
-                            <Input id="confirm-pin" type="password" placeholder="****" required maxLength={4} value={confirmPin} onChange={(e) => setConfirmPin(e.target.value)} />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : 'Set PIN'}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-
-export default function OwnerProfile() {
-  const { toast } = useToast();
-  const { setTheme, theme } = useTheme();
-  const router = useRouter();
-  const [owner, setOwner] = React.useState<User | null>(null);
-  const [fullName, setFullName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-
-  React.useEffect(() => {
-    const ownerId = localStorage.getItem('loggedInUserId');
-    if (ownerId) {
-      const currentOwner = placeholderCredentials.find(u => u.id === ownerId);
-      if (currentOwner) {
-        setOwner(currentOwner);
-        setFullName(currentOwner.name);
-        setEmail(currentOwner.email);
-      }
-    }
-  }, []);
-
-
-  const handleSaveChanges = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    if (!owner) return;
-
-    // In a real app, you'd make an API call here.
-    // For this prototype, we update the placeholder data.
-    const ownerIndex = placeholderCredentials.findIndex(u => u.id === owner.id);
-    if (ownerIndex !== -1) {
-      placeholderCredentials[ownerIndex].name = fullName;
-      placeholderCredentials[ownerIndex].email = email;
-    }
-
-    toast({
-      title: "Success!",
-      description: "Your profile information has been updated.",
-    });
-  };
-
-  const handleUpdatePassword = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    toast({
-      title: "Success!",
-      description: "Your password has been changed. You will be logged out shortly.",
-    });
-     setTimeout(() => handleLogout(), 2000);
-  };
-  
-  const handleLogout = () => {
-    localStorage.removeItem('loggedInUserId');
-    toast({ title: "Logged Out", description: "You have been successfully logged out."});
-    router.push('/login?type=owner');
-  };
-
-  const handleDeactivate = () => {
-    toast({
-      title: "Account Deactivated",
-      description: "Your account has been permanently deleted.",
-      variant: "destructive",
-    });
-    router.push('/');
+  if (!ownerId) {
+    // This can happen if the cookie expires or is cleared.
+    // Redirecting to login is a good practice here, but for now, we'll show not found.
+    notFound();
   }
 
+  const owner = await getUserById(ownerId);
+
   if (!owner) {
-    return <div>Loading...</div>;
+    notFound();
   }
 
   return (
     <div>
         <h1 className="text-lg font-semibold md:text-2xl mb-4">Owner Profile & Settings</h1>
         <div className="grid gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Your Information</CardTitle>
-                    <CardDescription>Update your personal and business details here.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                     <div className="grid gap-2">
-                        <Label htmlFor="owner-name">Full Name</Label>
-                        <Input id="owner-name" value={fullName} onChange={e => setFullName(e.target.value)} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
-                    </div>
-                </CardContent>
-                <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleSaveChanges}>Save Changes</Button>
-                </CardFooter>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Password</CardTitle>
-                    <CardDescription>Change your password here. After saving, you'll be logged out.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" />
-                    </div>
-                     <div className="grid gap-2">
-                        <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" />
-                    </div>
-                </CardContent>
-                <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={handleUpdatePassword}>Update Password</Button>
-                </CardFooter>
-            </Card>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Transaction PIN</CardTitle>
-                    <CardDescription>For added security, set a 4-digit PIN for all withdrawals.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-2">
-                             <ShieldCheck className="h-5 w-5 text-primary"/>
-                            <p className="text-sm font-medium">Your PIN is set and active.</p>
-                        </div>
-                        <SetPinDialog />
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Theme</CardTitle>
-                    <CardDescription>Switch between light and dark mode.</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center gap-4">
-                     <span className="text-sm text-muted-foreground">{theme === 'light' ? 'Current theme: Light' : 'Current theme: Dark'}.</span>
-                     <Button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} variant="outline" size="icon">
-                        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                        <span className="sr-only">Toggle theme</span>
-                    </Button>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Account Actions</CardTitle>
-                    <CardDescription>Manage your session and account status.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid sm:grid-cols-2 gap-4">
-                     <Button onClick={handleLogout} variant="outline">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
-                    </Button>
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="destructive">
-                                <AlertTriangle className="mr-2 h-4 w-4" />
-                                Deactivate Account
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action is permanent and cannot be undone. This will permanently delete your account, your pitches, and all associated data from our servers.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeactivate}>Yes, Deactivate Account</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </CardContent>
-                 <CardFooter className="border-t pt-6">
-                    <p className="text-xs text-muted-foreground">
-                        Deactivating your account will remove all your data. If you wish to use our service again in the future, you will need to create a new account.
-                    </p>
-                 </CardFooter>
-            </Card>
+            <ProfileForm user={owner} />
+            <PasswordForm user={owner} />
+            <PinManagementCard />
+            <ThemeSwitcher />
+            <AccountActions />
         </div>
     </div>
   )

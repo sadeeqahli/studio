@@ -1,7 +1,5 @@
 
 
-"use client";
-
 import * as React from 'react';
 import {
   Card,
@@ -19,73 +17,37 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPayouts, placeholderPitches, placeholderPayoutsToOwners, placeholderCredentials } from "@/lib/placeholder-data";
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Download, DollarSign, CheckCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { PayoutExportButton } from "@/components/owner/payout-export-button"
+import { getPayoutsByOwner, getUserById, getOwnerWithdrawals } from "@/app/actions"
 import type { Payout, OwnerWithdrawal, User } from '@/lib/types';
+import { getCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
+import { cn } from '@/lib/utils';
+import { DollarSign } from 'lucide-react';
 
 
-export default function OwnerPayouts() {
-    const { toast } = useToast();
-    const [currentOwner, setCurrentOwner] = React.useState<User | null>(null);
-  
-    React.useEffect(() => {
-        const ownerId = localStorage.getItem('loggedInUserId');
-        if (ownerId) {
-            const owner = placeholderCredentials.find(u => u.id === ownerId);
-            setCurrentOwner(owner || null);
+export default async function OwnerPayouts() {
+    const ownerId = getCookie('loggedInUserId', { cookies });
+    
+    let owner: User | undefined;
+    let ownerPayouts: Payout[] = [];
+    let ownerWithdrawals: OwnerWithdrawal[] = [];
+    
+    if (ownerId) {
+        owner = await getUserById(ownerId);
+        if (owner) {
+            [ownerPayouts, ownerWithdrawals] = await Promise.all([
+                getPayoutsByOwner(owner.name),
+                getOwnerWithdrawals(owner.name)
+            ]);
         }
-    }, []);
-
-    if (!currentOwner) {
-        return <div>Loading...</div>;
     }
-
-    const ownerPayouts = placeholderPayouts.filter(p => p.ownerName === currentOwner.name);
-
-    const handleExport = () => {
-        const headers = [
-            "Booking ID",
-            "Customer Name",
-            "Gross Amount (NGN)",
-            "Commission Rate (%)",
-            "Commission Fee (NGN)",
-            "Net Payout (NGN)",
-            "Date",
-            "Status"
-        ];
-        
-        const rows = ownerPayouts.map(payout => [
-            `"${payout.bookingId}"`,
-            `"${payout.customerName}"`,
-            payout.grossAmount,
-            payout.commissionRate,
-            payout.commissionFee,
-            payout.netPayout,
-            `"${payout.date}"`,
-            `"${payout.status}"`
-        ]);
-
-        let csvContent = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "payouts-report.csv");
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
     
     const totalNetCredited = ownerPayouts
         .filter(p => p.status === 'Paid Out')
         .reduce((acc, p) => acc + p.netPayout, 0);
 
-    const totalWithdrawn = placeholderPayoutsToOwners.filter(w => w.ownerName === currentOwner.name).reduce((acc, w) => acc + w.amount, 0);
+    const totalWithdrawn = ownerWithdrawals.reduce((acc, w) => acc + w.amount, 0);
 
     const totalNetPayout = totalNetCredited - totalWithdrawn;
 
@@ -94,10 +56,7 @@ export default function OwnerPayouts() {
         <div className="grid gap-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
                  <h1 className="text-lg font-semibold md:text-2xl">Payout History</h1>
-                 <Button onClick={handleExport} variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export Report
-                </Button>
+                 <PayoutExportButton payouts={ownerPayouts} />
             </div>
             
             <div className="grid md:grid-cols-1 gap-6">
@@ -133,7 +92,7 @@ export default function OwnerPayouts() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {placeholderPayoutsToOwners.filter(w => w.ownerName === currentOwner.name).map((withdrawal: OwnerWithdrawal) => (
+                             {ownerWithdrawals.map((withdrawal: OwnerWithdrawal) => (
                                 <TableRow key={withdrawal.id}>
                                     <TableCell>{new Date(withdrawal.date).toLocaleDateString()}</TableCell>
                                     <TableCell>
