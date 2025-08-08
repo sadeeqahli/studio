@@ -30,6 +30,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  devIndicators: {
+    buildActivity: true,
+    buildActivityPosition: 'bottom-right',
+  },
+  experimental: {
+    allowedDevOrigins: [
+      'https://6000-firebase-naija-pitch-connect-1753143323053.cluster-6frnii43o5blcu522sivebzpii.cloudworkstations.dev',
+    ],
+  },
 };
 
 export default nextConfig;
