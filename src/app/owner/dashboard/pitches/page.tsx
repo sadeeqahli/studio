@@ -28,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { placeholderPitches as allPitches, updatePitch, addPitch as addNewPitch } from "@/lib/placeholder-data"
+import { getOwnerPitches, updatePitch, addPitch as serverAddPitch } from "@/app/actions"
 import { Pitch } from "@/lib/types"
 import { AddPitchDialog } from "@/components/add-pitch-dialog"
 import { useToast } from "@/hooks/use-toast"
@@ -41,7 +41,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import Image from "next/image"
 import Link from "next/link"
@@ -52,23 +51,25 @@ export default function OwnerPitches() {
   const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
   const { toast } = useToast();
   const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
   
-  React.useEffect(() => {
-    const ownerId = localStorage.getItem('loggedInUserId');
-    setCurrentOwnerId(ownerId);
-    if (ownerId) {
-      setPitches(allPitches.filter(p => p.ownerId === ownerId));
+  const refreshPitches = React.useCallback(async (ownerId: string | null) => {
+     if (ownerId) {
+        setIsLoading(true);
+        const ownerPitches = await getOwnerPitches(ownerId);
+        setPitches(ownerPitches);
+        setIsLoading(false);
     }
   }, []);
 
-  const refreshPitches = () => {
-     if (currentOwnerId) {
-      setPitches(allPitches.filter(p => p.ownerId === currentOwnerId));
-    }
-  }
+  React.useEffect(() => {
+    const ownerId = localStorage.getItem('loggedInUserId');
+    setCurrentOwnerId(ownerId);
+    refreshPitches(ownerId);
+  }, [refreshPitches]);
 
 
-  const handleAddPitch = (newPitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
+  const handleAddPitch = async (newPitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
     if (!currentOwnerId) return;
     const newPitch: Pitch = {
       ...newPitchData,
@@ -76,15 +77,15 @@ export default function OwnerPitches() {
       status: 'Active',
       ownerId: currentOwnerId,
     };
-    addNewPitch(newPitch);
-    refreshPitches();
+    await serverAddPitch(newPitch);
+    await refreshPitches(currentOwnerId);
     toast({ title: "Success!", description: "New pitch has been added." });
     setIsDialogOpen(false);
   };
 
-  const handleEditPitch = (updatedPitch: Pitch) => {
-    updatePitch(updatedPitch);
-    refreshPitches();
+  const handleEditPitch = async (updatedPitch: Pitch) => {
+    await updatePitch(updatedPitch);
+    await refreshPitches(currentOwnerId);
     toast({ title: "Success!", description: "Pitch details have been updated." });
     setEditingPitch(null);
     setIsDialogOpen(false);
@@ -95,12 +96,12 @@ export default function OwnerPitches() {
     setIsDialogOpen(true);
   }
 
-  const handleDeactivate = (pitchId: string) => {
-    const pitchToDeactivate = allPitches.find(p => p.id === pitchId);
+  const handleDeactivate = async (pitchId: string) => {
+    const pitchToDeactivate = pitches.find(p => p.id === pitchId);
     if (pitchToDeactivate) {
        const updatedPitch = { ...pitchToDeactivate, status: 'Unlisted' as const };
-       updatePitch(updatedPitch);
-       refreshPitches();
+       await updatePitch(updatedPitch);
+       await refreshPitches(currentOwnerId);
        toast({ 
             title: "Pitch Deactivated", 
             description: "The pitch has been unlisted and is no longer visible to players.",
@@ -108,12 +109,12 @@ export default function OwnerPitches() {
     }
   }
 
-  const handleActivate = (pitchId: string) => {
-    const pitchToActivate = allPitches.find(p => p.id === pitchId);
+  const handleActivate = async (pitchId: string) => {
+    const pitchToActivate = pitches.find(p => p.id === pitchId);
     if (pitchToActivate) {
         const updatedPitch = { ...pitchToActivate, status: 'Active' as const };
-        updatePitch(updatedPitch);
-        refreshPitches();
+        await updatePitch(updatedPitch);
+        await refreshPitches(currentOwnerId);
         toast({
             title: "Pitch Activated",
             description: "The pitch is now active and visible to players.",
@@ -160,7 +161,13 @@ export default function OwnerPitches() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pitches.length > 0 ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    Loading pitches...
+                  </TableCell>
+                </TableRow>
+              ) : pitches.length > 0 ? (
                 pitches.map((pitch) => (
                   <TableRow key={pitch.id}>
                     <TableCell className="hidden sm:table-cell">
