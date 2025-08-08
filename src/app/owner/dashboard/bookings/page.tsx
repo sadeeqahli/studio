@@ -1,5 +1,4 @@
 
-"use client";
 
 import * as React from 'react';
 import {
@@ -19,39 +18,23 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { placeholderBookings, placeholderPitches } from "@/lib/placeholder-data"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Eye, Inbox } from "lucide-react"
 import type { Booking } from '@/lib/types';
+import { getBookingsByOwner } from '@/app/actions';
+import { getCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
 
 
-export default function OwnerBookings() {
-  const [ownerBookings, setOwnerBookings] = React.useState<Booking[]>([]);
-  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+export default async function OwnerBookings() {
+    const ownerId = getCookie('loggedInUserId', { cookies });
+    let ownerBookings: Booking[] = [];
+
+    if (ownerId) {
+        ownerBookings = await getBookingsByOwner(ownerId);
+    }
   
-  React.useEffect(() => {
-    const ownerId = localStorage.getItem('loggedInUserId');
-    setCurrentOwnerId(ownerId);
-  }, []);
-
-
-  React.useEffect(() => {
-    if (!currentOwnerId) return;
-    
-    // 1. Find pitches belonging to the current owner
-    const ownerPitchNames = placeholderPitches
-        .filter(p => p.ownerId === currentOwnerId)
-        .map(p => p.name);
-
-    // 2. Filter bookings to only include those for the owner's pitches
-    const filteredBookings = placeholderBookings
-        .filter(b => ownerPitchNames.includes(b.pitchName));
-    
-    setOwnerBookings(filteredBookings);
-  }, [currentOwnerId]);
-
-
   return (
     <div>
         <h1 className="text-lg font-semibold md:text-2xl mb-4">All Bookings</h1>

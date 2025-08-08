@@ -11,7 +11,7 @@
 // =================================================================================
 
 
-import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
+import type { Pitch, Booking, Payout, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
@@ -55,5 +55,3 @@ export function addPitch(newPitch: Pitch): void {
 }
     
 export let placeholderPayoutsToOwners: OwnerWithdrawal[] = [];
-
-    

@@ -8,18 +8,21 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Pitch } from '@/lib/types';
 import { getPitches } from '../actions';
+import { useSearchParams } from 'next/navigation';
 
 export default function UserDashboard() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allPitches, setAllPitches] = React.useState<Pitch[]>([]);
+  const searchParams = useSearchParams(); // To trigger re-render on navigation
 
   React.useEffect(() => {
     const fetchPitches = async () => {
       const pitches = await getPitches();
-      setAllPitches(pitches);
+      // Filter for only active pitches for players
+      setAllPitches(pitches.filter(p => p.status === 'Active'));
     };
     fetchPitches();
-  }, []);
+  }, [searchParams]);
 
   const filteredPitches = allPitches.filter(pitch =>
     pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

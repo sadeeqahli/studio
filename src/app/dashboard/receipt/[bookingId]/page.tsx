@@ -12,8 +12,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
-import { getUserById, getBookingById } from '@/app/actions';
-import { placeholderPitches } from '@/lib/placeholder-data';
+import { getUserById, getReceiptBookingById } from '@/app/actions';
 
 
 export default function ReceiptPage() {
@@ -31,43 +30,22 @@ export default function ReceiptPage() {
         }
 
         const loadBooking = async () => {
-            let foundBooking: ReceiptBooking | null = null;
+            setIsLoading(true);
+            const bookingData = await getReceiptBookingById(bookingId);
             const currentUserId = localStorage.getItem('loggedInUserId');
-            const currentUser = currentUserId ? await getUserById(currentUserId) : null;
             
-            // Check localStorage for a freshly completed booking first
-            const storedBooking = localStorage.getItem('latestBooking');
-            if (storedBooking) {
-                const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
-                if (parsedBooking.id === bookingId) {
-                    // Security Check: ensure the user viewing is the one who made the booking
-                    if (parsedBooking.userName === currentUser?.name) {
-                        foundBooking = parsedBooking;
-                    }
+            // Security check: Ensure the logged-in user is the one who made the booking
+            if (currentUserId) {
+                const user = await getUserById(currentUserId);
+                if (user?.name === bookingData?.userName) {
+                    setBooking(bookingData);
+                } else {
+                    setBooking(null); // Clear booking if user is not the owner
                 }
+            } else {
+                setBooking(null);
             }
-            
-            // If not found in localStorage, fetch from the "database"
-            if (!foundBooking) {
-                const historyBooking = await getBookingById(bookingId);
-                // Security Check: ensure the user viewing is the one who made the booking
-                if (historyBooking && historyBooking.customerName === currentUser?.name) {
-                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
-                    foundBooking = {
-                        ...historyBooking,
-                        pitchLocation: pitch?.location || 'N/A',
-                        userName: historyBooking.customerName,
-                        paymentMethod: 'Bank Transfer', // Match the booking page
-                    };
-                }
-            }
-            
-            setBooking(foundBooking);
             setIsLoading(false);
-             // Clean up localStorage after use
-            if (foundBooking) {
-                localStorage.removeItem('latestBooking');
-            }
         };
 
         loadBooking();

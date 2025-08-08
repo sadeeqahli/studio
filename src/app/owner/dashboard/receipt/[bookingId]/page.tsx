@@ -10,7 +10,7 @@ import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2, Info } 
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { getBookings, getPitchById, getPitches } from '@/app/actions';
+import { getReceiptBookingById } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 
@@ -30,24 +30,8 @@ export default function ReceiptPage() {
         }
 
         const loadBooking = async () => {
-            const allBookings = await getBookings();
-            const historyBooking = allBookings.find(b => b.id === bookingId);
-            let foundBooking: ReceiptBooking | null = null;
-            
-            if (historyBooking) {
-                // This is inefficient but necessary with placeholder data. A real DB would be better.
-                const allPitches = await getPitches();
-                const pitch = allPitches.find(p => p.name === historyBooking.pitchName);
-                
-                foundBooking = {
-                    ...historyBooking,
-                    pitchLocation: pitch?.location || 'N/A',
-                    userName: historyBooking.customerName,
-                    paymentMethod: historyBooking.bookingType === 'Online' ? 'Bank Transfer' : 'Offline/Direct',
-                };
-            }
-            
-            setBooking(foundBooking);
+            const bookingData = await getReceiptBookingById(bookingId);
+            setBooking(bookingData);
             setIsLoading(false);
         };
 

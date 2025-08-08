@@ -10,9 +10,9 @@ import { ArrowLeft, CheckCircle, Loader2, MapPin, Printer, User, Share2 } from '
 import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { placeholderBookings, placeholderPitches } from '@/lib/placeholder-data';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
+import { getReceiptBookingById } from '@/app/actions';
 
 
 export default function ReceiptPage() {
@@ -29,36 +29,10 @@ export default function ReceiptPage() {
             return;
         }
 
-        const loadBooking = () => {
-            // In a real app, you'd fetch this from your database.
-            // For this demo, we check localStorage first (for just-completed bookings)
-            // and then the main placeholder data (for history).
-            const storedBooking = localStorage.getItem('latestBooking');
-            let foundBooking: ReceiptBooking | null = null;
-            
-            if (storedBooking) {
-                const parsedBooking: ReceiptBooking = JSON.parse(storedBooking);
-                if (parsedBooking.id === bookingId) {
-                    foundBooking = parsedBooking;
-                }
-            }
-            
-            if (!foundBooking) {
-                const historyBooking = placeholderBookings.find(b => b.id === bookingId);
-                if (historyBooking) {
-                    const pitch = placeholderPitches.find(p => p.name === historyBooking.pitchName);
-                    // We need to augment the history booking with the extra details for the receipt.
-                    // In a real app, this data would already be part of the booking object from the DB.
-                    foundBooking = {
-                        ...historyBooking,
-                        pitchLocation: pitch?.location || 'N/A', // get location from pitch data
-                        userName: historyBooking.customerName, // use the name from the booking
-                        paymentMethod: 'Bank Transfer', // Placeholder, ideally this is stored with the booking
-                    };
-                }
-            }
-            
-            setBooking(foundBooking);
+        const loadBooking = async () => {
+            setIsLoading(true);
+            const bookingData = await getReceiptBookingById(bookingId);
+            setBooking(bookingData);
             setIsLoading(false);
         };
 

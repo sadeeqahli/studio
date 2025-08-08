@@ -45,7 +45,7 @@ import {
   updatePitch as originalUpdatePitch,
   addPitch as originalAddPitch,
 } from '@/lib/placeholder-data';
-import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout } from '@/lib/types';
+import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout, ReceiptBooking } from '@/lib/types';
 import { notFound } from 'next/navigation';
 
 // USER ACTIONS
@@ -144,6 +144,24 @@ export async function getBookings(): Promise<Booking[]> {
 export async function getBookingById(bookingId: string): Promise<Booking | undefined> {
     // FIRESTORE: Replace with `getDoc(doc(db, 'bookings', bookingId))`
     return placeholderBookings.find(b => b.id === bookingId);
+}
+
+export async function getReceiptBookingById(bookingId: string): Promise<ReceiptBooking | null> {
+    // FIRESTORE: In a real DB, this would be a single query, possibly with a join.
+    const booking = await getBookingById(bookingId);
+    if (!booking) {
+        return null;
+    }
+
+    const pitch = placeholderPitches.find(p => p.name === booking.pitchName);
+    const paymentMethod = booking.bookingType === 'Online' ? 'Bank Transfer' : 'Offline/Direct';
+
+    return {
+        ...booking,
+        pitchLocation: pitch?.location || 'N/A',
+        userName: booking.customerName,
+        paymentMethod: paymentMethod,
+    };
 }
 
 export async function getBookingsByPitch(pitchName: string): Promise<Booking[]> {

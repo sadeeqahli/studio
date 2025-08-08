@@ -1,6 +1,4 @@
 
-"use client";
-
 import Link from "next/link";
 import * as React from 'react';
 import {
@@ -16,26 +14,22 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
 import { Eye, Inbox } from "lucide-react";
-import type { Booking } from "@/lib/types";
+import type { Booking, User } from "@/lib/types";
 import { getUserById, getBookingsByUser } from "@/app/actions";
+import { cookies } from "next/headers";
+import { getCookie } from "cookies-next";
 
-export default function BookingHistory() {
-  const [userBookings, setUserBookings] = React.useState<Booking[]>([]);
+// This is now a server component
+export default async function BookingHistory() {
+  const loggedInUserId = getCookie('loggedInUserId', { cookies });
+  let userBookings: Booking[] = [];
   
-  React.useEffect(() => {
-    const loadData = async () => {
-      // In a real app, you'd get the current user's ID from a session or auth context.
-      const userId = localStorage.getItem('loggedInUserId');
-      if (userId) {
-        const user = await getUserById(userId);
-        if (user) {
-            const bookings = await getBookingsByUser(user.name);
-            setUserBookings(bookings);
-        }
-      }
-    };
-    loadData();
-  }, []);
+  if (loggedInUserId) {
+    const user = await getUserById(loggedInUserId);
+    if (user) {
+        userBookings = await getBookingsByUser(user.name);
+    }
+  }
 
   return (
     <div>
