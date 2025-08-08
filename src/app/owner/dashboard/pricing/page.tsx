@@ -14,7 +14,7 @@ const pricingTiers = [
         price: "Free",
         description: "Perfect for getting started and listing your first pitch.",
         features: [
-            "List 1 pitch",
+            "List 2 pitch",
             "Basic booking management",
             "Standard support",
             "10% booking commission",
