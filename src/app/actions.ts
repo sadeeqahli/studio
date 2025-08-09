@@ -49,7 +49,9 @@ import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, 
 // USER ACTIONS
 export async function getUsers(): Promise<User[]> {
   // FIRESTORE: Replace with a call like `getDocs(collection(db, 'users'))`
-  return JSON.parse(JSON.stringify(placeholderCredentials));
+  // IMPORTANT FIX: Using structuredClone or a simple return to avoid stripping undefined fields.
+  // JSON.parse(JSON.stringify(...)) was causing crashes by removing optional properties.
+  return structuredClone(placeholderCredentials);
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
@@ -73,11 +75,10 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
         transactionPin: user.transactionPin,
     };
 
-    const userExists = placeholderCredentials.some(
-        u => u.email.toLowerCase() === newUser.email.toLowerCase() && u.role === newUser.role
-    );
-
     if (user.action === 'Signed Up') {
+        const userExists = placeholderCredentials.some(
+            u => u.email.toLowerCase() === newUser.email.toLowerCase() && u.role === newUser.role
+        );
         if (!userExists) {
             placeholderCredentials.push(newUser);
             placeholderActivities.unshift({
@@ -98,6 +99,7 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
         });
     } else {
         // Fallback for just adding a user without a specific action (e.g. from tests or seeds)
+        const userExists = placeholderCredentials.some(u => u.id === newUser.id);
         if (!userExists) {
              placeholderCredentials.push(newUser);
         }
@@ -133,7 +135,7 @@ export async function deleteUser(userId: string): Promise<void> {
 // PITCH ACTIONS
 export async function getPitches(): Promise<Pitch[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'pitches'))`
-  return JSON.parse(JSON.stringify(placeholderPitches));
+  return structuredClone(placeholderPitches);
 }
 
 export async function getOwnerPitches(ownerId: string): Promise<Pitch[]> {
@@ -173,7 +175,7 @@ export async function updatePitch(pitchData: Pitch): Promise<void> {
 // BOOKING ACTIONS
 export async function getBookings(): Promise<Booking[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'bookings'))`
-  return JSON.parse(JSON.stringify(placeholderBookings));
+  return structuredClone(placeholderBookings);
 }
 
 export async function getBookingById(bookingId: string): Promise<Booking | undefined> {
@@ -259,7 +261,7 @@ export async function addBooking(booking: Booking): Promise<void> {
 // PAYOUT & REVENUE ACTIONS
 export async function getPayouts(): Promise<Payout[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'payouts'))`
-  return JSON.parse(JSON.stringify(placeholderPayouts));
+  return structuredClone(placeholderPayouts);
 }
 
 export async function getPayoutsByOwner(ownerName: string): Promise<Payout[]> {
@@ -272,13 +274,13 @@ export async function getPayoutsByOwner(ownerName: string): Promise<Payout[]> {
 // ACTIVITY ACTIONS
 export async function getActivities(): Promise<Activity[]> {
   // FIRESTORE: Replace with a query on an 'activities' collection
-  return JSON.parse(JSON.stringify(placeholderActivities));
+  return structuredClone(placeholderActivities);
 }
 
 // WALLET/TRANSACTION ACTIONS (ADMIN)
 export async function getAdminWithdrawals(): Promise<AdminWithdrawal[]> {
     // FIRESTORE: Replace with `getDocs`
-    return JSON.parse(JSON.stringify(placeholderAdminWithdrawals));
+    return structuredClone(placeholderAdminWithdrawals);
 }
 
 export async function addAdminWithdrawal(withdrawal: AdminWithdrawal): Promise<void> {
@@ -291,7 +293,7 @@ export async function addAdminWithdrawal(withdrawal: AdminWithdrawal): Promise<v
 // WALLET/TRANSACTION ACTIONS (OWNER)
 export async function getOwnerWithdrawals(ownerName: string | 'all'): Promise<OwnerWithdrawal[]> {
     // FIRESTORE: Replace with a query
-    const allWithdrawals = JSON.parse(JSON.stringify(placeholderPayoutsToOwners));
+    const allWithdrawals = structuredClone(placeholderPayoutsToOwners);
     if (ownerName === 'all') {
         return allWithdrawals;
     }
