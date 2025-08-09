@@ -1,4 +1,6 @@
 
+"use client";
+
 import Link from "next/link";
 import * as React from 'react';
 import {
@@ -13,22 +15,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button";
-import { Eye, Inbox } from "lucide-react";
+import { Eye, Inbox, Loader2 } from "lucide-react";
 import type { Booking, User } from "@/lib/types";
 import { getUserById, getBookingsByUser } from "@/app/actions";
-import { cookies } from "next/headers";
-import { getCookie } from "cookies-next";
 
-// This is now a server component
-export default async function BookingHistory() {
-  const loggedInUserId = getCookie('loggedInUserId', { cookies });
-  let userBookings: Booking[] = [];
+// This is now a Client Component again to use hooks
+export default function BookingHistory() {
+  const [userBookings, setUserBookings] = React.useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   
-  if (loggedInUserId) {
-    const user = await getUserById(loggedInUserId);
-    if (user) {
-        userBookings = await getBookingsByUser(user.name);
+  React.useEffect(() => {
+    async function loadData() {
+        const loggedInUserId = localStorage.getItem('loggedInUserId');
+        if (loggedInUserId) {
+            const user = await getUserById(loggedInUserId);
+            if (user) {
+                const bookings = await getBookingsByUser(user.name);
+                setUserBookings(bookings);
+            }
+        }
+        setIsLoading(false);
     }
+    loadData();
+  }, []);
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2">Loading your booking history...</p>
+        </div>
+    );
   }
 
   return (
