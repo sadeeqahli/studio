@@ -15,8 +15,6 @@ import type { Pitch, Booking, Payout, User, Transaction, AdminWithdrawal, Activi
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
-    { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
-    { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2, subscriptionPlan: 'Starter' },
 ];
 
 export let placeholderActivities: Activity[] = [
