@@ -48,6 +48,7 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
 function PaymentDialog({
     totalPrice,
     pitch,
+    owner,
     selectedDate,
     selectedSlots,
     currentUser,
@@ -55,6 +56,7 @@ function PaymentDialog({
 }: {
     totalPrice: number;
     pitch: Pitch;
+    owner: User;
     selectedDate: Date;
     selectedSlots: string[];
     currentUser: User;
@@ -63,9 +65,13 @@ function PaymentDialog({
     const { toast } = useToast();
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [copied, setCopied] = React.useState(false);
+    
+    // Simulate a unique virtual account number for each owner based on their ID
+    const virtualAccountNumber = `8${owner.id.replace(/\D/g, '').slice(0, 9)}`.padEnd(10, '0');
+
 
     const handleCopy = () => {
-        navigator.clipboard.writeText("1234567890");
+        navigator.clipboard.writeText(virtualAccountNumber);
         setCopied(true);
         toast({ title: "Copied!", description: "Account number copied to clipboard." });
         setTimeout(() => setCopied(false), 2000);
@@ -108,13 +114,13 @@ function PaymentDialog({
             <DialogHeader>
                 <DialogTitle>Complete Your Payment</DialogTitle>
                 <DialogDescription>
-                    To finalize your booking, please transfer the total amount to the account details below.
+                    To finalize your booking, please transfer the total amount to the pitch owner's virtual account below.
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
                 <Card className="bg-muted/50">
                     <CardHeader>
-                        <CardTitle className="text-lg">Platform Account Details</CardTitle>
+                        <CardTitle className="text-lg">Owner's Account Details</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3 text-sm">
                         <div className="flex justify-between items-center">
@@ -123,16 +129,16 @@ function PaymentDialog({
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Bank Name:</span>
-                            <span className="font-semibold">Kuda MFB</span>
+                            <span className="font-semibold">9ja Pitch Connect (Virtual)</span>
                         </div>
                          <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Account Name:</span>
-                            <span className="font-semibold">9ja Pitch Connect</span>
+                            <span className="font-semibold">{owner.name}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Account Number:</span>
                             <div className="flex items-center gap-2">
-                                <span className="font-mono font-semibold">1234567890</span>
+                                <span className="font-mono font-semibold">{virtualAccountNumber}</span>
                                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
                                     {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
                                 </Button>
@@ -354,6 +360,7 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
                  <PaymentDialog
                     totalPrice={totalPrice}
                     pitch={pitch}
+                    owner={owner}
                     selectedDate={selectedDate}
                     selectedSlots={selectedSlots}
                     currentUser={currentUser}
@@ -440,3 +447,5 @@ const TermsDialogContent = () => (
     </DialogContent>
 );
 
+
+    
