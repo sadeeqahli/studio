@@ -36,7 +36,7 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     let currentTime = new Date(date);
     currentTime.setHours(0, 0, 0, 0); // Start from midnight
     
-    const endTime = addDays(currentTime, 1);
+    const endTime = addDays(new Date(currentTime), 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -235,7 +235,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
 
     const totalPrice = pitch.price * selectedSlots.length;
     
-    if (isLoadingUser) {
+    if (isLoadingUser || !selectedDate) {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -454,7 +454,7 @@ const TermsDialogContent = () => (
                 <p><strong>3.4 Payment Authorization:</strong> By entering payment details, you authorize 9ja Pitch Connect and its payment partners to process the transaction. You confirm that you are the authorized user of the payment method provided.</p>
 
                 <h4>4. Cancellation and Refund Policy</h4>
-                <p><strong>4.1 User Cancellations:</strong> Cancellations must be made at least 24 hours before the booked time slot to be eligible for a refund, subject to the pitch owner’s cancellation policy. A processing fee may be deducted from refunds.</p>
+                <p><strong>4.1 User Cancellations:</strong> Cancellations must be made at least 24 hours before the booked time to be eligible for a refund, subject to the pitch owner’s cancellation policy. A processing fee may be deducted from refunds.</p>
                 <p><strong>4.2 Pitch Owner Cancellations:</strong> If a pitch owner cancels a booking, 9ja Pitch Connect will notify you and provide a full refund or offer an alternative pitch/time slot.</p>
                 <p><strong>4.3 No-Show Policy:</strong> Failure to arrive at the booked pitch without prior cancellation will result in no refund.</p>
 
@@ -490,3 +490,5 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
+    

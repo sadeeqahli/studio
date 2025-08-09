@@ -25,8 +25,7 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     baseDate.setHours(0, 0, 0, 0);
 
     let currentTime = new Date(baseDate);
-    const endTime = new Date(baseDate);
-    endTime.setDate(endTime.getDate() + 1);
+    const endTime = addDays(new Date(baseDate), 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -308,5 +307,7 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
         </div>
     )
 }
+
+    
 
     
