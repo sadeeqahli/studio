@@ -1,12 +1,8 @@
 
 import {
   Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card"
-import { ThemeSwitcher } from "@/components/owner/theme-switcher"
+import { ThemeSwitcherCard } from "@/components/owner/theme-switcher-card"
 import { AccountActions } from "@/components/owner/account-actions"
 import { ProfileForm } from "@/components/owner/profile-form"
 import { PasswordForm } from "@/components/owner/password-form"
@@ -38,7 +34,7 @@ export default async function OwnerProfile() {
             <ProfileForm user={owner} />
             <PasswordForm user={owner} />
             <PinManagementCard user={owner}/>
-            <ThemeSwitcher />
+            <ThemeSwitcherCard />
             <AccountActions />
         </div>
     </div>

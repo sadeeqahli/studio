@@ -2,8 +2,8 @@
 import { getUserById } from "@/app/actions";
 import { PasswordForm } from "@/components/player/password-form";
 import { ProfileForm } from "@/components/player/profile-form";
-import { ThemeSwitcher } from "@/components/owner/theme-switcher";
-import { Card } from "@/components/ui/card";
+import { ThemeSwitcher } from "@/components/player/theme-switcher";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getCookie } from "cookies-next";
 import { cookies } from "next/headers";
