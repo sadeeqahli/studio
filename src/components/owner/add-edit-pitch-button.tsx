@@ -20,10 +20,18 @@ export function AddEditPitchButton({ ownerId, pitchToEdit = null, children, ...p
     const { toast } = useToast();
     const router = useRouter();
 
-    const handleSave = async (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
+    const handleSave = async (pitchData: Omit<Pitch, 'id' | 'status'>, imageFile?: File) => {
+        // Here you would handle the image upload to a service like Firebase Storage
+        // For this prototype, we'll just use the preview URL or a placeholder
+        let imageUrl = pitchData.imageUrl;
+        if (imageFile) {
+            // In a real app: imageUrl = await uploadImageToStorage(imageFile);
+            // For now, we are using the base64 preview, which works for demos but is not scalable.
+        }
+
         if (pitchToEdit) {
             // Editing existing pitch
-            const updatedPitch = { ...pitchToEdit, ...pitchData };
+            const updatedPitch = { ...pitchToEdit, ...pitchData, imageUrl };
             await updatePitch(updatedPitch);
             toast({ title: "Success!", description: "Pitch details have been updated." });
         } else {
@@ -33,6 +41,7 @@ export function AddEditPitchButton({ ownerId, pitchToEdit = null, children, ...p
                 id: `PITCH-${Date.now()}`,
                 status: 'Active',
                 ownerId: ownerId,
+                imageUrl,
             };
             await addPitch(newPitch);
             toast({ title: "Success!", description: "New pitch has been added." });

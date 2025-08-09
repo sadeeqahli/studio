@@ -30,20 +30,26 @@ const pitchSchema = z.object({
   amenities: z.array(z.string()).optional().default([]),
   slotInterval: z.coerce.number().min(30, "Interval must be at least 30 minutes"),
   image: z.any().optional(),
-  pitch: z.any().optional(),
 }).refine(data => {
-    return data.pitch ? true : data.image?.length > 0;
+    // If there is a pitch object (editing), image is not required.
+    // If there is no pitch object (adding), image is required.
+    const context = (pitchSchema as any)._def.ctx;
+    if (context && context.pitch) {
+        return true;
+    }
+    return data.image?.length > 0;
 }, {
     message: 'Image is required.',
     path: ['image'],
 });
 
-type PitchForm = z.infer<typeof pitchSchema> & { pitch: Pitch | null };
+
+type PitchForm = z.infer<typeof pitchSchema>;
 
 interface AddPitchDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onSave: (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => void;
+  onSave: (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>, imageFile?: File) => void;
   pitch: Pitch | null;
 }
 
@@ -61,7 +67,9 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
     watch,
     formState: { errors },
   } = useForm<PitchForm>({
-    resolver: zodResolver(pitchSchema),
+    resolver: zodResolver(pitchSchema, {
+        context: { pitch } 
+    }),
     defaultValues: {
       name: '',
       location: '',
@@ -69,7 +77,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
       amenities: [],
       slotInterval: 60,
       image: undefined,
-      pitch: null,
     }
   });
 
@@ -83,8 +90,10 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    } else if (!pitch) {
-      setImagePreview(null);
+    } else if (pitch) {
+        setImagePreview(pitch.imageUrl)
+    } else {
+        setImagePreview(null);
     }
   }, [imageFile, pitch]);
 
@@ -98,7 +107,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
           amenities: pitch.amenities,
           slotInterval: pitch.slotInterval,
           image: undefined,
-          pitch: pitch,
         });
         setImagePreview(pitch.imageUrl);
       } else {
@@ -109,7 +117,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
           amenities: [],
           slotInterval: 60,
           image: undefined,
-          pitch: null,
         });
         setImagePreview(null);
       }
@@ -130,7 +137,9 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
         manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {},
     };
 
-    onSave(pitchData as any);
+    const imageToSave = data.image && data.image.length > 0 ? data.image[0] : undefined;
+
+    onSave(pitchData as any, imageToSave);
     setIsLoading(false);
   };
 
