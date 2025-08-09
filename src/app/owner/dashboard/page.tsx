@@ -1,7 +1,8 @@
 
-"use client";
-
 import * as React from 'react';
+import { getCookie } from 'cookies-next';
+import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -16,9 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionStatusCard } from '@/components/subscription-status-card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { placeholderBookings, placeholderPitches, placeholderCredentials } from '@/lib/placeholder-data';
 import { cn } from '@/lib/utils';
-import { User } from '@/lib/types';
+import type { User, Pitch, Booking } from '@/lib/types';
+import { getBookingsByOwner, getOwnerPitches, getUserById } from '@/app/actions';
+
 
 function CommissionCalculatorCard() {
     const [bookingAmount, setBookingAmount] = React.useState<number | string>("");
@@ -99,13 +101,8 @@ function CommissionCalculatorCard() {
     )
 }
 
-function RecentBookingsCard({ownerId}: {ownerId: string | null}) {
-    if (!ownerId) return null;
-
-    const ownerPitches = placeholderPitches.filter(p => p.ownerId === ownerId).map(p => p.name);
-    const recentBookings = placeholderBookings
-        .filter(b => ownerPitches.includes(b.pitchName))
-        .slice(0, 5);
+function RecentBookingsCard({ownerBookings}: {ownerBookings: Booking[]}) {
+    const recentBookings = ownerBookings.slice(0, 5);
 
     return (
         <Card className="xl:col-span-2">
@@ -158,23 +155,23 @@ function RecentBookingsCard({ownerId}: {ownerId: string | null}) {
 }
 
 
-export default function OwnerDashboard() {
-  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
+export default async function OwnerDashboard() {
+  const currentOwnerId = getCookie('loggedInUserId', { cookies });
   
-  React.useEffect(() => {
-    const ownerId = localStorage.getItem('loggedInUserId');
-    setCurrentOwnerId(ownerId);
-  }, []);
-
   if (!currentOwnerId) {
-    return <div>Loading owner data...</div>; // Or a more sophisticated loading state
+    notFound();
   }
   
-  const owner = placeholderCredentials.find(u => u.id === currentOwnerId) as User;
+  const owner = await getUserById(currentOwnerId);
 
-  const ownerPitches = placeholderPitches.filter(p => p.ownerId === currentOwnerId);
-  const ownerPitchNames = ownerPitches.map(p => p.name);
-  const ownerBookings = placeholderBookings.filter(b => ownerPitchNames.includes(b.pitchName));
+  if (!owner) {
+    notFound();
+  }
+
+  const [ownerPitches, ownerBookings] = await Promise.all([
+    getOwnerPitches(currentOwnerId),
+    getBookingsByOwner(currentOwnerId)
+  ]);
   
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -240,7 +237,7 @@ export default function OwnerDashboard() {
         </div>
 
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 mt-8">
-            <RecentBookingsCard ownerId={currentOwnerId} />
+            <RecentBookingsCard ownerBookings={ownerBookings} />
             <SubscriptionStatusCard />
             <div className="lg:col-span-2 xl:col-span-3">
                <CommissionCalculatorCard />
