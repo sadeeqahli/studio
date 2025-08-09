@@ -14,8 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Moon, Sun } from "lucide-react";
+import { Loader2, Moon, Sun, AlertTriangle, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import Link from "next/link";
+
 
 export default function UserProfilePage() {
     const router = useRouter();
@@ -40,14 +43,19 @@ export default function UserProfilePage() {
             setIsLoadingUser(true);
             const userId = localStorage.getItem('loggedInUserId');
             if (userId) {
-                const userData = await getUserById(userId);
-                if (userData) {
-                    setUser(userData);
-                    const nameParts = userData.name.split(' ');
-                    setFirstName(nameParts[0] || '');
-                    setLastName(nameParts.slice(1).join(' ') || '');
-                    setEmail(userData.email);
-                } else {
+                try {
+                    const userData = await getUserById(userId);
+                    if (userData) {
+                        setUser(userData);
+                        const nameParts = userData.name.split(' ');
+                        setFirstName(nameParts[0] || '');
+                        setLastName(nameParts.slice(1).join(' ') || '');
+                        setEmail(userData.email);
+                    } else {
+                         setUser(null);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch user", error);
                     setUser(null);
                 }
             } else {
@@ -103,9 +111,36 @@ export default function UserProfilePage() {
             router.push('/login');
         }, 2000);
     };
+
+    if (isLoadingUser) {
+        return (
+             <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading Profile...</p>
+            </div>
+        )
+    }
+
+    if (!user) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Card className="max-w-md w-full text-center">
+                    <CardHeader>
+                        <CardTitle>Error Loading Profile</CardTitle>
+                        <CardDescription>We couldn't load your profile data. Your session may have expired.</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex justify-center">
+                         <Button asChild>
+                            <Link href="/login">
+                                Go to Login
+                            </Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        )
+    }
     
-    // This now shows the full page structure immediately.
-    // Inputs will be disabled while loading user data, then enabled.
     return (
         <div>
             <h1 className="text-lg font-semibold md:text-2xl mb-4">Profile & Settings</h1>
@@ -117,22 +152,23 @@ export default function UserProfilePage() {
                             <CardTitle>Personal Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="first-name">First Name</Label>
-                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required disabled={isLoadingUser} />
-                            </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="last-name">Last Name</Label>
-                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required disabled={isLoadingUser} />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="first-name">First Name</Label>
+                                    <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="last-name">Last Name</Label>
+                                    <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                                </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoadingUser} />
+                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                             </div>
                         </CardContent>
                         <CardFooter className="border-t px-6 py-4">
-                            <Button type="submit" disabled={isLoadingUser}>
-                                {isLoadingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit">
                                 Save Changes
                             </Button>
                         </CardFooter>
@@ -151,20 +187,19 @@ export default function UserProfilePage() {
                         <CardContent className="space-y-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="current-password">Current Password</Label>
-                                <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required disabled={isLoadingUser}/>
+                                <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="new-password">New Password</Label>
-                                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required disabled={isLoadingUser}/>
+                                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoadingUser}/>
+                                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                             </div>
                         </CardContent>
                         <CardFooter className="border-t px-6 py-4">
-                            <Button type="submit" disabled={isLoadingUser}>
-                                {isLoadingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            <Button type="submit">
                                 Update Password
                             </Button>
                         </CardFooter>
