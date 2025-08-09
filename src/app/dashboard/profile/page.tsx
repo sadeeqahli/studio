@@ -66,8 +66,8 @@ export default function UserProfilePage() {
         };
         await updateUser(updatedUser);
         toast({
-            title: "Profile Updated",
-            description: "Your personal information has been saved.",
+            title: "Success!",
+            description: "Personal information changed successfully.",
         });
         router.refresh();
     };
@@ -104,6 +104,26 @@ export default function UserProfilePage() {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (!user) {
+         return (
+            <div className="flex items-center justify-center h-full">
+                <Card className="max-w-md w-full text-center">
+                    <CardHeader>
+                        <CardTitle>Error Loading Profile</CardTitle>
+                        <CardDescription>We couldn't load your profile data. Your session may have expired.</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex justify-center">
+                         <Button asChild>
+                            <Link href="/login">
+                                Go to Login
+                            </Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
             </div>
         );
     }
