@@ -43,7 +43,6 @@ import {
   placeholderAdminWithdrawals,
   placeholderPayoutsToOwners,
   updatePitch as originalUpdatePitch,
-  addPitch as originalAddPitch,
 } from '@/lib/placeholder-data';
 import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout, ReceiptBooking } from '@/lib/types';
 
@@ -122,7 +121,7 @@ export async function getPitchById(id: string): Promise<Pitch | undefined> {
 
 export async function addPitch(pitchData: Pitch): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'pitches', pitchData.id), pitchData)`
-    originalAddPitch(pitchData);
+    placeholderPitches.unshift(pitchData);
     revalidatePath('/owner/dashboard/pitches', 'layout');
     revalidatePath('/admin/dashboard/pitches', 'layout');
     revalidatePath('/dashboard', 'layout');

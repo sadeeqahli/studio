@@ -49,9 +49,5 @@ export function updatePitch(updatedPitch: Pitch): void {
         placeholderPitches[index] = updatedPitch;
     }
 }
-
-export function addPitch(newPitch: Pitch): void {
-    placeholderPitches.unshift(newPitch);
-}
     
 export let placeholderPayoutsToOwners: OwnerWithdrawal[] = [];
