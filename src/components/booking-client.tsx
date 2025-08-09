@@ -3,12 +3,12 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Pitch, Booking, User, PaymentVerificationResponse } from '@/lib/types';
+import { Pitch, Booking, User } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check, Lock, CreditCard } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Banknote, Calendar as CalendarIcon, Loader2, ShieldCheck, Clock, Copy, Check } from 'lucide-react';
 import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
@@ -21,49 +21,15 @@ import { format, addDays, setHours, setMinutes, addMinutes, startOfDay } from 'd
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { addBooking } from '@/app/actions';
 
-declare global {
-  interface Window {
-    FlutterwaveCheckout: (options: any) => void;
-  }
-}
-
-type BookingStatus = 'idle' | 'processing_payment' | 'verifying';
+type BookingStatus = 'idle' | 'confirming';
 
 interface BookingClientProps {
     pitch: Pitch;
     owner: User;
     currentUser: User;
     initialBookings: Booking[];
-}
-
-function PaymentConfirmationView({ status }: { status: 'processing_payment' | 'verifying' }) {
-    const messages = {
-        processing_payment: {
-            title: 'Processing Your Payment...',
-            description: 'Please complete the payment in the popup. Do not close this page.',
-        },
-        verifying: {
-            title: 'Verifying Your Payment...',
-            description: 'This will just take a moment. Please do not close or refresh this page.',
-        }
-    }
-
-    return (
-        <Card className="max-w-md mx-auto">
-            <CardHeader className="text-center">
-                <CardTitle>{messages[status].title}</CardTitle>
-                <CardDescription>{messages[status].description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center space-y-4 p-8">
-                <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <ShieldCheck className="h-4 w-4 text-green-500" />
-                    <span>Securely processing your transaction.</span>
-                </div>
-            </CardContent>
-        </Card>
-    );
 }
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
@@ -79,13 +45,133 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     return slots;
 }
 
+function PaymentDialog({
+    totalPrice,
+    pitch,
+    selectedDate,
+    selectedSlots,
+    currentUser,
+    onPaymentConfirmed
+}: {
+    totalPrice: number;
+    pitch: Pitch;
+    selectedDate: Date;
+    selectedSlots: string[];
+    currentUser: User;
+    onPaymentConfirmed: (bookingId: string) => void;
+}) {
+    const { toast } = useToast();
+    const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
+    const [copied, setCopied] = React.useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText("1234567890");
+        setCopied(true);
+        toast({ title: "Copied!", description: "Account number copied to clipboard." });
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleConfirmPayment = async () => {
+        setBookingStatus('confirming');
+
+        const bookingId = `TXN-${pitch.id.slice(-4)}-${Date.now()}`;
+        const newBooking: Booking = {
+            id: bookingId,
+            pitchName: pitch.name,
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            time: selectedSlots.join(', '),
+            amount: totalPrice,
+            status: 'Paid',
+            customerName: currentUser.name,
+            bookingType: 'Online',
+        };
+
+        try {
+            await addBooking(newBooking);
+            toast({
+                title: "Booking Confirmed!",
+                description: "Your booking has been successfully recorded.",
+            });
+            onPaymentConfirmed(bookingId);
+        } catch (error) {
+            toast({
+                title: "Booking Failed",
+                description: "Something went wrong. Please try again.",
+                variant: "destructive",
+            });
+            setBookingStatus('idle');
+        }
+    };
+
+    return (
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Complete Your Payment</DialogTitle>
+                <DialogDescription>
+                    To finalize your booking, please transfer the total amount to the account details below.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <Card className="bg-muted/50">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Platform Account Details</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 text-sm">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Amount to Pay:</span>
+                            <span className="font-bold text-lg text-primary">₦{totalPrice.toLocaleString()}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Bank Name:</span>
+                            <span className="font-semibold">Kuda MFB</span>
+                        </div>
+                         <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Account Name:</span>
+                            <span className="font-semibold">9ja Pitch Connect</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Account Number:</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono font-semibold">1234567890</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
+                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Important!</AlertTitle>
+                    <AlertDescription>
+                        Once you have completed the transfer, click the button below to confirm your booking. Your slot will only be reserved after confirmation.
+                    </AlertDescription>
+                </Alert>
+            </div>
+            <DialogFooter>
+                <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={handleConfirmPayment}
+                    disabled={bookingStatus === 'confirming'}
+                >
+                    {bookingStatus === 'confirming' ? (
+                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</>
+                    ) : (
+                        "I've Made This Transfer"
+                    )}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    );
+}
+
+
 export function BookingClient({ pitch, owner, currentUser, initialBookings }: BookingClientProps) {
     const router = useRouter();
-    const { toast } = useToast();
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
-    const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     
     React.useEffect(() => {
         // Set date on client mount to avoid hydration mismatch
@@ -121,110 +207,10 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
             }
         });
     };
-    
-    const handleFlutterwavePayment = async () => {
-         if (!selectedDate) {
-            toast({ title: "Please select a date.", variant: "destructive" });
-            return;
-        }
-        if (selectedSlots.length === 0) {
-            toast({ title: "Please select at least one time slot.", variant: "destructive" });
-            return;
-        }
-        if (!agreedToTerms) {
-            toast({ title: "Please agree to the terms.", variant: "destructive" });
-            return;
-        }
 
-        setBookingStatus('processing_payment');
-
-        const totalAmount = pitch.price * selectedSlots.length;
-        const bookingId = `TXN-${pitch.id.slice(-4)}-${Date.now()}`;
-
-        const bookingDetailsForVerification: Booking = {
-            id: bookingId,
-            pitchName: pitch.name,
-            date: format(selectedDate, 'yyyy-MM-dd'),
-            time: selectedSlots.join(', '),
-            amount: totalAmount,
-            status: 'Paid',
-            customerName: currentUser.name,
-            bookingType: 'Online',
-        };
-
-        const paymentConfig = {
-            public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
-            tx_ref: bookingId,
-            amount: totalAmount,
-            currency: "NGN",
-            payment_options: "card,mobilemoney,ussd",
-            redirect_url: '', // This will be handled by the callback
-            customer: {
-                email: currentUser.email,
-                name: currentUser.name,
-            },
-            customizations: {
-                title: "9ja Pitch Connect Booking",
-                description: `Payment for ${pitch.name}`,
-                logo: "https://www.linkpicture.com/q/logo_6.svg",
-            },
-            callback: async function (data: any) {
-                // This function is called when the user completes the payment popup.
-                setBookingStatus('verifying');
-                const transaction_id = data.transaction_id;
-                
-                // Now, send the transaction ID to our secure backend to verify.
-                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
-                const response = await fetch(`${baseUrl}/api/payments/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ transaction_id, bookingDetails: bookingDetailsForVerification }),
-                });
-
-                const result: PaymentVerificationResponse = await response.json();
-
-                if (result.status === 'success' && result.bookingId) {
-                    toast({
-                        title: "Payment Successful!",
-                        description: result.message,
-                    });
-                    // Redirect to the receipt page
-                    router.push(`/dashboard/receipt/${result.bookingId}`);
-                } else {
-                    toast({
-                        title: "Payment Failed",
-                        description: result.message || "An unknown error occurred.",
-                        variant: "destructive",
-                    });
-                    setBookingStatus('idle'); // Reset status on failure
-                }
-            },
-            onclose: function() {
-                // This is called if the user closes the popup without paying.
-                setBookingStatus('idle');
-                toast({
-                    title: "Payment Cancelled",
-                    description: "You have cancelled the payment process.",
-                    variant: "destructive"
-                });
-            },
-        };
-
-        if (window.FlutterwaveCheckout) {
-            window.FlutterwaveCheckout(paymentConfig);
-        } else {
-            toast({
-                title: "Error",
-                description: "Payment gateway script could not be loaded. Please refresh the page.",
-                variant: "destructive",
-            });
-            setBookingStatus('idle');
-        }
+    const handlePaymentConfirmed = (bookingId: string) => {
+        router.push(`/dashboard/receipt/${bookingId}`);
     };
-
-    if (bookingStatus === 'processing_payment' || bookingStatus === 'verifying') {
-        return <PaymentConfirmationView status={bookingStatus} />;
-    }
 
     const totalPrice = pitch.price * selectedSlots.length;
     
@@ -350,21 +336,31 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <Button 
-                                className="w-full" 
-                                size="lg" 
-                                onClick={handleFlutterwavePayment} 
-                                disabled={selectedSlots.length === 0 || !agreedToTerms || bookingStatus !== 'idle'}
-                            >
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                {`Pay ₦${totalPrice.toLocaleString()}`}
-                            </Button>
+                            <DialogTrigger asChild>
+                                <Button 
+                                    className="w-full" 
+                                    size="lg" 
+                                    disabled={selectedSlots.length === 0 || !agreedToTerms}
+                                >
+                                    <Banknote className="mr-2 h-4 w-4" />
+                                    Proceed to Pay
+                                </Button>
+                            </DialogTrigger>
                         </CardFooter>
                     </Card>
                 </div>
-
-                <TermsDialogContent />
             </div>
+             {selectedDate && (
+                 <PaymentDialog
+                    totalPrice={totalPrice}
+                    pitch={pitch}
+                    selectedDate={selectedDate}
+                    selectedSlots={selectedSlots}
+                    currentUser={currentUser}
+                    onPaymentConfirmed={handlePaymentConfirmed}
+                />
+            )}
+            <TermsDialogContent />
         </Dialog>
     );
 }
@@ -443,3 +439,4 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
+
