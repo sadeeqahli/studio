@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Moon, Sun } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import Link from "next/link";
 
 export default function UserProfilePage() {
     const router = useRouter();
@@ -48,7 +47,11 @@ export default function UserProfilePage() {
                     setFirstName(nameParts[0] || '');
                     setLastName(nameParts.slice(1).join(' ') || '');
                     setEmail(userData.email);
+                } else {
+                    setUser(null);
                 }
+            } else {
+                setUser(null);
             }
             setIsLoadingUser(false);
         };
@@ -69,7 +72,7 @@ export default function UserProfilePage() {
             title: "Success!",
             description: "Personal information changed successfully.",
         });
-        // No need to refresh, local state is managed
+        setUser(updatedUser); // Update local state to reflect changes
     };
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -85,51 +88,24 @@ export default function UserProfilePage() {
             return;
         }
         if (newPassword !== confirmPassword) {
-            toast({ title: "Passwords Do Not Match", description: "Please make sure your passwords match.", variant: "destructive" });
+            toast({ title: "Passwords Do Not Match", description: "Please make sure your new passwords match.", variant: "destructive" });
             return;
         }
 
         await updateUser({ ...user, password: newPassword });
         
-        toast({ title: "Password Updated Successfully", description: "Please log in again." });
+        toast({ title: "Password Updated Successfully", description: "For your security, please log in again." });
         
+        // Log the user out after a successful password change
         setTimeout(() => {
             deleteCookie('loggedInUserId');
             localStorage.removeItem('loggedInUserId');
             router.push('/login');
         }, 2000);
     };
-
-    // This shows a loader only for the initial user data fetch.
-    if (isLoadingUser) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
     
-    // This handles the case where the user is not found or session expired
-    if (!user) {
-         return (
-            <div className="flex items-center justify-center h-full">
-                <Card className="max-w-md w-full text-center">
-                    <CardHeader>
-                        <CardTitle>Error Loading Profile</CardTitle>
-                        <CardDescription>We couldn't load your profile data. Your session may have expired.</CardDescription>
-                    </CardHeader>
-                    <CardFooter className="flex justify-center">
-                         <Button asChild>
-                            <Link href="/login">
-                                Go to Login
-                            </Link>
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </div>
-        );
-    }
-
+    // This now shows the full page structure immediately.
+    // Inputs will be disabled while loading user data, then enabled.
     return (
         <div>
             <h1 className="text-lg font-semibold md:text-2xl mb-4">Profile & Settings</h1>
@@ -141,23 +117,24 @@ export default function UserProfilePage() {
                             <CardTitle>Personal Information</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="first-name">First Name</Label>
-                                    <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="last-name">Last Name</Label>
-                                    <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-                                </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="first-name">First Name</Label>
+                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required disabled={isLoadingUser} />
+                            </div>
+                             <div className="grid gap-2">
+                                <Label htmlFor="last-name">Last Name</Label>
+                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required disabled={isLoadingUser} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={isLoadingUser} />
                             </div>
                         </CardContent>
                         <CardFooter className="border-t px-6 py-4">
-                            <Button type="submit">Save Changes</Button>
+                            <Button type="submit" disabled={isLoadingUser}>
+                                {isLoadingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Save Changes
+                            </Button>
                         </CardFooter>
                     </form>
                 </Card>
@@ -174,19 +151,22 @@ export default function UserProfilePage() {
                         <CardContent className="space-y-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="current-password">Current Password</Label>
-                                <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+                                <Input id="current-password" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required disabled={isLoadingUser}/>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="new-password">New Password</Label>
-                                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+                                <Input id="new-password" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required disabled={isLoadingUser}/>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+                                <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isLoadingUser}/>
                             </div>
                         </CardContent>
                         <CardFooter className="border-t px-6 py-4">
-                            <Button type="submit">Update Password</Button>
+                            <Button type="submit" disabled={isLoadingUser}>
+                                {isLoadingUser && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Update Password
+                            </Button>
                         </CardFooter>
                     </form>
                 </Card>
@@ -201,14 +181,14 @@ export default function UserProfilePage() {
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center gap-4">
-                            <span className="text-sm text-muted-foreground">
-                                Current theme: {theme === 'light' ? 'Light' : 'Dark'}.
-                            </span>
-                            <Button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} variant="outline" size="icon">
+                            <Button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} variant="outline">
                                 <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                                 <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                                <span className="sr-only">Toggle theme</span>
+                                <span className="ml-2">Toggle Theme</span>
                             </Button>
+                             <span className="text-sm text-muted-foreground">
+                                Current theme: {theme === 'light' ? 'Light' : 'Dark'}.
+                            </span>
                         </div>
                     </CardContent>
                 </Card>
