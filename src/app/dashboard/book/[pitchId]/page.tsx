@@ -224,7 +224,8 @@ export default function BookingPage() {
                 const transaction_id = data.transaction_id;
                 
                 // Now, send the transaction ID to our secure backend to verify.
-                const response = await fetch('/api/payments/verify', {
+                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+                const response = await fetch(`${baseUrl}/api/payments/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ transaction_id, bookingDetails: bookingDetailsForVerification }),
