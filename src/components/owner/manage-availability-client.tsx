@@ -195,8 +195,8 @@ function AddManualBookingDialog({
     )
 }
 
+// This component now receives its data as props and handles all client interactions.
 export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pitch, initialBookings: Booking[] }) {
-    const router = useRouter()
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
     const [bookings, setBookings] = React.useState<Booking[]>(initialBookings);
 
