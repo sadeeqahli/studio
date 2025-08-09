@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useToast } from "@/hooks/use-toast";
@@ -17,15 +16,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Moon, Sun } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
-// Combined component to ensure everything renders together without complex imports
 export default function UserProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
     const { setTheme, theme } = useTheme();
 
     const [user, setUser] = React.useState<User | null>(null);
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [isLoadingUser, setIsLoadingUser] = React.useState(true);
 
     // Profile form state
     const [firstName, setFirstName] = React.useState('');
@@ -39,7 +38,7 @@ export default function UserProfilePage() {
 
     React.useEffect(() => {
         const fetchUser = async () => {
-            setIsLoading(true);
+            setIsLoadingUser(true);
             const userId = localStorage.getItem('loggedInUserId');
             if (userId) {
                 const userData = await getUserById(userId);
@@ -51,7 +50,7 @@ export default function UserProfilePage() {
                     setEmail(userData.email);
                 }
             }
-            setIsLoading(false);
+            setIsLoadingUser(false);
         };
         fetchUser();
     }, []);
@@ -70,7 +69,7 @@ export default function UserProfilePage() {
             title: "Success!",
             description: "Personal information changed successfully.",
         });
-        router.refresh();
+        // No need to refresh, local state is managed
     };
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -86,13 +85,13 @@ export default function UserProfilePage() {
             return;
         }
         if (newPassword !== confirmPassword) {
-            toast({ title: "Passwords Do Not Match", variant: "destructive" });
+            toast({ title: "Passwords Do Not Match", description: "Please make sure your passwords match.", variant: "destructive" });
             return;
         }
 
         await updateUser({ ...user, password: newPassword });
         
-        toast({ title: "Password Changed Successfully", description: "Please log in again." });
+        toast({ title: "Password Updated Successfully", description: "Please log in again." });
         
         setTimeout(() => {
             deleteCookie('loggedInUserId');
@@ -101,14 +100,16 @@ export default function UserProfilePage() {
         }, 2000);
     };
 
-    if (isLoading) {
+    // This shows a loader only for the initial user data fetch.
+    if (isLoadingUser) {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
-
+    
+    // This handles the case where the user is not found or session expired
     if (!user) {
          return (
             <div className="flex items-center justify-center h-full">
@@ -138,16 +139,17 @@ export default function UserProfilePage() {
                     <form onSubmit={handleUpdateProfile}>
                         <CardHeader>
                             <CardTitle>Personal Information</CardTitle>
-                            <CardDescription>Update your personal details here.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="first-name">First Name</Label>
-                                <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="last-name">Last Name</Label>
-                                <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="first-name">First Name</Label>
+                                    <Input id="first-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="last-name">Last Name</Label>
+                                    <Input id="last-name" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                                </div>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
@@ -188,6 +190,8 @@ export default function UserProfilePage() {
                         </CardFooter>
                     </form>
                 </Card>
+                
+                <Separator />
 
                 {/* Theme Switcher */}
                 <Card>
