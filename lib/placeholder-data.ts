@@ -1,11 +1,20 @@
 
 
-import type { Pitch, Booking, Payout, OwnerBooking, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
+// =================================================================================
+// DEPRECATION NOTICE: This file serves as a temporary, in-memory database.
+// To move to a production environment, you should replace all functions using
+// this data with calls to a real database like Firebase Firestore.
+//
+// The functions for manipulating this data have been moved to `/src/app/actions.ts`
+// to better simulate a real client-server architecture. This file should eventually
+// be removed entirely once a real database is connected.
+// =================================================================================
+
+
+import type { Pitch, Booking, Payout, User, Transaction, AdminWithdrawal, Activity, OwnerWithdrawal } from './types';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
-    { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', password: 'password', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
-    { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', password: 'password', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2 },
 ];
 
 export let placeholderActivities: Activity[] = [
@@ -15,24 +24,6 @@ export let placeholderActivities: Activity[] = [
     { id: '4', userName: 'Max Robinson', userRole: 'Player', action: 'Logged In', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
 ];
 
-
-export function addUserCredential(user: User) {
-    // Check if user already exists
-    if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
-        return; // Or throw an error
-    }
-    placeholderCredentials.push(user);
-    placeholderUsers.unshift(user); // Add to the main user list as well
-    // Also add a "Signed Up" activity
-    placeholderActivities.unshift({
-        id: `ACT-${Date.now()}`,
-        userName: user.name,
-        userRole: user.role as 'Player' | 'Owner',
-        action: 'Signed Up',
-        timestamp: new Date().toISOString(),
-    });
-}
-
 export let placeholderPitches: Pitch[] = [
 ];
 
@@ -41,19 +32,6 @@ export const placeholderBookings: Booking[] = [
 ];
 
 export const placeholderPayouts: Payout[] = [
-];
-
-export const ownerBookings: OwnerBooking[] = [
-]
-
-export let placeholderUsers: User[] = [
-  { id: 'USR001', name: 'Max Robinson', email: 'm@example.com', role: 'Player', registeredDate: '2024-07-15', status: 'Active', totalBookings: 4 },
-  { id: 'USR002', name: 'Tunde Ojo', email: 'tunde.ojo@example.com', role: 'Owner', registeredDate: '2024-07-16', status: 'Active', pitchesListed: 2 },
-  { id: 'USR003', name: 'Ade Williams', email: 'ade.w@example.com', role: 'Player', registeredDate: '2024-07-18', status: 'Active', totalBookings: 1 },
-  { id: 'USR004', name: 'Chioma Nwosu', email: 'chioma.n@example.com', role: 'Player', registeredDate: '2024-07-20', status: 'Active', totalBookings: 1 },
-  { id: 'USR005', name: 'Lekki Goals Arena', email: 'contact@lekkigoals.com', role: 'Owner', registeredDate: '2024-07-21', status: 'Suspended', pitchesListed: 1 },
-  { id: 'USR006', name: 'Femi Adebayo', email: 'femi.a@example.com', role: 'Player', registeredDate: '2024-07-22', status: 'Active', totalBookings: 1 },
-  { id: 'USR007', name: 'Aisha Bello', email: 'aisha.b@example.com', role: 'Player', registeredDate: '2024-07-25', status: 'Active', totalBookings: 1 },
 ];
 
 
@@ -68,10 +46,6 @@ export function updatePitch(updatedPitch: Pitch): void {
     if (index !== -1) {
         placeholderPitches[index] = updatedPitch;
     }
-}
-
-export function addPitch(newPitch: Pitch): void {
-    placeholderPitches.unshift(newPitch);
 }
     
 export let placeholderPayoutsToOwners: OwnerWithdrawal[] = [];
