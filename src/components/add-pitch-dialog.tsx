@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -65,14 +64,13 @@ type PitchForm = z.infer<typeof pitchSchema> & { pitch: Pitch | null };
 interface AddPitchDialogProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onAddPitch: (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => void;
-  onEditPitch: (pitch: Pitch) => void;
+  onSave: (pitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => void;
   pitch: Pitch | null;
 }
 
 const allAmenities = ['Floodlights', 'Changing Rooms', 'Parking', 'Bibs', 'Water', 'Lounge', 'Cafe', 'Secure'];
 
-export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pitch }: AddPitchDialogProps) {
+export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -115,7 +113,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
   useEffect(() => {
     if (isOpen) {
       if (pitch) {
-        const pitchOperatingHours = pitch.operatingHours;
+        const pitchOperatingHours = pitch.operatingHours || [];
         const formHours = daysOfWeek.map(day => {
             const existing = pitchOperatingHours.find(h => h.day === day);
             if (existing) {
@@ -153,27 +151,21 @@ export function AddPitchDialog({ isOpen, setIsOpen, onAddPitch, onEditPitch, pit
 
   const onSubmit = (data: PitchForm) => {
     setIsLoading(true);
-    setTimeout(() => {
-      const pitchData = {
-          name: data.name,
-          location: data.location,
-          price: data.price,
-          amenities: data.amenities,
-          imageUrl: imagePreview || "https://placehold.co/600x400.png",
-          imageHint: data.name,
-          operatingHours: data.operatingHours.filter(h => h.enabled),
-          slotInterval: data.slotInterval,
-          manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {},
-      };
 
-      if (pitch) {
-        onEditPitch({ ...pitch, ...pitchData });
-      } else {
-        onAddPitch(pitchData);
-      }
-      setIsLoading(false);
-      handleClose();
-    }, 1000);
+    const pitchData = {
+        name: data.name,
+        location: data.location,
+        price: data.price,
+        amenities: data.amenities,
+        imageUrl: imagePreview || "https://placehold.co/600x400.png",
+        imageHint: data.name,
+        operatingHours: data.operatingHours.filter(h => h.enabled),
+        slotInterval: data.slotInterval,
+        manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {},
+    };
+
+    onSave(pitchData);
+    setIsLoading(false);
   };
 
   const handleClose = () => {

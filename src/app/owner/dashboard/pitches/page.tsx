@@ -1,7 +1,4 @@
 
-
-"use client"
-
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -28,119 +25,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { getOwnerPitches, updatePitch, addPitch as serverAddPitch } from "@/app/actions"
+import { getOwnerPitches } from "@/app/actions"
 import { Pitch } from "@/lib/types"
-import { AddPitchDialog } from "@/components/add-pitch-dialog"
-import { useToast } from "@/hooks/use-toast"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+import { AddEditPitchButton } from "@/components/owner/add-edit-pitch-button"
+import { TogglePitchStatus } from "@/components/owner/toggle-pitch-status"
 import Image from "next/image"
 import Link from "next/link"
+import { getCookie } from "cookies-next"
+import { cookies } from "next/headers"
+import { notFound } from "next/navigation"
 
-export default function OwnerPitches() {
-  const [pitches, setPitches] = React.useState<Pitch[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingPitch, setEditingPitch] = React.useState<Pitch | null>(null);
-  const { toast } = useToast();
-  const [currentOwnerId, setCurrentOwnerId] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+export default async function OwnerPitches() {
+  const ownerId = getCookie('loggedInUserId', { cookies });
+  if (!ownerId) {
+    notFound();
+  }
   
-  const refreshPitches = React.useCallback(async (ownerId: string | null) => {
-     if (ownerId) {
-        setIsLoading(true);
-        const ownerPitches = await getOwnerPitches(ownerId);
-        setPitches(ownerPitches);
-        setIsLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    const ownerId = localStorage.getItem('loggedInUserId');
-    setCurrentOwnerId(ownerId);
-    refreshPitches(ownerId);
-  }, [refreshPitches]);
-
-
-  const handleAddPitch = async (newPitchData: Omit<Pitch, 'id' | 'status' | 'ownerId'>) => {
-    if (!currentOwnerId) return;
-    const newPitch: Pitch = {
-      ...newPitchData,
-      id: `PITCH-${Date.now()}`,
-      status: 'Active',
-      ownerId: currentOwnerId,
-    };
-    await serverAddPitch(newPitch);
-    await refreshPitches(currentOwnerId);
-    toast({ title: "Success!", description: "New pitch has been added." });
-    setIsDialogOpen(false);
-  };
-
-  const handleEditPitch = async (updatedPitch: Pitch) => {
-    await updatePitch(updatedPitch);
-    await refreshPitches(currentOwnerId);
-    toast({ title: "Success!", description: "Pitch details have been updated." });
-    setEditingPitch(null);
-    setIsDialogOpen(false);
-  };
-  
-  const openEditDialog = (pitch: Pitch) => {
-    setEditingPitch(pitch);
-    setIsDialogOpen(true);
-  }
-
-  const handleDeactivate = async (pitchId: string) => {
-    const pitchToDeactivate = pitches.find(p => p.id === pitchId);
-    if (pitchToDeactivate) {
-       const updatedPitch = { ...pitchToDeactivate, status: 'Unlisted' as const };
-       await updatePitch(updatedPitch);
-       await refreshPitches(currentOwnerId);
-       toast({ 
-            title: "Pitch Deactivated", 
-            description: "The pitch has been unlisted and is no longer visible to players.",
-       });
-    }
-  }
-
-  const handleActivate = async (pitchId: string) => {
-    const pitchToActivate = pitches.find(p => p.id === pitchId);
-    if (pitchToActivate) {
-        const updatedPitch = { ...pitchToActivate, status: 'Active' as const };
-        await updatePitch(updatedPitch);
-        await refreshPitches(currentOwnerId);
-        toast({
-            title: "Pitch Activated",
-            description: "The pitch is now active and visible to players.",
-        });
-    }
-  }
+  const pitches = await getOwnerPitches(ownerId);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-semibold md:text-2xl">My Pitches</h1>
-        <Button size="sm" className="h-8 gap-1" onClick={() => { setEditingPitch(null); setIsDialogOpen(true); }}>
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Pitch
-            </span>
-        </Button>
+        <AddEditPitchButton ownerId={ownerId} />
       </div>
-      <AddPitchDialog 
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
-        onAddPitch={handleAddPitch}
-        onEditPitch={handleEditPitch}
-        pitch={editingPitch}
-      />
       <Card>
         <CardHeader>
           <CardTitle>Your Listed Pitches</CardTitle>
@@ -162,14 +70,8 @@ export default function OwnerPitches() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    Loading pitches...
-                  </TableCell>
-                </TableRow>
-              ) : pitches.length > 0 ? (
-                pitches.map((pitch) => (
+              {pitches.length > 0 ? (
+                pitches.map((pitch: Pitch) => (
                   <TableRow key={pitch.id}>
                     <TableCell className="hidden sm:table-cell">
                       <Image
@@ -202,35 +104,13 @@ export default function OwnerPitches() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => openEditDialog(pitch)}>Edit Details</DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <AddEditPitchButton ownerId={ownerId} pitchToEdit={pitch}>Edit Details</AddEditPitchButton>
+                          </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link href={`/owner/dashboard/pitches/${pitch.id}/availability`}>Manage Availability</Link>
                           </DropdownMenuItem>
-                          {pitch.status === 'Active' ? (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                  Deactivate
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    This action will deactivate the pitch. It will no longer be visible to players for booking. You can reactivate it later.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeactivate(pitch.id)}>Deactivate</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          ) : (
-                            <DropdownMenuItem onClick={() => handleActivate(pitch.id)}>
-                                Activate
-                            </DropdownMenuItem>
-                          )}
+                          <TogglePitchStatus pitch={pitch} />
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

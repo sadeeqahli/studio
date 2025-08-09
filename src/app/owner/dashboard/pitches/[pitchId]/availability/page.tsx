@@ -1,13 +1,11 @@
-
 import * as React from "react"
 import { notFound } from "next/navigation"
 import { getBookingsByPitch, getPitchById } from "@/app/actions"
-import type { Pitch, Booking } from "@/lib/types"
 import { ManageAvailabilityClient } from "@/components/owner/manage-availability-client"
 
 // This is now an async Server Component.
 // It fetches data on the server before rendering the page.
-export default async function ManageAvailabilityServerPage({ params }: { params: { pitchId: string } }) {
+export default async function ManageAvailabilityPage({ params }: { params: { pitchId: string } }) {
     const pitchId = params.pitchId;
     
     // Fetch data directly on the server.
