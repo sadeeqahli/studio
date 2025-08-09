@@ -1,8 +1,7 @@
 
+"use client";
+
 import * as React from 'react';
-import { getCookie } from 'cookies-next';
-import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -10,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { DollarSign, Users, Calendar, BarChart3, Calculator } from "lucide-react"
+import { DollarSign, Users, Calendar, BarChart3, Calculator, Loader2 } from "lucide-react"
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -155,23 +154,57 @@ function RecentBookingsCard({ownerBookings}: {ownerBookings: Booking[]}) {
 }
 
 
-export default async function OwnerDashboard() {
-  const currentOwnerId = getCookie('loggedInUserId', { cookies });
+export default function OwnerDashboard() {
+  const [owner, setOwner] = React.useState<User | null>(null);
+  const [ownerPitches, setOwnerPitches] = React.useState<Pitch[]>([]);
+  const [ownerBookings, setOwnerBookings] = React.useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
   
-  if (!currentOwnerId) {
-    notFound();
+  React.useEffect(() => {
+    async function loadData() {
+      const ownerId = localStorage.getItem('loggedInUserId');
+      if (!ownerId) {
+        setIsLoading(false);
+        return;
+      }
+      
+      const ownerData = await getUserById(ownerId);
+      setOwner(ownerData || null);
+
+      if (ownerData) {
+        const [pitchesData, bookingsData] = await Promise.all([
+          getOwnerPitches(ownerId),
+          getBookingsByOwner(ownerId)
+        ]);
+        setOwnerPitches(pitchesData);
+        setOwnerBookings(bookingsData);
+      }
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-2">Loading Dashboard...</p>
+        </div>
+    )
   }
-  
-  const owner = await getUserById(currentOwnerId);
 
   if (!owner) {
-    notFound();
+     return (
+        <div className="flex items-center justify-center h-full">
+            <Card className="max-w-md w-full text-center">
+                <CardHeader>
+                    <CardTitle>Error</CardTitle>
+                    <CardDescription>Could not load owner data. Please try logging in again.</CardDescription>
+                </CardHeader>
+            </Card>
+        </div>
+    )
   }
-
-  const [ownerPitches, ownerBookings] = await Promise.all([
-    getOwnerPitches(currentOwnerId),
-    getBookingsByOwner(currentOwnerId)
-  ]);
   
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
