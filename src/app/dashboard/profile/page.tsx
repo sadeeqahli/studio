@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useToast } from "@/hooks/use-toast";
