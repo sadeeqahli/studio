@@ -187,8 +187,13 @@ function AddManualBookingDialog({
 
 // This component now receives its data as props and handles all client interactions.
 export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pitch, initialBookings: Booking[] }) {
-    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date())
+    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [bookings, setBookings] = React.useState<Booking[]>(initialBookings);
+
+    React.useEffect(() => {
+        // Set date on client mount to avoid hydration mismatch
+        setSelectedDate(new Date());
+    }, []);
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
@@ -219,8 +224,8 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
         setBookings(prev => [newBooking, ...prev]);
     }
 
-    if (!pitch) {
-        return <div>Loading...</div>
+    if (!pitch || !selectedDate) {
+        return <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin" /></div>
     }
 
     return (

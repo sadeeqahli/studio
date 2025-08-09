@@ -82,11 +82,16 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
 export function BookingClient({ pitch, owner, currentUser, initialBookings }: BookingClientProps) {
     const router = useRouter();
     const { toast } = useToast();
-    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
+    const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     
+    React.useEffect(() => {
+        // Set date on client mount to avoid hydration mismatch
+        setSelectedDate(new Date());
+    }, []);
+
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
     
     const bookedSlotsForDate = React.useMemo(() => {
