@@ -11,7 +11,7 @@ import { ArrowLeft, UserPlus, Loader2, Calendar as CalendarIcon, Clock } from "l
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Calendar } from "@/components/ui/calendar"
-import { format, addMinutes, setHours, setMinutes } from "date-fns"
+import { format, addMinutes, startOfDay, addDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -20,19 +20,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
-    const dayOfWeek = format(date, 'EEEE'); // e.g., "Monday"
-    const operatingHours = pitch.operatingHours.find(h => h.day === dayOfWeek);
-
-    if (!operatingHours) {
-        return [];
-    }
-    
     const slots = [];
-    const [startHour, startMinute] = operatingHours.startTime.split(':').map(Number);
-    const [endHour, endMinute] = operatingHours.endTime.split(':').map(Number);
-
-    let currentTime = setMinutes(setHours(date, startHour), startMinute);
-    const endTime = setMinutes(setHours(date, endHour), endMinute);
+    let currentTime = startOfDay(date);
+    const endTime = addDays(startOfDay(date), 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -294,7 +284,7 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
                                 })
                             ) : (
                                 <p className="text-sm text-muted-foreground p-4 text-center bg-muted rounded-md">
-                                    No operating hours defined for this day.
+                                    No slots available for this day.
                                 </p>
                             )}
                         </div>

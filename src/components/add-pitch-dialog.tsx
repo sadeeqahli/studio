@@ -22,23 +22,12 @@ import { Checkbox } from './ui/checkbox';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { cn } from '@/lib/utils';
-
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const;
-
-const operatingHoursSchema = z.object({
-  day: z.enum(daysOfWeek),
-  startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Use HH:MM format"),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Use HH:MM format"),
-  enabled: z.boolean(),
-});
 
 const pitchSchema = z.object({
   name: z.string().min(3, 'Pitch name is required'),
   location: z.string().min(3, 'Location is required'),
   price: z.coerce.number().min(1000, 'Price must be at least ₦1000'),
   amenities: z.array(z.string()).optional().default([]),
-  operatingHours: z.array(operatingHoursSchema).min(1, "Please configure operating hours for at least one day."),
   slotInterval: z.coerce.number().min(30, "Interval must be at least 30 minutes"),
   image: z.any().optional(),
   pitch: z.any().optional(),
@@ -47,16 +36,6 @@ const pitchSchema = z.object({
 }, {
     message: 'Image is required.',
     path: ['image'],
-}).refine(data => {
-    const enabledDays = data.operatingHours.filter(h => h.enabled);
-    if (enabledDays.length === 0) return false;
-    for (const day of enabledDays) {
-        if (day.startTime >= day.endTime) return false;
-    }
-    return true;
-}, {
-    message: "For enabled days, start time must be before end time.",
-    path: ['operatingHours'],
 });
 
 type PitchForm = z.infer<typeof pitchSchema> & { pitch: Pitch | null };
@@ -88,7 +67,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
       location: '',
       price: 0,
       amenities: [],
-      operatingHours: daysOfWeek.map(day => ({ day, startTime: "09:00", endTime: "21:00", enabled: true })),
       slotInterval: 60,
       image: undefined,
       pitch: null,
@@ -113,21 +91,11 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
   useEffect(() => {
     if (isOpen) {
       if (pitch) {
-        const pitchOperatingHours = pitch.operatingHours || [];
-        const formHours = daysOfWeek.map(day => {
-            const existing = pitchOperatingHours.find(h => h.day === day);
-            if (existing) {
-                return { ...existing, enabled: true };
-            }
-            return { day, startTime: "09:00", endTime: "21:00", enabled: false };
-        });
-
         reset({
           name: pitch.name,
           location: pitch.location,
           price: pitch.price,
           amenities: pitch.amenities,
-          operatingHours: formHours,
           slotInterval: pitch.slotInterval,
           image: undefined,
           pitch: pitch,
@@ -139,7 +107,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
           location: '',
           price: 0,
           amenities: [],
-          operatingHours: daysOfWeek.map(day => ({ day, startTime: "09:00", endTime: "21:00", enabled: true })),
           slotInterval: 60,
           image: undefined,
           pitch: null,
@@ -159,12 +126,11 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
         amenities: data.amenities,
         imageUrl: imagePreview || "https://placehold.co/600x400.png",
         imageHint: data.name,
-        operatingHours: data.operatingHours.filter(h => h.enabled),
         slotInterval: data.slotInterval,
         manuallyBlockedSlots: pitch?.manuallyBlockedSlots || {},
     };
 
-    onSave(pitchData);
+    onSave(pitchData as any);
     setIsLoading(false);
   };
 
@@ -178,7 +144,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
         if (!open) handleClose();
         else setIsOpen(true);
     }}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{pitch ? 'Edit Pitch Details' : 'Add a New Pitch'}</DialogTitle>
           <DialogDescription>
@@ -217,9 +183,9 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
                  <Separator />
 
                 <div className="grid gap-4">
-                    <Label>Operating Hours & Slots</Label>
+                    <Label>Slot Configuration</Label>
                     <div className="grid gap-2">
-                        <Label htmlFor="slotInterval" className="text-xs font-normal">Slot Generation Interval (in minutes)</Label>
+                        <Label htmlFor="slotInterval" className="font-normal">Slot Generation Interval</Label>
                         <Controller
                             name="slotInterval"
                             control={control}
@@ -242,40 +208,6 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
                         />
                         {errors.slotInterval && <p className="text-sm text-destructive">{errors.slotInterval.message}</p>}
                     </div>
-
-                    <div className="space-y-2 rounded-md border p-4">
-                        {daysOfWeek.map((day, index) => (
-                             <Controller
-                                key={day}
-                                name={`operatingHours.${index}`}
-                                control={control}
-                                render={({ field }) => (
-                                     <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-4">
-                                        <Checkbox 
-                                            checked={field.value.enabled}
-                                            onCheckedChange={(checked) => field.onChange({...field.value, enabled: !!checked})}
-                                        />
-                                        <Label className={cn("font-normal", !field.value.enabled && "text-muted-foreground")}>{day}</Label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                             <Input 
-                                                type="time" 
-                                                value={field.value.startTime}
-                                                onChange={(e) => field.onChange({...field.value, startTime: e.target.value})}
-                                                disabled={!field.value.enabled}
-                                            />
-                                             <Input 
-                                                type="time" 
-                                                value={field.value.endTime}
-                                                onChange={(e) => field.onChange({...field.value, endTime: e.target.value})}
-                                                disabled={!field.value.enabled}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            />
-                        ))}
-                    </div>
-                     {typeof errors.operatingHours === 'object' && !Array.isArray(errors.operatingHours) && <p className="text-sm text-destructive">{errors.operatingHours.message}</p>}
                 </div>
 
                 <Separator />

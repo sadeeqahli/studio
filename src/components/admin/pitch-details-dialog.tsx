@@ -88,15 +88,8 @@ export function PitchDetailsDialog({ pitch, isOpen, setIsOpen }: PitchDetailsDia
              <div className="grid grid-cols-[24px_1fr] items-start">
                 <Clock className="h-4 w-4 text-muted-foreground mt-1" />
                 <div className="grid gap-1">
-                    <p className="font-medium leading-none">Operating Hours</p>
-                    <div className="space-y-1 mt-1">
-                        {pitch.operatingHours.map(hour => (
-                            <div key={hour.day} className="flex justify-between text-sm text-muted-foreground">
-                                <span>{hour.day}</span>
-                                <span className="font-mono">{hour.startTime} - {hour.endTime}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <p className="font-medium leading-none">Slot Interval</p>
+                     <p className="text-sm text-muted-foreground">{pitch.slotInterval} minutes</p>
                 </div>
             </div>
         </div>

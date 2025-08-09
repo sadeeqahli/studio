@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
+import { format, addDays, setHours, setMinutes, addMinutes, startOfDay } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -64,6 +64,19 @@ function PaymentConfirmationView({ status }: { status: 'processing_payment' | 'v
             </CardContent>
         </Card>
     );
+}
+
+function generateTimeSlots(pitch: Pitch, date: Date): string[] {
+    const slots = [];
+    let currentTime = startOfDay(date);
+    const endTime = addDays(startOfDay(date), 1);
+
+    while (currentTime < endTime) {
+        slots.push(format(currentTime, 'hh:mm a'));
+        currentTime = addMinutes(currentTime, pitch.slotInterval);
+    }
+
+    return slots;
 }
 
 export function BookingClient({ pitch, owner, currentUser, initialBookings }: BookingClientProps) {
@@ -282,15 +295,6 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
                                         )
                                     })}
                                 </div>
-                                {allDaySlots.length === 0 && (
-                                     <Alert variant="destructive" className="mt-2">
-                                        <AlertCircle className="h-4 w-4" />
-                                        <AlertTitle>No Slots Available</AlertTitle>
-                                        <AlertDescription>
-                                            The owner has not configured any time slots for this day.
-                                        </AlertDescription>
-                                    </Alert>
-                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -360,28 +364,6 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
     );
 }
 
-function generateTimeSlots(pitch: Pitch, date: Date): string[] {
-    const dayOfWeek = format(date, 'EEEE'); // e.g., "Monday"
-    const operatingHours = pitch.operatingHours.find(h => h.day === dayOfWeek);
-
-    if (!operatingHours) {
-        return [];
-    }
-    
-    const slots = [];
-    const [startHour, startMinute] = operatingHours.startTime.split(':').map(Number);
-    const [endHour, endMinute] = operatingHours.endTime.split(':').map(Number);
-
-    let currentTime = setMinutes(setHours(date, startHour), startMinute);
-    const endTime = setMinutes(setHours(date, endHour), endMinute);
-
-    while (currentTime < endTime) {
-        slots.push(format(currentTime, 'hh:mm a'));
-        currentTime = addMinutes(currentTime, pitch.slotInterval);
-    }
-
-    return slots;
-}
 
 const TermsDialogContent = () => (
     <DialogContent className="max-w-3xl">

@@ -9,7 +9,6 @@ export type Pitch = {
   amenities: string[];
   imageUrl: string;
   imageHint: string;
-  operatingHours: { day: string; startTime: string; endTime: string; }[];
   slotInterval: number; // in minutes
   status: 'Active' | 'Unlisted';
   manuallyBlockedSlots: Record<string, string[]>; // e.g. { '2024-08-15': ['10:00 AM', '11:00 AM'] }
