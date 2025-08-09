@@ -21,25 +21,22 @@ import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { addBooking } from '@/app/actions';
+import { addBooking, getUserById } from '@/app/actions';
 
 type BookingStatus = 'idle' | 'confirming';
 
 interface BookingClientProps {
     pitch: Pitch;
     owner: User;
-    currentUser: User;
     initialBookings: Booking[];
 }
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     const slots = [];
-    const baseDate = new Date(date);
-    baseDate.setHours(0, 0, 0, 0);
+    let currentTime = new Date(date);
+    currentTime.setHours(0, 0, 0, 0); // Start from midnight
     
-    let currentTime = new Date(baseDate);
-    const endTime = new Date(baseDate);
-    endTime.setDate(endTime.getDate() + 1);
+    const endTime = addDays(currentTime, 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -178,8 +175,10 @@ function PaymentDialog({
 }
 
 
-export function BookingClient({ pitch, owner, currentUser, initialBookings }: BookingClientProps) {
+export function BookingClient({ pitch, owner, initialBookings }: BookingClientProps) {
     const router = useRouter();
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
+    const [isLoadingUser, setIsLoadingUser] = React.useState(true);
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
@@ -187,6 +186,17 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
     React.useEffect(() => {
         // Set date on client mount to avoid hydration mismatch
         setSelectedDate(new Date());
+
+        const fetchUser = async () => {
+            setIsLoadingUser(true);
+            const userId = localStorage.getItem('loggedInUserId');
+            if (userId) {
+                const user = await getUserById(userId);
+                setCurrentUser(user || null);
+            }
+            setIsLoadingUser(false);
+        };
+        fetchUser();
     }, []);
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
@@ -225,6 +235,35 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
 
     const totalPrice = pitch.price * selectedSlots.length;
     
+    if (isLoadingUser) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="ml-2">Loading booking page...</p>
+            </div>
+        );
+    }
+    
+    if (!currentUser) {
+         return (
+            <div className="flex items-center justify-center h-full">
+                <Card className="max-w-md w-full text-center">
+                    <CardHeader>
+                        <CardTitle>Authentication Error</CardTitle>
+                        <CardDescription>We couldn't verify your session. Please log in again to book a pitch.</CardDescription>
+                    </CardHeader>
+                    <CardFooter className="flex justify-center">
+                         <Button asChild>
+                            <Link href="/login">
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Go to Login
+                            </Link>
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+        );
+    }
+
     return (
         <Dialog>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -361,7 +400,7 @@ export function BookingClient({ pitch, owner, currentUser, initialBookings }: Bo
                     </Card>
                 </div>
             </div>
-             {selectedDate && (
+             {selectedDate && currentUser && (
                  <PaymentDialog
                     totalPrice={totalPrice}
                     pitch={pitch}
@@ -451,8 +490,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-
-    
-
-    
