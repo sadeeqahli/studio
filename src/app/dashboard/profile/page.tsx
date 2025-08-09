@@ -1,27 +1,48 @@
 
+"use client";
+
+import * as React from "react";
 import { getUserById } from "@/app/actions";
 import { PasswordForm } from "@/components/player/password-form";
 import { ProfileForm } from "@/components/player/profile-form";
 import { ThemeSwitcher } from "@/components/player/theme-switcher";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getCookie } from "cookies-next";
-import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { User } from "@/lib/types";
+import { Loader2 } from "lucide-react";
 
 
-export default async function UserProfile() {
-  const userId = getCookie('loggedInUserId', { cookies });
+export default function UserProfile() {
+  const [user, setUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  if (!userId) {
-    // This can happen if the cookie expires or is cleared.
-    notFound();
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      const userId = localStorage.getItem('loggedInUserId');
+      if (userId) {
+        const userData = await getUserById(userId);
+        if (userData) {
+          setUser(userData);
+        }
+      }
+      setIsLoading(false);
+    };
+
+    fetchUser();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-2">Loading profile...</p>
+      </div>
+    );
   }
 
-  const user = await getUserById(userId);
-
   if (!user) {
-    notFound();
+    return notFound();
   }
   
   return (
