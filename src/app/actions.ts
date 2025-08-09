@@ -60,19 +60,26 @@ export async function getUserById(id: string): Promise<User | undefined> {
 
 export async function addUser(user: User): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'users', user.id), user)`
-    if (placeholderCredentials.some(u => u.email.toLowerCase() === user.email.toLowerCase())) {
+    const userExists = placeholderCredentials.some(
+        u => u.email.toLowerCase() === user.email.toLowerCase() && u.role === user.role
+    );
+
+    if (userExists) {
+        // If user with same email and role exists, do nothing.
         return;
+    } else {
+        // Otherwise, add the new user.
+        placeholderCredentials.push(user);
+        placeholderActivities.unshift({
+            id: `ACT-${Date.now()}`,
+            userName: user.name,
+            userRole: user.role as 'Player' | 'Owner',
+            action: 'Signed Up',
+            timestamp: new Date().toISOString(),
+        });
+        revalidatePath('/admin/dashboard/users');
+        revalidatePath('/(auth)/login');
     }
-    placeholderCredentials.push(user);
-    placeholderActivities.unshift({
-        id: `ACT-${Date.now()}`,
-        userName: user.name,
-        userRole: user.role as 'Player' | 'Owner',
-        action: 'Signed Up',
-        timestamp: new Date().toISOString(),
-    });
-    revalidatePath('/admin/dashboard/users');
-    revalidatePath('/(auth)/login');
 }
 
 export async function updateUser(updatedUser: User): Promise<void> {
