@@ -53,7 +53,7 @@ export type OwnerBooking = {
   time: string;
   amount: number;
   status: 'Paid' | 'Pending' | 'Cancelled';
-}
+};
 
 export type User = {
     id: string;
@@ -66,7 +66,7 @@ export type User = {
     totalBookings?: number;
     pitchesListed?: number;
     subscriptionPlan?: 'Starter' | 'Plus' | 'Pro';
-}
+};
 
 export type Transaction = {
   id: string;
@@ -75,7 +75,7 @@ export type Transaction = {
   amount: number; // Positive for credit, negative for debit
   type: 'Credit' | 'Withdrawal';
   bookingId?: string;
-}
+};
 
 export type WithdrawalReceipt = {
     id:string;
@@ -117,4 +117,4 @@ export type PaymentVerificationResponse = {
     status: 'success' | 'error';
     message: string;
     bookingId?: string;
-}
+};

@@ -46,17 +46,17 @@ import {
   addPitch as originalAddPitch,
 } from '@/lib/placeholder-data';
 import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout, ReceiptBooking } from '@/lib/types';
-import { notFound } from 'next/navigation';
 
 // USER ACTIONS
 export async function getUsers(): Promise<User[]> {
   // FIRESTORE: Replace with a call like `getDocs(collection(db, 'users'))`
-  return placeholderCredentials;
+  return JSON.parse(JSON.stringify(placeholderCredentials));
 }
 
 export async function getUserById(id: string): Promise<User | undefined> {
   // FIRESTORE: Replace with `getDoc(doc(db, 'users', id))`
-  return placeholderCredentials.find(u => u.id === id);
+  const users = await getUsers();
+  return users.find(u => u.id === id);
 }
 
 export async function addUser(user: User): Promise<void> {
@@ -100,17 +100,19 @@ export async function deleteUser(userId: string): Promise<void> {
 // PITCH ACTIONS
 export async function getPitches(): Promise<Pitch[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'pitches'))`
-  return placeholderPitches;
+  return JSON.parse(JSON.stringify(placeholderPitches));
 }
 
 export async function getOwnerPitches(ownerId: string): Promise<Pitch[]> {
     // FIRESTORE: Replace with a query: `getDocs(query(collection(db, 'pitches'), where('ownerId', '==', ownerId)))`
-    return placeholderPitches.filter(p => p.ownerId === ownerId);
+    const allPitches = await getPitches();
+    return allPitches.filter(p => p.ownerId === ownerId);
 }
 
 export async function getPitchById(id: string): Promise<Pitch | undefined> {
     // FIRESTORE: Replace with `getDoc(doc(db, 'pitches', id))`
-    const pitch = placeholderPitches.find(p => p.id === id);
+    const allPitches = await getPitches();
+    const pitch = allPitches.find(p => p.id === id);
     if (!pitch) {
         return undefined;
     }
@@ -138,12 +140,13 @@ export async function updatePitch(pitchData: Pitch): Promise<void> {
 // BOOKING ACTIONS
 export async function getBookings(): Promise<Booking[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'bookings'))`
-  return placeholderBookings;
+  return JSON.parse(JSON.stringify(placeholderBookings));
 }
 
 export async function getBookingById(bookingId: string): Promise<Booking | undefined> {
     // FIRESTORE: Replace with `getDoc(doc(db, 'bookings', bookingId))`
-    return placeholderBookings.find(b => b.id === bookingId);
+    const bookings = await getBookings();
+    return bookings.find(b => b.id === bookingId);
 }
 
 export async function getReceiptBookingById(bookingId: string): Promise<ReceiptBooking | null> {
@@ -153,7 +156,8 @@ export async function getReceiptBookingById(bookingId: string): Promise<ReceiptB
         return null;
     }
 
-    const pitch = placeholderPitches.find(p => p.name === booking.pitchName);
+    const allPitches = await getPitches();
+    const pitch = allPitches.find(p => p.name === booking.pitchName);
     const paymentMethod = booking.bookingType === 'Online' ? 'Bank Transfer' : 'Offline/Direct';
 
     return {
@@ -166,18 +170,22 @@ export async function getReceiptBookingById(bookingId: string): Promise<ReceiptB
 
 export async function getBookingsByPitch(pitchName: string): Promise<Booking[]> {
     // FIRESTORE: Replace with a query: `getDocs(query(collection(db, 'bookings'), where('pitchName', '==', pitchName)))`
-    return placeholderBookings.filter(b => b.pitchName === pitchName);
+    const bookings = await getBookings();
+    return bookings.filter(b => b.pitchName === pitchName);
 }
 
 export async function getBookingsByOwner(ownerId: string): Promise<Booking[]> {
-    const ownerPitches = placeholderPitches.filter(p => p.ownerId === ownerId).map(p => p.name);
+    const ownerPitches = await getOwnerPitches(ownerId);
+    const ownerPitchNames = ownerPitches.map(p => p.name);
     // FIRESTORE: This would be a more complex query, potentially needing to fetch owner pitches first.
-    return placeholderBookings.filter(b => ownerPitches.includes(b.pitchName));
+    const allBookings = await getBookings();
+    return allBookings.filter(b => ownerPitchNames.includes(b.pitchName));
 }
 
 export async function getBookingsByUser(userName: string): Promise<Booking[]> {
     // FIRESTORE: Replace with a query
-    return placeholderBookings.filter(b => b.customerName === userName);
+    const allBookings = await getBookings();
+    return allBookings.filter(b => b.customerName === userName);
 }
 
 export async function addBooking(booking: Booking): Promise<void> {
@@ -218,25 +226,26 @@ export async function addBooking(booking: Booking): Promise<void> {
 // PAYOUT & REVENUE ACTIONS
 export async function getPayouts(): Promise<Payout[]> {
   // FIRESTORE: Replace with `getDocs(collection(db, 'payouts'))`
-  return placeholderPayouts;
+  return JSON.parse(JSON.stringify(placeholderPayouts));
 }
 
 export async function getPayoutsByOwner(ownerName: string): Promise<Payout[]> {
     // FIRESTORE: Replace with a query
-    return placeholderPayouts.filter(p => p.ownerName === ownerName);
+    const allPayouts = await getPayouts();
+    return allPayouts.filter(p => p.ownerName === ownerName);
 }
 
 
 // ACTIVITY ACTIONS
 export async function getActivities(): Promise<Activity[]> {
   // FIRESTORE: Replace with a query on an 'activities' collection
-  return placeholderActivities;
+  return JSON.parse(JSON.stringify(placeholderActivities));
 }
 
 // WALLET/TRANSACTION ACTIONS (ADMIN)
 export async function getAdminWithdrawals(): Promise<AdminWithdrawal[]> {
     // FIRESTORE: Replace with `getDocs`
-    return placeholderAdminWithdrawals;
+    return JSON.parse(JSON.stringify(placeholderAdminWithdrawals));
 }
 
 export async function addAdminWithdrawal(withdrawal: AdminWithdrawal): Promise<void> {
@@ -249,10 +258,11 @@ export async function addAdminWithdrawal(withdrawal: AdminWithdrawal): Promise<v
 // WALLET/TRANSACTION ACTIONS (OWNER)
 export async function getOwnerWithdrawals(ownerName: string | 'all'): Promise<OwnerWithdrawal[]> {
     // FIRESTORE: Replace with a query
+    const allWithdrawals = JSON.parse(JSON.stringify(placeholderPayoutsToOwners));
     if (ownerName === 'all') {
-        return placeholderPayoutsToOwners;
+        return allWithdrawals;
     }
-    return placeholderPayoutsToOwners.filter(w => w.ownerName === ownerName);
+    return allWithdrawals.filter(w => w.ownerName === ownerName);
 }
 
 
@@ -265,7 +275,8 @@ export async function addOwnerWithdrawal(withdrawal: OwnerWithdrawal): Promise<v
 
 // HELPER ACTIONS
 export async function getUserByPitchName(pitchName: string): Promise<User | undefined> {
-    const pitch = placeholderPitches.find(p => p.name === pitchName);
+    const allPitches = await getPitches();
+    const pitch = allPitches.find(p => p.name === pitchName);
     if (!pitch || !pitch.ownerId) return undefined;
     return await getUserById(pitch.ownerId);
 }
