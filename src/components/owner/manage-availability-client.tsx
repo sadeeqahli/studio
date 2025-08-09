@@ -11,7 +11,7 @@ import { ArrowLeft, UserPlus, Loader2, Calendar as CalendarIcon, Clock } from "l
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { Calendar } from "@/components/ui/calendar"
-import { format, addMinutes, startOfDay, addDays } from "date-fns"
+import { format, addMinutes, addDays } from "date-fns"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -21,8 +21,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     const slots = [];
-    let currentTime = startOfDay(date);
-    const endTime = addDays(startOfDay(date), 1);
+    const baseDate = new Date(date);
+    baseDate.setHours(0, 0, 0, 0);
+
+    let currentTime = new Date(baseDate);
+    const endTime = new Date(baseDate);
+    endTime.setDate(endTime.getDate() + 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -304,3 +308,5 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
         </div>
     )
 }
+
+    

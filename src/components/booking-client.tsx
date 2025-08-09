@@ -17,7 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, addDays, setHours, setMinutes, addMinutes, startOfDay } from 'date-fns';
+import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
@@ -34,8 +34,12 @@ interface BookingClientProps {
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     const slots = [];
-    let currentTime = startOfDay(date);
-    const endTime = addDays(startOfDay(date), 1);
+    const baseDate = new Date(date);
+    baseDate.setHours(0, 0, 0, 0);
+    
+    let currentTime = new Date(baseDate);
+    const endTime = new Date(baseDate);
+    endTime.setDate(endTime.getDate() + 1);
 
     while (currentTime < endTime) {
         slots.push(format(currentTime, 'hh:mm a'));
@@ -44,6 +48,7 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
 
     return slots;
 }
+
 
 function PaymentDialog({
     totalPrice,
@@ -447,5 +452,7 @@ const TermsDialogContent = () => (
     </DialogContent>
 );
 
+
+    
 
     
