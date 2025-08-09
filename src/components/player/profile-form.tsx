@@ -14,18 +14,24 @@ import { useRouter } from 'next/navigation';
 export function ProfileForm({ user }: { user: User }) {
     const { toast } = useToast();
     const router = useRouter();
-    const [firstName, setFirstName] = React.useState(user.name.split(' ')[0] || '');
-    const [lastName, setLastName] = React.useState(user.name.split(' ').slice(1).join(' ') || '');
+    
+    // Safely split name into first and last
+    const nameParts = user.name.split(' ');
+    const initialFirstName = nameParts[0] || '';
+    const initialLastName = nameParts.slice(1).join(' ') || '';
+
+    const [firstName, setFirstName] = React.useState(initialFirstName);
+    const [lastName, setLastName] = React.useState(initialLastName);
     const [email, setEmail] = React.useState(user.email);
     
-    const isInfoChanged = firstName !== (user.name.split(' ')[0] || '') || lastName !== (user.name.split(' ').slice(1).join(' ') || '') || email !== user.email;
+    const isInfoChanged = firstName !== initialFirstName || lastName !== initialLastName || email !== user.email;
 
     const handleSaveChanges = async (e: React.FormEvent) => {
         e.preventDefault();
         
         const updatedUser: User = {
             ...user,
-            name: `${firstName} ${lastName}`,
+            name: `${firstName} ${lastName}`.trim(), // Rejoin and trim to handle single names
             email: email,
         };
         
