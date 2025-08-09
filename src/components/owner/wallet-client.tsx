@@ -22,6 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import type { Transaction, WithdrawalReceipt, OwnerWithdrawal, User } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { addOwnerWithdrawal } from "@/app/actions";
+import { useRouter } from "next/navigation";
 
 const banks = ["GTBank", "Access Bank", "Zenith Bank", "First Bank", "UBA", "Kuda MFB"];
 
@@ -194,11 +195,12 @@ function WithdrawalReceiptDialog({ receipt, isOpen, setIsOpen }: { receipt: With
     );
 }
 
-function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number, ownerName: string }) {
+function WithdrawDialog({ onWithdraw, balance, owner }: { onWithdraw: (receipt: WithdrawalReceipt, withdrawalRecord: OwnerWithdrawal) => void, balance: number, owner: User }) {
     const { toast } = useToast();
     const [isOpen, setIsOpen] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const [amount, setAmount] = React.useState('');
+    const [pin, setPin] = React.useState('');
 
     const handleWithdraw = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -213,6 +215,21 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
             return;
         }
 
+        if (!owner.transactionPin) {
+            toast({
+                title: "Transaction PIN Not Set",
+                description: "Please set your transaction PIN in your profile before making a withdrawal.",
+                variant: "destructive"
+            });
+             setIsOpen(false);
+            return;
+        }
+        
+        if (pin !== owner.transactionPin) {
+            toast({ title: "Invalid PIN", description: "The transaction PIN you entered is incorrect.", variant: "destructive" });
+            return;
+        }
+
         setIsLoading(true);
 
         const newReceipt: WithdrawalReceipt = {
@@ -221,7 +238,7 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
             amount: withdrawalAmount,
             bankName: "GTBank",
             accountNumber: "****6789",
-            accountName: ownerName,
+            accountName: owner.name,
             status: 'Successful'
         };
         
@@ -230,7 +247,7 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
             date: new Date().toISOString(),
             amount: withdrawalAmount,
             status: 'Successful',
-            ownerName: ownerName,
+            ownerName: owner.name,
         };
         
         await addOwnerWithdrawal(newWithdrawalRecord);
@@ -238,6 +255,7 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
         setIsLoading(false);
         setIsOpen(false);
         setAmount('');
+        setPin('');
     }
 
     return (
@@ -253,6 +271,7 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
                     <DialogTitle>Withdraw Funds</DialogTitle>
                     <DialogDescription>
                         Transfer funds from your platform wallet to your linked bank account.
+                        Available Balance: ₦{balance.toLocaleString()}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleWithdraw}>
@@ -278,11 +297,11 @@ function WithdrawDialog({ onWithdraw, balance, ownerName }: { onWithdraw: (recei
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="account-name">Account Name</Label>
-                            <Input id="account-name" value={ownerName} disabled />
+                            <Input id="account-name" value={owner.name} disabled />
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="pin">Transaction PIN</Label>
-                            <Input id="pin" type="password" placeholder="Enter your 4-digit PIN" required maxLength={4}/>
+                            <Input id="pin" type="password" placeholder="Enter your 4-digit PIN" required maxLength={4} value={pin} onChange={(e) => setPin(e.target.value)} />
                         </div>
                     </div>
                      <DialogFooter>
@@ -304,26 +323,41 @@ interface WalletClientProps {
 }
 
 export function WalletClient({ owner, totalBalance, initialTransactions }: WalletClientProps) {
+    const router = useRouter();
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
-    const { toast } = useToast();
 
     const handleWithdraw = (newReceipt: WithdrawalReceipt, newWithdrawalRecord: OwnerWithdrawal) => {
         setReceipt(newReceipt);
         setIsReceiptOpen(true);
-        // We don't need to update transactions state here, as the parent will re-render with new data from server
+        router.refresh(); // Refresh server component to get new transaction list
     };
     
     return (
         <>
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} ownerName={owner.name} />
+                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} owner={owner} />
             </div>
             
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
             
-            <PayoutScheduleCard />
+            <div className="grid md:grid-cols-2 gap-6">
+                 <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
+                        <Landmark className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground">
+                            Funds available for withdrawal.
+                        </p>
+                    </CardContent>
+                </Card>
+                 <PayoutScheduleCard />
+            </div>
+
         </>
     );
 }

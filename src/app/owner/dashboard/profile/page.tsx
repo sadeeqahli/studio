@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -36,7 +37,7 @@ export default async function OwnerProfile() {
         <div className="grid gap-6">
             <ProfileForm user={owner} />
             <PasswordForm user={owner} />
-            <PinManagementCard />
+            <PinManagementCard user={owner}/>
             <ThemeSwitcher />
             <AccountActions />
         </div>

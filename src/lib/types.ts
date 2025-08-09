@@ -66,6 +66,7 @@ export type User = {
     totalBookings?: number;
     pitchesListed?: number;
     subscriptionPlan?: 'Starter' | 'Plus' | 'Pro';
+    transactionPin?: string;
 };
 
 export type Transaction = {
