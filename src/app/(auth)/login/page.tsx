@@ -61,7 +61,7 @@ export default function LoginForm() {
           maxAge: 60 * 60 * 24, // 1 day
       });
       
-      await addUser({ ...user, action: 'Logged In' } as any);
+      await addUser({ ...user, action: 'Logged In' });
 
       toast({
           title: "Login Successful",

@@ -58,29 +58,61 @@ export async function getUserById(id: string): Promise<User | undefined> {
   return users.find(u => u.id === id);
 }
 
-export async function addUser(user: User): Promise<void> {
-    // FIRESTORE: Replace with `setDoc(doc(db, 'users', user.id), user)`
+export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' }): Promise<void> {
+    // FIRESTORE: Replace with a Firestore transaction for atomicity.
+    
+    // If the action is 'Logged In', we just record the activity.
+    if (user.action === 'Logged In') {
+        placeholderActivities.unshift({
+            id: `ACT-${Date.now()}`,
+            userName: user.name,
+            userRole: user.role as 'Player' | 'Owner',
+            action: 'Logged In',
+            timestamp: new Date().toISOString(),
+        });
+        return;
+    }
+
+    // Otherwise, this is a new signup.
     const userExists = placeholderCredentials.some(
         u => u.email.toLowerCase() === user.email.toLowerCase() && u.role === user.role
     );
 
     if (userExists) {
-        // If user with same email and role exists, do nothing.
+        // User with this email and role already exists, so we do nothing.
         return;
-    } else {
-        // Otherwise, add the new user.
-        placeholderCredentials.push(user);
-        placeholderActivities.unshift({
-            id: `ACT-${Date.now()}`,
-            userName: user.name,
-            userRole: user.role as 'Player' | 'Owner',
-            action: 'Signed Up',
-            timestamp: new Date().toISOString(),
-        });
-        revalidatePath('/admin/dashboard/users');
-        revalidatePath('/(auth)/login');
     }
+    
+    // Add the new user to the credentials list.
+    const newUser: User = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        password: user.password,
+        role: user.role,
+        registeredDate: user.registeredDate,
+        status: user.status,
+        totalBookings: user.totalBookings,
+        pitchesListed: user.pitchesListed,
+        subscriptionPlan: user.subscriptionPlan,
+        transactionPin: user.transactionPin,
+    };
+    placeholderCredentials.push(newUser);
+
+    // Record the 'Signed Up' activity.
+    placeholderActivities.unshift({
+        id: `ACT-${Date.now()}`,
+        userName: user.name,
+        userRole: user.role as 'Player' | 'Owner',
+        action: 'Signed Up',
+        timestamp: new Date().toISOString(),
+    });
+    
+    // Revalidate paths to ensure the UI updates.
+    revalidatePath('/admin/dashboard/users');
+    revalidatePath('/(auth)/login');
 }
+
 
 export async function updateUser(updatedUser: User): Promise<void> {
     // FIRESTORE: Replace with `updateDoc(doc(db, 'users', updatedUser.id), updatedUser)`
