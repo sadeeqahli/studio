@@ -14,9 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Moon, Sun, AlertTriangle, LogOut } from "lucide-react";
+import { Loader2, Moon, Sun } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 
 
@@ -26,7 +25,7 @@ export default function UserProfilePage() {
     const { setTheme, theme } = useTheme();
 
     const [user, setUser] = React.useState<User | null>(null);
-    const [isLoadingUser, setIsLoadingUser] = React.useState(true);
+    const [isLoading, setIsLoading] = React.useState(true);
 
     // Profile form state
     const [firstName, setFirstName] = React.useState('');
@@ -40,7 +39,7 @@ export default function UserProfilePage() {
 
     React.useEffect(() => {
         const fetchUser = async () => {
-            setIsLoadingUser(true);
+            setIsLoading(true);
             const userId = localStorage.getItem('loggedInUserId');
             if (userId) {
                 try {
@@ -61,7 +60,7 @@ export default function UserProfilePage() {
             } else {
                 setUser(null);
             }
-            setIsLoadingUser(false);
+            setIsLoading(false);
         };
         fetchUser();
     }, []);
@@ -112,7 +111,7 @@ export default function UserProfilePage() {
         }, 2000);
     };
 
-    if (isLoadingUser) {
+    if (isLoading) {
         return (
              <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -150,6 +149,7 @@ export default function UserProfilePage() {
                     <form onSubmit={handleUpdateProfile}>
                         <CardHeader>
                             <CardTitle>Personal Information</CardTitle>
+                            <CardDescription>Update your personal details here.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">

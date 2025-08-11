@@ -264,12 +264,13 @@ function WithdrawDialog({ onWithdraw, availableBalance }: { onWithdraw: (receipt
 }
 
 function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
-    const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
+    const [date, setDate] = React.useState('');
+    const [time, setTime] = React.useState('');
 
     React.useEffect(() => {
-        // This effect runs only on the client, preventing hydration mismatch
-        const date = new Date(withdrawal.date);
-        setFormattedDate(`${date.toLocaleDateString()} ${date.toLocaleTimeString()}`);
+        const d = new Date(withdrawal.date);
+        setDate(d.toLocaleDateString());
+        setTime(d.toLocaleTimeString());
     }, [withdrawal.date]);
     
     const isOwnerPayout = withdrawal.ownerName !== 'Admin';
@@ -277,13 +278,12 @@ function HistoryRow({ withdrawal }: { withdrawal: AdminWithdrawal }) {
     return (
         <TableRow>
             <TableCell>
-                {formattedDate ? (
+                {date ? (
                     <div>
-                        <div className="font-medium">{new Date(withdrawal.date).toLocaleDateString()}</div>
-                        <div className="text-xs text-muted-foreground">{new Date(withdrawal.date).toLocaleTimeString()}</div>
+                        <div className="font-medium">{date}</div>
+                        <div className="text-xs text-muted-foreground">{time}</div>
                     </div>
                 ) : (
-                    // Render a placeholder or nothing on the server and initial client render
                     <div className="font-medium">...</div>
                 )}
             </TableCell>
@@ -312,7 +312,6 @@ function CommissionRow({ payout }: { payout: Payout }) {
     const [formattedDate, setFormattedDate] = React.useState<string | null>(null);
 
     React.useEffect(() => {
-        // This effect runs only on the client, preventing hydration mismatch
         setFormattedDate(new Date(payout.date).toLocaleDateString());
     }, [payout.date]);
 
