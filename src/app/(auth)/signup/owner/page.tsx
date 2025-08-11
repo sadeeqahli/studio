@@ -59,12 +59,13 @@ export default function OwnerSignupForm() {
             role: 'Owner',
             registeredDate: new Date().toISOString().split('T')[0],
             status: 'Active', // Or 'Pending' if verification is a real step
-            pitchesListed: 0
+            pitchesListed: 0,
+            action: 'Signed Up'
         });
 
         toast({
-            title: "Verification Pending",
-            description: "Thank you for submitting. Please log in to continue once your account is approved.",
+            title: "Account Created",
+            description: "Thank you for signing up. Please log in to continue.",
         });
 
         router.push('/login?type=owner');
@@ -75,25 +76,14 @@ export default function OwnerSignupForm() {
       <CardHeader>
         <CardTitle className="text-xl">Create your Pitch Owner Account</CardTitle>
         <CardDescription>
-          Enter your information to list your pitch. Verification is required.
+          Enter your information to list your pitch.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSignup} className="grid gap-4">
-            <Alert>
-                <ShieldCheck className="h-4 w-4" />
-                <AlertTitle>Verification Required</AlertTitle>
-                <AlertDescription>
-                    To ensure the safety of our users, we require identity and business verification before you can list a pitch.
-                </AlertDescription>
-            </Alert>
           <div className="grid gap-2">
             <Label htmlFor="owner-name">Full Name</Label>
             <Input id="owner-name" placeholder="Tunde Ojo" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="pitch-name">Pitch Name / Business Name</Label>
-            <Input id="pitch-name" placeholder="Lekki Goals Arena" required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
@@ -126,20 +116,8 @@ export default function OwnerSignupForm() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
             />
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="nin">National Identification Number (NIN)</Label>
-            <Input id="nin" type="text" placeholder="Enter your 11-digit NIN" required maxLength={11} />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="document">NIN Verification Document</Label>
-            <Input id="document" type="file" required />
-            <p className="text-xs text-muted-foreground">Please upload your NIN slip or a clear photo of your National ID card.</p>
-          </div>
-
           <Button type="submit" className="w-full">
-            Submit for Verification
+            Create Account
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">

@@ -49,8 +49,6 @@ import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, 
 // USER ACTIONS
 export async function getUsers(): Promise<User[]> {
   // FIRESTORE: Replace with a call like `getDocs(collection(db, 'users'))`
-  // IMPORTANT FIX: Using structuredClone or a simple return to avoid stripping undefined fields.
-  // JSON.parse(JSON.stringify(...)) was causing crashes by removing optional properties.
   return structuredClone(placeholderCredentials);
 }
 
@@ -74,35 +72,25 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
         subscriptionPlan: user.subscriptionPlan,
         transactionPin: user.transactionPin,
     };
+    
+    // Ensure user is added to the main list first
+    const userExists = placeholderCredentials.some(
+        u => u.email.toLowerCase() === newUser.email.toLowerCase() && u.role === newUser.role
+    );
 
-    if (user.action === 'Signed Up') {
-        const userExists = placeholderCredentials.some(
-            u => u.email.toLowerCase() === newUser.email.toLowerCase() && u.role === newUser.role
-        );
-        if (!userExists) {
-            placeholderCredentials.push(newUser);
-            placeholderActivities.unshift({
-                id: `ACT-${Date.now()}`,
-                userName: newUser.name,
-                userRole: newUser.role as 'Player' | 'Owner',
-                action: 'Signed Up',
-                timestamp: new Date().toISOString(),
-            });
-        }
-    } else if (user.action === 'Logged In') {
+    if (!userExists) {
+        placeholderCredentials.push(newUser);
+    }
+
+    // Then, handle the activity log based on the action
+    if (user.action === 'Signed Up' || user.action === 'Logged In') {
         placeholderActivities.unshift({
             id: `ACT-${Date.now()}`,
             userName: newUser.name,
             userRole: newUser.role as 'Player' | 'Owner',
-            action: 'Logged In',
+            action: user.action,
             timestamp: new Date().toISOString(),
         });
-    } else {
-        // Fallback for just adding a user without a specific action (e.g. from tests or seeds)
-        const userExists = placeholderCredentials.some(u => u.id === newUser.id);
-        if (!userExists) {
-             placeholderCredentials.push(newUser);
-        }
     }
     
     // Revalidate paths to ensure the UI updates.

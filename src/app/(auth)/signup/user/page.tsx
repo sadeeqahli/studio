@@ -60,6 +60,7 @@ export default function UserSignupForm() {
         registeredDate: new Date().toISOString().split('T')[0],
         status: 'Active',
         totalBookings: 0,
+        action: 'Signed Up',
     });
 
     toast({
