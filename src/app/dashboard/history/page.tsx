@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Inbox, Loader2 } from "lucide-react";
 import type { Booking, User } from "@/lib/types";
 import { getUserById, getBookingsByUser } from "@/app/actions";
+import { getCookie } from "cookies-next";
 
 // This is now a Client Component again to use hooks
 export default function BookingHistory() {
@@ -26,9 +27,9 @@ export default function BookingHistory() {
   
   React.useEffect(() => {
     async function loadData() {
-        const loggedInUserId = localStorage.getItem('loggedInUserId');
+        const loggedInUserId = getCookie('loggedInUserId');
         if (loggedInUserId) {
-            const user = await getUserById(loggedInUserId);
+            const user = await getUserById(String(loggedInUserId));
             if (user) {
                 const bookings = await getBookingsByUser(user.name);
                 setUserBookings(bookings);

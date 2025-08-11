@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { addBooking, getUserById } from '@/app/actions';
+import { getCookie } from 'cookies-next';
 
 type BookingStatus = 'idle' | 'confirming';
 
@@ -189,9 +190,9 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
 
         const fetchUser = async () => {
             setIsLoadingUser(true);
-            const userId = localStorage.getItem('loggedInUserId');
+            const userId = getCookie('loggedInUserId');
             if (userId) {
-                const user = await getUserById(userId);
+                const user = await getUserById(String(userId));
                 setCurrentUser(user || null);
             }
             setIsLoadingUser(false);
@@ -490,7 +491,3 @@ const TermsDialogContent = () => (
         </ScrollArea>
     </DialogContent>
 );
-
-    
-
-    

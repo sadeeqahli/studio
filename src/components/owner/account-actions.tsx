@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -32,7 +33,6 @@ export function AccountActions() {
 
     const handleLogout = () => {
         deleteCookie('loggedInUserId');
-        localStorage.removeItem('loggedInUserId');
         toast({ title: "Logged Out", description: "You have been successfully logged out."});
         router.push('/login?type=owner');
     };
@@ -45,7 +45,6 @@ export function AccountActions() {
             variant: "destructive",
         });
         deleteCookie('loggedInUserId');
-        localStorage.removeItem('loggedInUserId');
         router.push('/');
     };
 

@@ -53,7 +53,6 @@ export function PasswordForm({ user }: { user: User }) {
         // Log the user out after a successful password change
         setTimeout(() => {
             deleteCookie('loggedInUserId');
-            localStorage.removeItem('loggedInUserId');
             router.push('/login');
         }, 2000);
     };

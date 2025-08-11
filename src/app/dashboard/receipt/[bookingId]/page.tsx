@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import html2canvas from 'html2canvas';
 import { getUserById, getReceiptBookingById } from '@/app/actions';
+import { getCookie } from 'cookies-next';
 
 
 export default function ReceiptPage() {
@@ -32,11 +33,11 @@ export default function ReceiptPage() {
         const loadBooking = async () => {
             setIsLoading(true);
             const bookingData = await getReceiptBookingById(bookingId);
-            const currentUserId = localStorage.getItem('loggedInUserId');
+            const currentUserId = getCookie('loggedInUserId');
             
             // Security check: Ensure the logged-in user is the one who made the booking
             if (currentUserId) {
-                const user = await getUserById(currentUserId);
+                const user = await getUserById(String(currentUserId));
                 if (user?.name === bookingData?.userName) {
                     setBooking(bookingData);
                 } else {
