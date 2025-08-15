@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import Link from "next/link"
@@ -17,57 +15,140 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
-import { addUser } from "@/app/actions";
+import { addUser, getUserByReferralCode, addReferral, generateReferralCode } from "@/app/actions";
+import { setCookie } from 'cookies-next'; // Assuming you have cookies-next installed for cookie management
 
 export default function UserSignupForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [firstName, setFirstName] = React.useState('');
-  const [lastName, setLastName] = React.useState('');
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [confirmPassword, setConfirmPassword] = React.useState('');
-
+  const [loading, setLoading] = React.useState(false);
+  const [formData, setFormData] = React.useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    referralCode: '',
+  });
 
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
+    setLoading(true);
 
-    if (password.length < 5) {
+    if (formData.password.length < 5) {
       toast({
           title: "Password Too Short",
           description: "Your password must be at least 5 characters long.",
           variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (formData.password !== formData.confirmPassword) {
       toast({
           title: "Passwords Do Not Match",
           description: "Please make sure your passwords match.",
           variant: "destructive",
       });
+      setLoading(false);
       return;
     }
 
-    // Add new user to our placeholder data
-    await addUser({
-        id: `USR-${Date.now()}`,
-        name: `${firstName} ${lastName}`,
-        email: email,
-        password: password,
-        role: 'Player',
-        registeredDate: new Date().toISOString().split('T')[0],
-        status: 'Active',
-        totalBookings: 0,
-        action: 'Signed Up',
-    });
+    // Check if user already exists (assuming 'users' is available in scope or fetched)
+    // For this example, we'll assume a function to check existing users.
+    // In a real app, you'd fetch this data or have it available.
+    const { getUsers } = await import('@/app/actions'); // Assuming getUsers action exists
+    const users = await getUsers();
+    const existingUser = users.find(
+      u => u.email.toLowerCase() === formData.email.toLowerCase() && u.role === 'Player'
+    );
 
-    toast({
-        title: "Account Created!",
-        description: "Welcome! Please log in to continue.",
-    });
-    router.push('/login');
+    if (existingUser) {
+      toast({
+        title: "Account exists",
+        description: "An account with this email already exists.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    // Validate referral code if provided
+    let referrer = null;
+    if (formData.referralCode.trim()) {
+      referrer = await getUserByReferralCode(formData.referralCode.trim());
+
+      if (!referrer) {
+        toast({
+          title: "Invalid referral code",
+          description: "The referral code you entered is not valid.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
+    const newUser = {
+      id: `USR-${Date.now()}`,
+      name: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      password: formData.password, // In a real app, hash the password
+      role: 'Player',
+      registeredDate: new Date().toISOString().split('T')[0],
+      status: 'Active',
+      totalBookings: 0,
+      rewardBalance: 0, // Initialize reward wallet
+      referralCount: 0,
+      referredBy: formData.referralCode.trim() || undefined,
+      action: 'Signed Up' as const,
+    };
+
+    try {
+      await addUser(newUser);
+
+      // Create referral record if user was referred
+      if (referrer) {
+        const referral = {
+          id: `REF-${Date.now()}`,
+          referrerId: referrer.id,
+          refereeId: newUser.id,
+          refereeEmail: newUser.email,
+          refereeName: newUser.name,
+          status: 'Pending',
+          completedBookings: 0,
+          bonusAwarded: false,
+          dateReferred: new Date().toISOString().split('T')[0],
+        };
+
+        await addReferral(referral);
+      }
+
+      // Generate referral code for the new user
+      await generateReferralCode(newUser.id);
+
+      // Set cookies for logged-in user
+      setCookie('loggedInUserId', newUser.id);
+      setCookie('loggedInUserRole', newUser.role);
+      setCookie('loggedInUserName', newUser.name);
+
+      toast({
+        title: "Account created!",
+        description: "Welcome to LinkHub Sports!",
+      });
+
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Signup error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -83,11 +164,25 @@ export default function UserSignupForm() {
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="first-name">First name</Label>
-              <Input id="first-name" placeholder="Max" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              <Input
+                id="first-name"
+                placeholder="Max"
+                required
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                disabled={loading}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="last-name">Last name</Label>
-              <Input id="last-name" placeholder="Robinson" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              <Input
+                id="last-name"
+                placeholder="Robinson"
+                required
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                disabled={loading}
+              />
             </div>
           </div>
           <div className="grid gap-2">
@@ -97,31 +192,44 @@ export default function UserSignupForm() {
               type="email"
               placeholder="m@example.com"
               required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              disabled={loading}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
+            <Input
+              id="password"
+              type="password"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              disabled={loading}
             />
           </div>
            <div className="grid gap-2">
             <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input 
-              id="confirm-password" 
-              type="password" 
-              required 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+            <Input
+              id="confirm-password"
+              type="password"
+              required
+              value={formData.confirmPassword}
+              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+              disabled={loading}
             />
           </div>
-          <Button type="submit" className="w-full">
+          <div className="grid gap-2">
+            <Label htmlFor="referralCode">Referral Code (Optional)</Label>
+            <Input
+              id="referralCode"
+              placeholder="Enter referral code if you have one"
+              value={formData.referralCode || ''}
+              onChange={(e) => setFormData({ ...formData, referralCode: e.target.value })}
+              disabled={loading}
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
             Create an account
           </Button>
         </form>

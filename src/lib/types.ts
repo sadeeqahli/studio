@@ -66,6 +66,10 @@ export type User = {
     pitchesListed?: number;
     subscriptionPlan?: 'Starter' | 'Plus' | 'Pro';
     transactionPin?: string;
+    rewardBalance?: number; // Cashback balance
+    referralCode?: string;
+    referredBy?: string;
+    referralCount?: number;
 };
 
 export type Transaction = {
@@ -111,4 +115,28 @@ export type Activity = {
     userRole: 'Player' | 'Owner';
     action: 'Logged In' | 'Signed Up';
     timestamp: string;
+};
+
+export type RewardTransaction = {
+    id: string;
+    userId: string;
+    type: 'Cashback' | 'Referral Bonus' | 'Used';
+    amount: number;
+    description: string;
+    date: string;
+    relatedBookingId?: string;
+    status: 'Active' | 'Used' | 'Expired';
+};
+
+export type Referral = {
+    id: string;
+    referrerId: string;
+    refereeId: string;
+    refereeEmail: string;
+    refereeName: string;
+    status: 'Pending' | 'Active' | 'Completed';
+    completedBookings: number;
+    bonusAwarded: boolean;
+    dateReferred: string;
+    dateCompleted?: string;
 };

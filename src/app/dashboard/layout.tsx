@@ -1,4 +1,3 @@
-
 "use client"
 
 import Link from "next/link"
@@ -9,6 +8,10 @@ import {
   LayoutDashboard,
   Goal,
   ShoppingCart,
+  Package,
+  Home,
+  User,
+  Gift,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -39,10 +42,11 @@ export default function DashboardLayout({
   };
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/shop", label: "Shop", icon: ShoppingCart },
-    { href: "/dashboard/history", label: "Booking History", icon: History },
-    { href: "/dashboard/profile", label: "Profile", icon: UserCircle },
+    { href: "/dashboard", label: "Dashboard", icon: Home },
+    { href: "/dashboard/shop", label: "Book a Pitch", icon: ShoppingCart },
+    { href: "/dashboard/rewards", label: "Reward Wallet", icon: Gift },
+    { href: "/dashboard/history", label: "Booking History", icon: Package },
+    { href: "/dashboard/profile", label: "Profile", icon: User },
   ];
 
   return (

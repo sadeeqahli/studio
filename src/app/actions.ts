@@ -42,9 +42,11 @@ import {
   placeholderActivities,
   placeholderAdminWithdrawals,
   placeholderPayoutsToOwners,
+  placeholderRewardTransactions,
+  placeholderReferrals,
   updatePitch as originalUpdatePitch,
 } from '@/lib/placeholder-data';
-import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout, ReceiptBooking } from '@/lib/types';
+import type { Pitch, Booking, User, Activity, AdminWithdrawal, OwnerWithdrawal, Payout, ReceiptBooking, RewardTransaction, Referral } from '@/lib/types';
 
 // USER ACTIONS
 export async function getUsers(): Promise<User[]> {
@@ -211,7 +213,7 @@ export async function getBookingsByUser(userName: string): Promise<Booking[]> {
     return allBookings.filter(b => b.customerName === userName);
 }
 
-export async function addBooking(booking: Booking): Promise<void> {
+export async function addBooking(booking: Booking & { userId?: string }): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'bookings', booking.id), booking)`
     placeholderBookings.unshift(booking);
     
@@ -236,6 +238,43 @@ export async function addBooking(booking: Booking): Promise<void> {
         };
         // FIRESTORE: Replace with `addDoc(collection(db, 'payouts'), newPayout)`
         placeholderPayouts.unshift(newPayout);
+        
+        // Add cashback (2% of booking amount)
+        if (booking.userId) {
+            const cashbackAmount = booking.amount * 0.02;
+            const cashbackTransaction: RewardTransaction = {
+                id: `RWD-CB-${Date.now()}`,
+                userId: booking.userId,
+                type: 'Cashback',
+                amount: cashbackAmount,
+                description: `Cashback from booking ${booking.id}`,
+                date: new Date().toISOString().split('T')[0],
+                relatedBookingId: booking.id,
+                status: 'Active'
+            };
+            
+            await addRewardTransaction(cashbackTransaction);
+            
+            // Check for referral completion
+            const user = await getUserById(booking.userId);
+            if (user?.referredBy) {
+                const referrer = await getUserByReferralCode(user.referredBy);
+                if (referrer) {
+                    // Update referral status
+                    const referral = placeholderReferrals.find(r => 
+                        r.referrerId === referrer.id && r.refereeId === user.id
+                    );
+                    if (referral && referral.status === 'Pending') {
+                        referral.status = 'Completed';
+                        referral.completedBookings = 1;
+                        referral.dateCompleted = new Date().toISOString().split('T')[0];
+                        
+                        // Check if referrer qualifies for bonus
+                        await processReferralBonus(referrer.id);
+                    }
+                }
+            }
+        }
     }
 
     revalidatePath('/dashboard/history');
@@ -244,6 +283,7 @@ export async function addBooking(booking: Booking): Promise<void> {
     revalidatePath('/owner/dashboard');
     revalidatePath('/admin/dashboard');
     revalidatePath('/owner/dashboard/wallet');
+    revalidatePath('/dashboard/rewards');
 }
 
 // PAYOUT & REVENUE ACTIONS
@@ -295,6 +335,127 @@ export async function addOwnerWithdrawal(withdrawal: OwnerWithdrawal): Promise<v
     revalidatePath('/owner/dashboard/wallet');
 }
 
+
+// REWARD WALLET ACTIONS
+export async function getRewardTransactions(userId?: string): Promise<RewardTransaction[]> {
+    // FIRESTORE: Replace with `getDocs(query(collection(db, 'rewardTransactions'), where('userId', '==', userId)))`
+    const allTransactions = structuredClone(placeholderRewardTransactions);
+    if (userId) {
+        return allTransactions.filter(t => t.userId === userId);
+    }
+    return allTransactions;
+}
+
+export async function addRewardTransaction(transaction: RewardTransaction): Promise<void> {
+    // FIRESTORE: Replace with `addDoc(collection(db, 'rewardTransactions'), transaction)`
+    placeholderRewardTransactions.unshift(transaction);
+    
+    // Update user's reward balance
+    const user = await getUserById(transaction.userId);
+    if (user) {
+        const currentBalance = user.rewardBalance || 0;
+        const newBalance = transaction.type === 'Used' 
+            ? currentBalance - Math.abs(transaction.amount)
+            : currentBalance + transaction.amount;
+        
+        await updateUser({
+            ...user,
+            rewardBalance: Math.max(0, newBalance)
+        });
+    }
+    
+    revalidatePath('/dashboard/rewards');
+    revalidatePath('/dashboard');
+}
+
+export async function useRewardBalance(userId: string, amount: number, bookingId: string): Promise<boolean> {
+    const user = await getUserById(userId);
+    if (!user || !user.rewardBalance || user.rewardBalance < amount) {
+        return false;
+    }
+    
+    const transaction: RewardTransaction = {
+        id: `RWD-USE-${Date.now()}`,
+        userId,
+        type: 'Used',
+        amount: -amount,
+        description: `Reward used for booking ${bookingId}`,
+        date: new Date().toISOString().split('T')[0],
+        relatedBookingId: bookingId,
+        status: 'Used'
+    };
+    
+    await addRewardTransaction(transaction);
+    return true;
+}
+
+// REFERRAL ACTIONS
+export async function getReferrals(referrerId?: string): Promise<Referral[]> {
+    // FIRESTORE: Replace with `getDocs(query(collection(db, 'referrals'), where('referrerId', '==', referrerId)))`
+    const allReferrals = structuredClone(placeholderReferrals);
+    if (referrerId) {
+        return allReferrals.filter(r => r.referrerId === referrerId);
+    }
+    return allReferrals;
+}
+
+export async function addReferral(referral: Referral): Promise<void> {
+    // FIRESTORE: Replace with `addDoc(collection(db, 'referrals'), referral)`
+    placeholderReferrals.unshift(referral);
+    revalidatePath('/dashboard/referrals');
+}
+
+export async function processReferralBonus(userId: string): Promise<void> {
+    const userReferrals = await getReferrals(userId);
+    const completedReferrals = userReferrals.filter(r => r.status === 'Completed' && r.completedBookings >= 1);
+    
+    // Check if user has 10 or more completed referrals and hasn't received bonus yet
+    if (completedReferrals.length >= 10) {
+        const unbonusedReferrals = completedReferrals.filter(r => !r.bonusAwarded);
+        
+        if (unbonusedReferrals.length >= 10) {
+            // Award 5000 naira bonus
+            const bonusTransaction: RewardTransaction = {
+                id: `RWD-REF-${Date.now()}`,
+                userId,
+                type: 'Referral Bonus',
+                amount: 5000,
+                description: 'Referral bonus for 10 successful referrals',
+                date: new Date().toISOString().split('T')[0],
+                status: 'Active'
+            };
+            
+            await addRewardTransaction(bonusTransaction);
+            
+            // Mark referrals as bonus awarded
+            unbonusedReferrals.slice(0, 10).forEach(r => {
+                r.bonusAwarded = true;
+            });
+        }
+    }
+}
+
+export async function generateReferralCode(userId: string): Promise<string> {
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+    
+    if (user.referralCode) {
+        return user.referralCode;
+    }
+    
+    const code = `${user.name.slice(0, 4).toUpperCase()}${userId.slice(-3)}`;
+    await updateUser({
+        ...user,
+        referralCode: code
+    });
+    
+    return code;
+}
+
+export async function getUserByReferralCode(code: string): Promise<User | undefined> {
+    const users = await getUsers();
+    return users.find(u => u.referralCode === code);
+}
 
 // HELPER ACTIONS
 export async function getUserByPitchName(pitchName: string): Promise<User | undefined> {
