@@ -1,6 +1,5 @@
 
 import * as React from 'react';
-import { getCookie } from 'cookies-next';
 import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getUserById, getOwnerPitches, getBookingsByOwner } from '@/app/actions';
@@ -9,7 +8,9 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 
 // This is now an async Server Component, its only job is to fetch data.
 export default async function OwnerDashboard() {
-  const ownerId = getCookie('loggedInUserId', { cookies });
+  const cookieStore = await cookies();
+  const ownerIdCookie = cookieStore.get('loggedInUserId');
+  const ownerId = ownerIdCookie?.value;
   if (!ownerId) {
     // This can happen if the cookie expires.
     // Show an error card instead of just calling notFound().

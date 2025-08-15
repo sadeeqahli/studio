@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -68,7 +67,7 @@ export function AddPitchDialog({ isOpen, setIsOpen, onSave, pitch }: AddPitchDia
     formState: { errors },
   } = useForm<PitchForm>({
     resolver: zodResolver(pitchSchema, {
-        context: { pitch } 
+        context: { pitch }
     }),
     defaultValues: {
       name: '',

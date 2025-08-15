@@ -20,7 +20,6 @@ import {
   Star,
   AlertCircle
 } from "lucide-react";
-import { getCookie } from "cookies-next";
 import { cookies } from "next/headers";
 import { 
   getUserById, 
@@ -33,7 +32,9 @@ import { RewardsClient } from "./rewards-client";
 import { notFound } from "next/navigation";
 
 export default async function RewardsPage() {
-  const userId = getCookie('loggedInUserId', { cookies });
+  const cookieStore = await cookies();
+  const userIdCookie = cookieStore.get('loggedInUserId');
+  const userId = userIdCookie?.value;
   
   if (!userId) {
     notFound();
