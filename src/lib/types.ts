@@ -1,5 +1,3 @@
-
-
 export type Pitch = {
   id: string;
   ownerId: string;
@@ -58,18 +56,22 @@ export type User = {
     id: string;
     name: string;
     email: string;
-    password?: string;
+    password: string;
     role: 'Player' | 'Owner' | 'Admin';
     registeredDate: string;
-    status: 'Active' | 'Suspended';
-    totalBookings?: number;
-    pitchesListed?: number;
-    subscriptionPlan?: 'Starter' | 'Plus' | 'Pro';
-    transactionPin?: string;
-    rewardBalance?: number; // Cashback balance
-    referralCode?: string;
-    referredBy?: string;
-    referralCount?: number;
+    status: 'Active' | 'Pending' | 'Inactive';
+    pitchesListed?: number; // Only for owners
+    action?: string;
+    subscriptionPlan?: string;
+    rewardBalance?: number; // Only for players
+    referralCode?: string; // Only for players
+    bvn?: string; // Only for owners
+    nin?: string; // Only for owners
+    addressProofFileName?: string; // Only for owners
+    verificationStatus?: 'Pending' | 'Verified' | 'Rejected'; // Only for owners
+    trialStartDate?: string; // Only for owners
+    trialEndDate?: string; // Only for owners
+    isInTrial?: boolean; // Only for owners
 };
 
 export type Transaction = {

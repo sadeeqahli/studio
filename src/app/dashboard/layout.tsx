@@ -43,7 +43,7 @@ export default function DashboardLayout({
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
-    { href: "/dashboard/shop", label: "Book a Pitch", icon: ShoppingCart },
+    { href: "/dashboard/shop", label: "Shop", icon: ShoppingCart },
     { href: "/dashboard/rewards", label: "Reward Wallet", icon: Gift },
     { href: "/dashboard/history", label: "Booking History", icon: Package },
     { href: "/dashboard/profile", label: "Profile", icon: User },
