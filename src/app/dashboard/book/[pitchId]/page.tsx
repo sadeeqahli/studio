@@ -5,8 +5,8 @@ import { getPitchById, getBookingsByPitch, getUserById } from '@/app/actions';
 import { BookingClient } from '@/components/booking-client';
 
 
-export default async function BookingPage({ params }: { params: { pitchId: string } }) {
-    const { pitchId } = params;
+export default async function BookingPage({ params }: { params: Promise<{ pitchId: string }> }) {
+    const { pitchId } = await params;
 
     // Fetch pitch and owner data on the server
     const pitch = await getPitchById(pitchId);

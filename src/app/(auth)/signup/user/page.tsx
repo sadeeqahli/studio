@@ -133,6 +133,10 @@ export default function UserSignupForm() {
         description: "Please log in to access your dashboard.",
       });
 
+      // Clear any existing login cookies to ensure fresh login
+      const { deleteCookie } = await import('cookies-next');
+      deleteCookie('loggedInUserId');
+      
       router.push('/login?message=signup-success');
     } catch (error) {
       console.error('Signup error:', error);

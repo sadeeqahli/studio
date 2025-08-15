@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -12,7 +11,7 @@ import {
 } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock } from "lucide-react"
+import { Landmark, Loader2, ArrowUp, Copy, CheckCircle, Printer, Share2, Lock, Wallet } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -224,7 +223,7 @@ function WithdrawDialog({ onWithdraw, balance, owner }: { onWithdraw: (receipt: 
              setIsOpen(false);
             return;
         }
-        
+
         if (pin !== owner.transactionPin) {
             toast({ title: "Invalid PIN", description: "The transaction PIN you entered is incorrect.", variant: "destructive" });
             return;
@@ -241,7 +240,7 @@ function WithdrawDialog({ onWithdraw, balance, owner }: { onWithdraw: (receipt: 
             accountName: owner.name,
             status: 'Successful'
         };
-        
+
         const newWithdrawalRecord: OwnerWithdrawal = {
             id: `OWN-WDR-${Date.now()}`,
             date: new Date().toISOString(),
@@ -249,7 +248,7 @@ function WithdrawDialog({ onWithdraw, balance, owner }: { onWithdraw: (receipt: 
             status: 'Successful',
             ownerName: owner.name,
         };
-        
+
         await addOwnerWithdrawal(newWithdrawalRecord);
         onWithdraw(newReceipt, newWithdrawalRecord);
         setIsLoading(false);
@@ -322,7 +321,7 @@ interface WalletClientProps {
     initialTransactions: Transaction[];
 }
 
-export function WalletClient({ owner, totalBalance, initialTransactions }: WalletClientProps) {
+export function WalletClient({ owner: currentUser, totalBalance, initialTransactions }: WalletClientProps) {
     const router = useRouter();
     const [receipt, setReceipt] = React.useState<WithdrawalReceipt | null>(null);
     const [isReceiptOpen, setIsReceiptOpen] = React.useState(false);
@@ -332,27 +331,41 @@ export function WalletClient({ owner, totalBalance, initialTransactions }: Walle
         setIsReceiptOpen(true);
         router.refresh(); // Refresh server component to get new transaction list
     };
-    
+
+    // Assuming availableBalance is the same as totalBalance for this context
+    const availableBalance = totalBalance;
+
     return (
         <>
             <div className="flex items-center justify-between flex-wrap gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">My Wallet</h1>
-                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} owner={owner} />
+                <WithdrawDialog onWithdraw={handleWithdraw} balance={totalBalance} owner={currentUser} />
             </div>
-            
+
             {receipt && <WithdrawalReceiptDialog receipt={receipt} isOpen={isReceiptOpen} setIsOpen={setIsReceiptOpen} />}
-            
+
             <div className="grid md:grid-cols-2 gap-6">
                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-                        <Landmark className="h-4 w-4 text-muted-foreground" />
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Wallet className="h-5 w-5" />
+                            Wallet Overview
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₦{totalBalance.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Funds available for withdrawal.
-                        </p>
+                        <div className="text-center space-y-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Available Balance</p>
+                                <p className="text-3xl font-bold text-primary">₦{availableBalance.toLocaleString()}</p>
+                            </div>
+                            {currentUser?.virtualAccountNumber && (
+                                <div className="p-3 bg-muted/50 rounded-lg">
+                                    <p className="text-xs text-muted-foreground mb-1">Virtual Account</p>
+                                    <p className="font-mono text-sm font-semibold">{currentUser.virtualAccountNumber}</p>
+                                    <p className="text-xs text-muted-foreground mt-1">9ja Pitch Connect Bank</p>
+                                </div>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
                  <PayoutScheduleCard />

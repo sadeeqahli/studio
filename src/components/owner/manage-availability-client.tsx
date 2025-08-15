@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -18,6 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     const slots = [];
@@ -52,7 +52,7 @@ function AddManualBookingDialog({
     const [startTime, setStartTime] = React.useState<string>("");
     const [endTime, setEndTime] = React.useState<string>("");
     const [availableSlots, setAvailableSlots] = React.useState<string[]>([]);
-    
+
     // Generate hourly time slots for selection
     const generateHourlySlots = () => {
         const slots = [];
@@ -64,7 +64,7 @@ function AddManualBookingDialog({
     };
 
     const hourlySlots = generateHourlySlots();
-    
+
     React.useEffect(() => {
         if (selectedDate) {
             const allSlots = generateTimeSlots(pitch, selectedDate);
@@ -77,7 +77,7 @@ function AddManualBookingDialog({
             setAvailableSlots(allSlots.filter(slot => !bookedSlots.has(slot)));
         }
     }, [selectedDate, pitch, isOpen, bookings]);
-    
+
     const manualBookingsOnDate = bookings.filter(b => 
         b.pitchName === pitch.name &&
         b.date === (selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '') &&
@@ -89,22 +89,22 @@ function AddManualBookingDialog({
     // Generate time slots between start and end time
     const generateSelectedTimeSlots = (start: string, end: string) => {
         if (!start || !end) return [];
-        
+
         const startHour = parseInt(start.split(':')[0]);
         const endHour = parseInt(end.split(':')[0]);
-        
+
         if (startHour >= endHour) return [];
-        
+
         const slots = [];
         const baseDate = selectedDate ? new Date(selectedDate) : new Date();
         baseDate.setHours(0, 0, 0, 0);
-        
+
         for (let hour = startHour; hour < endHour; hour += pitch.slotInterval / 60) {
             const slotTime = new Date(baseDate);
             slotTime.setHours(Math.floor(hour), (hour % 1) * 60);
             slots.push(format(slotTime, 'hh:mm a'));
         }
-        
+
         return slots;
     };
 
@@ -131,7 +131,7 @@ function AddManualBookingDialog({
 
         const startHour = parseInt(startTime.split(':')[0]);
         const endHour = parseInt(endTime.split(':')[0]);
-        
+
         if (startHour >= endHour) {
             toast({ title: "End time must be after start time", variant: "destructive" });
             return;
@@ -151,7 +151,7 @@ function AddManualBookingDialog({
         setIsLoading(true);
 
         const newBookingId = `TXN-OFFLINE-${Math.floor(Math.random() * 90000) + 10000}`;
-        
+
         const newBooking: Booking = {
             id: newBookingId,
             pitchName: pitch.name,
@@ -162,7 +162,7 @@ function AddManualBookingDialog({
             customerName: customerName,
             bookingType: 'Offline',
         };
-        
+
         await addBooking(newBooking);
         onManualBooking(newBooking);
 
@@ -206,7 +206,7 @@ function AddManualBookingDialog({
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="start-time">Start Time</Label>
@@ -223,7 +223,7 @@ function AddManualBookingDialog({
                                     </SelectContent>
                                 </Select>
                             </div>
-                            
+
                             <div className="space-y-2">
                                 <Label htmlFor="end-time">End Time</Label>
                                 <Select onValueChange={setEndTime} value={endTime}>
@@ -253,7 +253,7 @@ function AddManualBookingDialog({
                                 </div>
                             </div>
                         )}
-                        
+
                         <div className="space-y-2">
                             <Label htmlFor="customer-name">Customer Name</Label>
                             <Input 
@@ -295,7 +295,7 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
 
     const { bookedSlotsForDate, manualBookingsToday, allDaySlots } = React.useMemo(() => {
         if (!pitch || !selectedDate) return { bookedSlotsForDate: new Map(), manualBookingsToday: 0, allDaySlots: [] };
-        
+
         const slotMap = new Map<string, Booking>();
         let manualCount = 0;
 
@@ -309,13 +309,13 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
                     manualCount++;
                 }
             });
-            
+
         const slotsForDay = generateTimeSlots(pitch, selectedDate);
-        
+
         return { bookedSlotsForDate: slotMap, manualBookingsToday: manualCount, allDaySlots: slotsForDay };
 
     }, [pitch, dateKey, bookings, selectedDate]);
-    
+
     const handleManualBooking = (newBooking: Booking) => {
         setBookings(prev => [newBooking, ...prev]);
     }
@@ -342,12 +342,30 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
                 </CardHeader>
                 <CardContent className="grid md:grid-cols-2 gap-8">
                     <div className="flex justify-center">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            className="rounded-md border"
-                        />
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !selectedDate && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 z-50">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={setSelectedDate}
+                                    initialFocus
+                                    fromDate={new Date()}
+                                    className="rounded-md border shadow-md"
+                                />
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
@@ -358,7 +376,7 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
                                 {manualBookingsToday}/2 Manual Bookings
                             </Badge>
                         </div>
-                        
+
                         <div className="space-y-2 max-h-96 overflow-y-auto pr-2 border rounded-md p-2">
                              {allDaySlots.length > 0 ? (
                                 allDaySlots.map((slot) => {
@@ -400,7 +418,3 @@ export function ManageAvailabilityClient({ pitch, initialBookings }: { pitch: Pi
         </div>
     )
 }
-
-    
-
-    
