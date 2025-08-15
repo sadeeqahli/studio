@@ -9,7 +9,7 @@
 // =================================================================================
 
 
-import type { User, Pitch, Booking, Payout, Activity, AdminWithdrawal, OwnerWithdrawal, RewardTransaction, Referral } from './types';
+import type { User, Pitch, Booking, Payout, Activity, AdminWithdrawal, OwnerWithdrawal, RewardTransaction, Referral, Transaction } from './types';
 
 // This is a new data structure to simulate a user credential store.
 export let placeholderCredentials: User[] = [
@@ -23,7 +23,33 @@ export let placeholderCredentials: User[] = [
         registeredDate: new Date().toISOString().split('T')[0],
         status: 'Active',
         action: 'System Account'
-    }
+    },
+    {
+    id: 'USR-1001',
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'password123',
+    role: 'Owner',
+    registeredDate: '2024-01-15',
+    status: 'Active',
+    pitchesListed: 2,
+    action: 'Listed Pitch',
+    virtualAccountNumber: '8100100000',
+    virtualAccountBalance: 0
+  },
+  {
+    id: 'USR-1002',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    password: 'password456',
+    role: 'Owner',
+    registeredDate: '2024-01-20',
+    status: 'Active',
+    pitchesListed: 1,
+    action: 'Signed Up',
+    virtualAccountNumber: '8100200000',
+    virtualAccountBalance: 0
+  },
     // All other placeholder data removed - real data will be populated when users sign up
 ];
 

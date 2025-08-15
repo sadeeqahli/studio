@@ -1,4 +1,3 @@
-
 'use server';
 
 // =================================================================================
@@ -60,6 +59,13 @@ export async function getUserById(id: string): Promise<User | undefined> {
   return users.find(u => u.id === id);
 }
 
+// Generate virtual account number for pitch owners
+function generateVirtualAccountNumber(userId: string): string {
+  // Create a 10-digit account number starting with 8
+  const numericId = userId.replace(/\D/g, '').slice(0, 9);
+  return `8${numericId.padEnd(9, '0')}`;
+}
+
 export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' }): Promise<void> {
     const newUser: User = {
         id: user.id,
@@ -77,7 +83,13 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
         referralCode: user.referralCode,
         referredBy: user.referredBy,
     };
-    
+
+    // Generate virtual account for pitch owners
+    if (newUser.role === 'Owner') {
+        newUser.virtualAccountNumber = generateVirtualAccountNumber(newUser.id);
+        newUser.virtualAccountBalance = 0;
+    }
+
     // Ensure user is added to the main list first
     const userExists = placeholderCredentials.some(
         u => u.email.toLowerCase() === newUser.email.toLowerCase() && u.role === newUser.role
@@ -97,7 +109,7 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
             timestamp: new Date().toISOString(),
         });
     }
-    
+
     // Revalidate paths to ensure the UI updates.
     revalidatePath('/admin/dashboard/users');
     revalidatePath('/(auth)/login');
@@ -219,7 +231,7 @@ export async function getBookingsByUser(userName: string): Promise<Booking[]> {
 export async function addBooking(booking: Booking & { userId?: string }): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'bookings', booking.id), booking)`
     placeholderBookings.unshift(booking);
-    
+
     // Update user's total bookings count
     if (booking.userId) {
         const user = await getUserById(booking.userId);
@@ -231,7 +243,7 @@ export async function addBooking(booking: Booking & { userId?: string }): Promis
             await updateUser(updatedUser);
         }
     }
-    
+
     // This logic would likely move into a Cloud Function triggered by a new booking document
     // to ensure it's secure and reliable.
     if (booking.bookingType === 'Online') {
@@ -253,7 +265,7 @@ export async function addBooking(booking: Booking & { userId?: string }): Promis
         };
         // FIRESTORE: Replace with `addDoc(collection(db, 'payouts'), newPayout)`
         placeholderPayouts.unshift(newPayout);
-        
+
         // Add cashback (2% of booking amount)
         if (booking.userId) {
             const cashbackAmount = booking.amount * 0.02;
@@ -267,9 +279,9 @@ export async function addBooking(booking: Booking & { userId?: string }): Promis
                 relatedBookingId: booking.id,
                 status: 'Active'
             };
-            
+
             await addRewardTransaction(cashbackTransaction);
-            
+
             // Check for referral completion
             const user = await getUserById(booking.userId);
             if (user?.referredBy) {
@@ -283,7 +295,7 @@ export async function addBooking(booking: Booking & { userId?: string }): Promis
                         referral.status = 'Completed';
                         referral.completedBookings = 1;
                         referral.dateCompleted = new Date().toISOString().split('T')[0];
-                        
+
                         // Check if referrer qualifies for bonus
                         await processReferralBonus(referrer.id);
                     }
@@ -364,7 +376,7 @@ export async function getRewardTransactions(userId?: string): Promise<RewardTran
 export async function addRewardTransaction(transaction: RewardTransaction): Promise<void> {
     // FIRESTORE: Replace with `addDoc(collection(db, 'rewardTransactions'), transaction)`
     placeholderRewardTransactions.unshift(transaction);
-    
+
     // Update user's reward balance
     const user = await getUserById(transaction.userId);
     if (user) {
@@ -372,13 +384,13 @@ export async function addRewardTransaction(transaction: RewardTransaction): Prom
         const newBalance = transaction.type === 'Used' 
             ? currentBalance - Math.abs(transaction.amount)
             : currentBalance + transaction.amount;
-        
+
         await updateUser({
             ...user,
             rewardBalance: Math.max(0, newBalance)
         });
     }
-    
+
     revalidatePath('/dashboard/rewards');
     revalidatePath('/dashboard');
 }
@@ -388,7 +400,7 @@ export async function useRewardBalance(userId: string, amount: number, bookingId
     if (!user || !user.rewardBalance || user.rewardBalance < amount) {
         return false;
     }
-    
+
     const transaction: RewardTransaction = {
         id: `RWD-USE-${Date.now()}`,
         userId,
@@ -399,7 +411,7 @@ export async function useRewardBalance(userId: string, amount: number, bookingId
         relatedBookingId: bookingId,
         status: 'Used'
     };
-    
+
     await addRewardTransaction(transaction);
     return true;
 }
@@ -423,11 +435,11 @@ export async function addReferral(referral: Referral): Promise<void> {
 export async function processReferralBonus(userId: string): Promise<void> {
     const userReferrals = await getReferrals(userId);
     const completedReferrals = userReferrals.filter(r => r.status === 'Completed' && r.completedBookings >= 1);
-    
+
     // Check if user has 10 or more completed referrals and hasn't received bonus yet
     if (completedReferrals.length >= 10) {
         const unbonusedReferrals = completedReferrals.filter(r => !r.bonusAwarded);
-        
+
         if (unbonusedReferrals.length >= 10) {
             // Award 5000 naira bonus
             const bonusTransaction: RewardTransaction = {
@@ -439,9 +451,9 @@ export async function processReferralBonus(userId: string): Promise<void> {
                 date: new Date().toISOString().split('T')[0],
                 status: 'Active'
             };
-            
+
             await addRewardTransaction(bonusTransaction);
-            
+
             // Mark referrals as bonus awarded
             unbonusedReferrals.slice(0, 10).forEach(r => {
                 r.bonusAwarded = true;
@@ -453,17 +465,17 @@ export async function processReferralBonus(userId: string): Promise<void> {
 export async function generateReferralCode(userId: string): Promise<string> {
     const user = await getUserById(userId);
     if (!user) throw new Error('User not found');
-    
+
     if (user.referralCode) {
         return user.referralCode;
     }
-    
+
     const code = `${user.name.slice(0, 4).toUpperCase()}${userId.slice(-3)}`;
     await updateUser({
         ...user,
         referralCode: code
     });
-    
+
     return code;
 }
 
@@ -478,4 +490,19 @@ export async function getUserByPitchName(pitchName: string): Promise<User | unde
     const pitch = allPitches.find(p => p.name === pitchName);
     if (!pitch || !pitch.ownerId) return undefined;
     return await getUserById(pitch.ownerId);
+}
+
+export async function updateUserBookingCount(userId: string) {
+  const userIndex = placeholderCredentials.findIndex(u => u.id === userId);
+  if (userIndex !== -1) {
+    placeholderCredentials[userIndex].totalBookings = (placeholderCredentials[userIndex].totalBookings || 0) + 1;
+  }
+}
+
+export async function updateOwnerBalance(ownerId: string, amount: number) {
+  const ownerIndex = placeholderCredentials.findIndex(u => u.id === ownerId && u.role === 'Owner');
+  if (ownerIndex !== -1) {
+    const currentBalance = placeholderCredentials[ownerIndex].virtualAccountBalance || 0;
+    placeholderCredentials[ownerIndex].virtualAccountBalance = currentBalance + amount;
+  }
 }

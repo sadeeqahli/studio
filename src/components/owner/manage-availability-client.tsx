@@ -49,8 +49,21 @@ function AddManualBookingDialog({
     const [isLoading, setIsLoading] = React.useState(false);
     const [customerName, setCustomerName] = React.useState("");
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-    const [selectedSlot, setSelectedSlot] = React.useState<string | undefined>();
+    const [startTime, setStartTime] = React.useState<string>("");
+    const [endTime, setEndTime] = React.useState<string>("");
     const [availableSlots, setAvailableSlots] = React.useState<string[]>([]);
+    
+    // Generate hourly time slots for selection
+    const generateHourlySlots = () => {
+        const slots = [];
+        for (let hour = 0; hour < 24; hour++) {
+            const time = `${hour.toString().padStart(2, '0')}:00`;
+            slots.push(time);
+        }
+        return slots;
+    };
+
+    const hourlySlots = generateHourlySlots();
     
     React.useEffect(() => {
         if (selectedDate) {
@@ -62,7 +75,6 @@ function AddManualBookingDialog({
                     .flatMap(b => b.time.split(', '))
             );
             setAvailableSlots(allSlots.filter(slot => !bookedSlots.has(slot)));
-            setSelectedSlot(undefined); // Reset slot selection when date changes
         }
     }, [selectedDate, pitch, isOpen, bookings]);
     
@@ -74,24 +86,67 @@ function AddManualBookingDialog({
 
     const limitReached = manualBookingsOnDate >= 2;
 
+    // Generate time slots between start and end time
+    const generateSelectedTimeSlots = (start: string, end: string) => {
+        if (!start || !end) return [];
+        
+        const startHour = parseInt(start.split(':')[0]);
+        const endHour = parseInt(end.split(':')[0]);
+        
+        if (startHour >= endHour) return [];
+        
+        const slots = [];
+        const baseDate = selectedDate ? new Date(selectedDate) : new Date();
+        baseDate.setHours(0, 0, 0, 0);
+        
+        for (let hour = startHour; hour < endHour; hour += pitch.slotInterval / 60) {
+            const slotTime = new Date(baseDate);
+            slotTime.setHours(Math.floor(hour), (hour % 1) * 60);
+            slots.push(format(slotTime, 'hh:mm a'));
+        }
+        
+        return slots;
+    };
+
+    const selectedTimeSlots = generateSelectedTimeSlots(startTime, endTime);
+
 
     const handleConfirmBooking = async () => {
         if (!customerName) {
             toast({ title: "Customer name is required", variant: "destructive" });
             return;
         }
-         if (!selectedSlot) {
-            toast({ title: "Please select a time slot", variant: "destructive" });
+        if (!startTime || !endTime) {
+            toast({ title: "Please select start and end time", variant: "destructive" });
             return;
         }
-         if (!selectedDate) {
-             toast({ title: "Please select a date", variant: "destructive" });
-             return;
-         }
-         if (limitReached) {
-             toast({ title: "Daily limit for manual bookings reached.", variant: "destructive" });
-             return;
-         }
+        if (!selectedDate) {
+            toast({ title: "Please select a date", variant: "destructive" });
+            return;
+        }
+        if (limitReached) {
+            toast({ title: "Daily limit for manual bookings reached.", variant: "destructive" });
+            return;
+        }
+
+        const startHour = parseInt(startTime.split(':')[0]);
+        const endHour = parseInt(endTime.split(':')[0]);
+        
+        if (startHour >= endHour) {
+            toast({ title: "End time must be after start time", variant: "destructive" });
+            return;
+        }
+
+        // Check if any of the selected slots are already booked
+        const conflictingSlots = selectedTimeSlots.filter(slot => !availableSlots.includes(slot));
+        if (conflictingSlots.length > 0) {
+            toast({ 
+                title: "Time slot conflict", 
+                description: `Some selected time slots are already booked: ${conflictingSlots.join(', ')}`,
+                variant: "destructive" 
+            });
+            return;
+        }
 
         setIsLoading(true);
 
@@ -101,7 +156,7 @@ function AddManualBookingDialog({
             id: newBookingId,
             pitchName: pitch.name,
             date: format(selectedDate, 'yyyy-MM-dd'),
-            time: selectedSlot,
+            time: selectedTimeSlots.join(', '),
             amount: 0,
             status: 'Paid',
             customerName: customerName,
@@ -113,12 +168,13 @@ function AddManualBookingDialog({
 
         toast({
             title: "Manual Booking Created",
-            description: `Slot ${selectedSlot} has been booked for ${customerName}.`,
+            description: `Time slots ${startTime} - ${endTime} booked for ${customerName}.`,
         });
         setIsLoading(false);
         setIsOpen(false);
         setCustomerName("");
-        setSelectedSlot(undefined);
+        setStartTime("");
+        setEndTime("");
     }
 
     return (
@@ -136,40 +192,77 @@ function AddManualBookingDialog({
                         Manually book a slot for your pitch. This will be recorded in your history.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="py-4 space-y-4">
-                     <div className="grid md:grid-cols-2 gap-4">
+                <div className="py-4 space-y-6">
+                    <div className="grid gap-6">
+                        <div className="space-y-3">
+                            <Label className="text-sm font-medium">Select Date</Label>
+                            <div className="flex justify-center">
+                                <Calendar
+                                    mode="single"
+                                    selected={selectedDate}
+                                    onSelect={setSelectedDate}
+                                    className="rounded-lg border shadow-sm bg-background"
+                                    disabled={(date) => date < new Date()}
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="start-time">Start Time</Label>
+                                <Select onValueChange={setStartTime} value={startTime}>
+                                    <SelectTrigger id="start-time">
+                                        <SelectValue placeholder="Select start time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hourlySlots.map(time => (
+                                            <SelectItem key={time} value={time}>
+                                                {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="end-time">End Time</Label>
+                                <Select onValueChange={setEndTime} value={endTime}>
+                                    <SelectTrigger id="end-time">
+                                        <SelectValue placeholder="Select end time" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hourlySlots.map(time => (
+                                            <SelectItem key={time} value={time}>
+                                                {format(new Date(`2000-01-01T${time}`), 'h:mm a')}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        {startTime && endTime && selectedTimeSlots.length > 0 && (
+                            <div className="p-3 bg-muted/50 rounded-lg">
+                                <Label className="text-sm font-medium mb-2 block">Selected Time Slots:</Label>
+                                <div className="flex flex-wrap gap-1">
+                                    {selectedTimeSlots.map(slot => (
+                                        <Badge key={slot} variant="outline" className="text-xs">
+                                            {slot}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
                         <div className="space-y-2">
-                             <Label>Date</Label>
-                            <Calendar
-                                mode="single"
-                                selected={selectedDate}
-                                onSelect={setSelectedDate}
-                                className="rounded-md border"
+                            <Label htmlFor="customer-name">Customer Name</Label>
+                            <Input 
+                                id="customer-name" 
+                                placeholder="Enter customer's full name"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
                             />
                         </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="slot-select">Time Slot</Label>
-                             <Select onValueChange={setSelectedSlot} value={selectedSlot} disabled={!selectedDate || availableSlots.length === 0}>
-                                <SelectTrigger id="slot-select">
-                                    <SelectValue placeholder="Select a time" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableSlots.map(slot => <SelectItem key={slot} value={slot}>{slot}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                             {selectedDate && availableSlots.length === 0 && (
-                                <p className="text-xs text-muted-foreground">No available slots for this day.</p>
-                            )}
-                         </div>
-                    </div>
-                     <div>
-                        <Label htmlFor="customer-name">Customer Name</Label>
-                        <Input 
-                            id="customer-name" 
-                            placeholder="Enter customer's full name"
-                            value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
-                        />
                     </div>
                 </div>
                  {limitReached && (

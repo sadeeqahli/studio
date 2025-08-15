@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link"
@@ -19,6 +18,8 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast";
 import { addUser, getUsers } from "@/app/actions";
 import { User } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react"
 
 export default function LoginForm() {
   const router = useRouter();
@@ -27,13 +28,16 @@ export default function LoginForm() {
   const userType = searchParams.get('type');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const isOwnerLogin = searchParams.get('type') === 'owner';
+  const verificationMessage = searchParams.get('message') === 'verification-pending';
+  const signupSuccess = searchParams.get('message') === 'signup-success';
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
-    
+
     const isOwner = userType === 'owner';
     const expectedRole = isOwner ? 'Owner' : 'Player';
-    
+
     // In a real app, this would be a single API call.
     // Here we fetch all users and filter, which is inefficient but works for the prototype.
     const users = await getUsers();
@@ -54,12 +58,12 @@ export default function LoginForm() {
 
       const redirectPath = isOwner ? '/owner/dashboard' : '/dashboard';
       const welcomeMessage = isOwner ? "Welcome back, Owner! Redirecting..." : "Welcome back! Redirecting...";
-      
+
       // Set a cookie that's accessible by server components
       setCookie('loggedInUserId', user.id, {
           maxAge: 60 * 60 * 24, // 1 day
       });
-      
+
       await addUser({ ...user, action: 'Logged In' });
 
       toast({
@@ -81,7 +85,7 @@ export default function LoginForm() {
     }
   };
 
-  const isOwnerLogin = userType === 'owner';
+  // const isOwnerLogin = userType === 'owner';
 
   return (
     <Card className="mx-auto max-w-sm w-full">
@@ -92,6 +96,25 @@ export default function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {verificationMessage && (
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Account Under Review</AlertTitle>
+            <AlertDescription>
+              Your pitch owner account is being verified. You'll receive an email once approved.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {signupSuccess && (
+          <Alert className="mb-4">
+            <CheckCircle className="h-4 w-4" />
+            <AlertTitle>Account Created Successfully!</AlertTitle>
+            <AlertDescription>
+              Welcome to LinkHub Sports! Please log in to access your dashboard.
+            </AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleLogin} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>

@@ -128,17 +128,12 @@ export default function UserSignupForm() {
       // Generate referral code for the new user
       await generateReferralCode(newUser.id);
 
-      // Set cookies for logged-in user
-      setCookie('loggedInUserId', newUser.id);
-      setCookie('loggedInUserRole', newUser.role);
-      setCookie('loggedInUserName', newUser.name);
-
       toast({
-        title: "Account created!",
-        description: "Welcome to LinkHub Sports!",
+        title: "Account created successfully!",
+        description: "Please log in to access your dashboard.",
       });
 
-      router.push('/dashboard');
+      router.push('/login?message=signup-success');
     } catch (error) {
       console.error('Signup error:', error);
       toast({

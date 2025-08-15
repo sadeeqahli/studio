@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from 'react';
@@ -21,10 +20,10 @@ import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { addBooking, getUserById } from '@/app/actions';
+import { addBooking, getUserById, updateUserBookingCount } from '@/app/actions';
 import { getCookie } from 'cookies-next';
 
-type BookingStatus = 'idle' | 'confirming';
+type BookingStatus = 'idle' | 'confirming' | 'success';
 
 interface BookingClientProps {
     pitch: Pitch;
@@ -36,7 +35,7 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
     const slots = [];
     let currentTime = new Date(date);
     currentTime.setHours(0, 0, 0, 0); // Start from midnight
-    
+
     const endTime = addDays(new Date(currentTime), 1);
 
     while (currentTime < endTime) {
@@ -68,7 +67,7 @@ function PaymentDialog({
     const { toast } = useToast();
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [copied, setCopied] = React.useState(false);
-    
+
     // Simulate a unique virtual account number for each owner based on their ID
     const virtualAccountNumber = `8${owner.id.replace(/\D/g, '').slice(0, 9)}`.padEnd(10, '0');
 
@@ -96,11 +95,26 @@ function PaymentDialog({
         };
 
         try {
+            // Simulate payment processing
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Calculate commission split (starter plan: 5% platform commission)
+            const platformCommission = totalPrice * 0.05;
+            const ownerAmount = totalPrice - platformCommission;
+
+            // Add booking
             await addBooking(newBooking);
-            toast({
-                title: "Booking Confirmed!",
-                description: "Your booking has been successfully recorded.",
-            });
+
+            // Update owner's virtual account balance
+            const { updateOwnerBalance } = await import('@/app/actions');
+            await updateOwnerBalance(owner.id, ownerAmount);
+
+            // Update user's total bookings
+            if (currentUser) {
+                await updateUserBookingCount(currentUser.id);
+            }
+
+            setBookingStatus('success');
             onPaymentConfirmed(bookingId);
         } catch (error) {
             toast({
@@ -183,7 +197,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
-    
+
     React.useEffect(() => {
         // Set date on client mount to avoid hydration mismatch
         setSelectedDate(new Date());
@@ -201,7 +215,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
     }, []);
 
     const dateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
-    
+
     const bookedSlotsForDate = React.useMemo(() => {
         if (!pitch) return new Set();
         return new Set(
@@ -215,7 +229,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
         if (!pitch || !selectedDate) return [];
         return generateTimeSlots(pitch, selectedDate);
     }, [pitch, selectedDate]);
-    
+
     React.useEffect(() => {
         setSelectedSlots([]);
     }, [selectedDate]);
@@ -235,7 +249,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
     };
 
     const totalPrice = pitch.price * selectedSlots.length;
-    
+
     if (isLoadingUser || !selectedDate) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -244,7 +258,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
             </div>
         );
     }
-    
+
     if (!currentUser) {
          return (
             <div className="flex items-center justify-center h-full">

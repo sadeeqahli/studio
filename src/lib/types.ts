@@ -72,6 +72,8 @@ export type User = {
     trialStartDate?: string; // Only for owners
     trialEndDate?: string; // Only for owners
     isInTrial?: boolean; // Only for owners
+    virtualAccountNumber?: string;
+    virtualAccountBalance?: number;
 };
 
 export type Transaction = {
