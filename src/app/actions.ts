@@ -69,10 +69,13 @@ export async function addUser(user: User & { action?: 'Logged In' | 'Signed Up' 
         role: user.role,
         registeredDate: user.registeredDate,
         status: user.status,
-        totalBookings: user.totalBookings,
+        totalBookings: user.totalBookings || 0,
         pitchesListed: user.pitchesListed,
         subscriptionPlan: user.subscriptionPlan,
         transactionPin: user.transactionPin,
+        rewardBalance: user.rewardBalance || 0,
+        referralCode: user.referralCode,
+        referredBy: user.referredBy,
     };
     
     // Ensure user is added to the main list first
@@ -216,6 +219,18 @@ export async function getBookingsByUser(userName: string): Promise<Booking[]> {
 export async function addBooking(booking: Booking & { userId?: string }): Promise<void> {
     // FIRESTORE: Replace with `setDoc(doc(db, 'bookings', booking.id), booking)`
     placeholderBookings.unshift(booking);
+    
+    // Update user's total bookings count
+    if (booking.userId) {
+        const user = await getUserById(booking.userId);
+        if (user) {
+            const updatedUser = {
+                ...user,
+                totalBookings: (user.totalBookings || 0) + 1
+            };
+            await updateUser(updatedUser);
+        }
+    }
     
     // This logic would likely move into a Cloud Function triggered by a new booking document
     // to ensure it's secure and reliable.

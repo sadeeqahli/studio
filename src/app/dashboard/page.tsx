@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from 'react';
@@ -5,60 +6,55 @@ import { PitchCard } from '@/components/pitch-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, Activity, Gift } from 'lucide-react';
-import { Pitch } from '@/lib/types';
-import { getPitches } from '../actions';
+import { Pitch, User } from '@/lib/types';
+import { getPitches, getUserById, getBookingsByUser } from '../actions';
 import { useSearchParams } from 'next/navigation';
-import { User } from '@/lib/types'; // Assuming User type is defined elsewhere and imported
-
-// Placeholder for user data and other fetched data
-// In a real application, this would come from an API or state management
-const getUserData = async (): Promise<User | null> => {
-  // Replace with actual data fetching logic
-  return {
-    id: 'user1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    bookings: [
-      { id: 'b1', pitchId: 'p1', userId: 'user1', amount: 5000, date: new Date() },
-      { id: 'b2', pitchId: 'p2', userId: 'user1', amount: 7000, date: new Date() },
-      { id: 'b3', pitchId: 'p3', userId: 'user1', amount: 6000, date: new Date() },
-    ],
-    rewardBalance: 15000, // Example reward balance
-    referralCode: 'REF123',
-    invitedUsers: 5, // Example count
-    activeInvitedUsers: 3, // Example count
-    hasMadeBooking: true, // Example flag
-  };
-};
-
-const getThisMonthBookings = async (): Promise<Array<{ amount: number }>> => {
-  // Replace with actual data fetching logic for this month's bookings
-  // For demonstration, returning a subset of user bookings
-  const user = await getUserData();
-  if (!user) return [];
-  const today = new Date();
-  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const thisMonthBookings = user.bookings.filter(booking => new Date(booking.date) >= startOfMonth);
-  return thisMonthBookings.map(b => ({ amount: b.amount }));
-};
-
+import { getCookie } from 'cookies-next';
 
 export default function UserDashboard() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allPitches, setAllPitches] = React.useState<Pitch[]>([]);
   const [user, setUser] = React.useState<User | null>(null);
   const [thisMonthBookings, setThisMonthBookings] = React.useState<{ amount: number }[]>([]);
-  const searchParams = useSearchParams(); // To trigger re-render on navigation
+  const [loading, setLoading] = React.useState(true);
+  const searchParams = useSearchParams();
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const pitches = await getPitches();
-      setAllPitches(pitches.filter(p => p.status === 'Active'));
-      const userData = await getUserData();
-      setUser(userData);
-      const bookings = await getThisMonthBookings();
-      setThisMonthBookings(bookings);
+      try {
+        // Get logged in user ID from cookie
+        const userId = getCookie('loggedInUserId');
+        
+        if (userId) {
+          const [pitches, userData] = await Promise.all([
+            getPitches(),
+            getUserById(userId.toString())
+          ]);
+          
+          setAllPitches(pitches.filter(p => p.status === 'Active'));
+          
+          if (userData) {
+            setUser(userData);
+            
+            // Get user's actual bookings
+            const userBookings = await getBookingsByUser(userData.name);
+            
+            // Filter for this month's bookings
+            const today = new Date();
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const thisMonthUserBookings = userBookings.filter(booking => 
+              new Date(booking.date) >= startOfMonth && booking.status === 'Paid'
+            );
+            
+            setThisMonthBookings(thisMonthUserBookings.map(b => ({ amount: b.amount })));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+      setLoading(false);
     };
+    
     fetchData();
   }, [searchParams]);
 
@@ -66,6 +62,17 @@ export default function UserDashboard() {
     pitch.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     pitch.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -85,7 +92,7 @@ export default function UserDashboard() {
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {/* Displaying current month bookings and reward balance */}
+        {/* This Month Bookings */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -94,12 +101,14 @@ export default function UserDashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₦{thisMonthBookings.reduce((acc, b) => acc + b.amount, 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold">{thisMonthBookings.length}</div>
             <p className="text-xs text-muted-foreground">
-              {thisMonthBookings.length} bookings
+              {thisMonthBookings.length === 1 ? 'booking' : 'bookings'}
             </p>
           </CardContent>
         </Card>
+        
+        {/* Reward Balance */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -114,13 +123,12 @@ export default function UserDashboard() {
             </p>
           </CardContent>
         </Card>
-        {/* End of reward widgets */}
 
         {filteredPitches.map((pitch) => (
           <PitchCard key={pitch.id} pitch={pitch} />
         ))}
       </div>
-      {filteredPitches.length === 0 && (
+      {filteredPitches.length === 0 && !loading && (
         <Card className="col-span-full">
             <CardContent className="p-10 text-center text-muted-foreground">
                 <Search className="mx-auto h-12 w-12" />
