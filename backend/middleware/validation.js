@@ -55,3 +55,39 @@ module.exports = {
     validatePaymentData,
     validateBookingData
 };
+const validatePaymentData = (req, res, next) => {
+    const { amount, pitchId, selectedDate, selectedSlots, customerEmail, customerPhone, customerName } = req.body;
+
+    // Basic validation
+    if (!amount || amount <= 0) {
+        return res.status(400).json({ error: 'Valid amount is required' });
+    }
+
+    if (!pitchId) {
+        return res.status(400).json({ error: 'Pitch ID is required' });
+    }
+
+    if (!selectedDate) {
+        return res.status(400).json({ error: 'Date is required' });
+    }
+
+    if (!selectedSlots || !Array.isArray(selectedSlots) || selectedSlots.length === 0) {
+        return res.status(400).json({ error: 'Time slots are required' });
+    }
+
+    if (!customerEmail || !customerEmail.includes('@')) {
+        return res.status(400).json({ error: 'Valid email is required' });
+    }
+
+    if (!customerPhone) {
+        return res.status(400).json({ error: 'Phone number is required' });
+    }
+
+    if (!customerName) {
+        return res.status(400).json({ error: 'Customer name is required' });
+    }
+
+    next();
+};
+
+module.exports = { validatePaymentData };

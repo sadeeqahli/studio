@@ -17,6 +17,8 @@ CREATE TABLE users (
     total_bookings INT DEFAULT 0,
     pitches_listed INT DEFAULT 0,
     subscription_plan ENUM('Starter', 'Plus', 'Pro') DEFAULT 'Starter',
+    trial_end_date TIMESTAMP NULL,
+    trial_type ENUM('3_months_free', '30_days_free') NULL,
     transaction_pin VARCHAR(6),
     reward_balance DECIMAL(10,2) DEFAULT 0.00,
     wallet_balance DECIMAL(10,2) DEFAULT 0.00,

@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 const { pool } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const { validatePaymentData } = require('../middleware/validation');
+const { paymentLimiter } = require('../middleware/security');
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ const flw = new Flutterwave(
 );
 
 // Initialize payment
-router.post('/initialize', authenticateToken, validatePaymentData, async (req, res) => {
+router.post('/initialize', paymentLimiter, authenticateToken, validatePaymentData, async (req, res) => {
     try {
         const {
             amount,

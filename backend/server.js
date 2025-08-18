@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const { testConnection } = require('./config/database');
+const { sanitizeInput, validateNoSQLInjection } = require('./middleware/security');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -41,6 +42,10 @@ app.use(cors({
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Security middleware
+app.use(sanitizeInput);
+app.use(validateNoSQLInjection);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
