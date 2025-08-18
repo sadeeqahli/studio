@@ -1,166 +1,212 @@
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-class ApiService {
-    private getAuthHeaders(): HeadersInit {
-        const token = localStorage.getItem('authToken');
-        return {
-            'Content-Type': 'application/json',
-            ...(token && { Authorization: `Bearer ${token}` })
-        };
-    }
-
-    private async handleResponse(response: Response) {
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: 'Network error' }));
-            throw new Error(error.message || `HTTP ${response.status}`);
-        }
-        return response.json();
-    }
-
-    // Auth endpoints
-    async login(credentials: { email: string; password: string; role: string }) {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(credentials)
-        });
-        return this.handleResponse(response);
-    }
-
-    async signup(userData: any) {
-        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(userData)
-        });
-        return this.handleResponse(response);
-    }
-
-    // User endpoints
-    async getProfile() {
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    async updateProfile(userData: any) {
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
-            method: 'PUT',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(userData)
-        });
-        return this.handleResponse(response);
-    }
-
-    // Pitch endpoints
-    async getPitches() {
-        const response = await fetch(`${API_BASE_URL}/pitches`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    async getPitchById(id: string) {
-        const response = await fetch(`${API_BASE_URL}/pitches/${id}`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    async createPitch(pitchData: any) {
-        const response = await fetch(`${API_BASE_URL}/pitches`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(pitchData)
-        });
-        return this.handleResponse(response);
-    }
-
-    // Booking endpoints
-    async getBookings() {
-        const response = await fetch(`${API_BASE_URL}/bookings`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    async createBooking(bookingData: any) {
-        const response = await fetch(`${API_BASE_URL}/bookings`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(bookingData)
-        });
-        return this.handleResponse(response);
-    }
-
-    async getBookingById(id: string) {
-        const response = await fetch(`${API_BASE_URL}/bookings/${id}`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    // Payment endpoints
-    async initializePayment(paymentData: any) {
-        const response = await fetch(`${API_BASE_URL}/payments/initialize`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify(paymentData)
-        });
-        return this.handleResponse(response);
-    }
-
-    async verifyPayment(txRef: string) {
-        const response = await fetch(`${API_BASE_URL}/payments/verify/${txRef}`, {
-            method: 'POST',
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    // Reward endpoints
-    async getRewards() {
-        const response = await fetch(`${API_BASE_URL}/rewards`, {
-            headers: this.getAuthHeaders()
-        });
-        return this.handleResponse(response);
-    }
-
-    async useRewards(amount: number, bookingId: string) {
-        const response = await fetch(`${API_BASE_URL}/rewards/use`, {
-            method: 'POST',
-            headers: this.getAuthHeaders(),
-            body: JSON.stringify({ amount, bookingId })
-        });
-        return this.handleResponse(response);
-    }
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
-export const apiService = new ApiService();
+class ApiClient {
+  private baseURL: string;
+  private token: string | null = null;
 
-// Helper functions for token management
-export const setAuthToken = (token: string) => {
-    localStorage.setItem('authToken', token);
-};
-
-export const getAuthToken = () => {
-    return localStorage.getItem('authToken');
-};
-
-export const removeAuthToken = () => {
-    localStorage.removeItem('authToken');
-};
-
-export const isAuthenticated = () => {
-    const token = getAuthToken();
-    if (!token) return false;
-    
-    try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.exp > Date.now() / 1000;
-    } catch {
-        return false;
+  constructor(baseURL: string) {
+    this.baseURL = baseURL;
+    // Get token from localStorage if available
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('token');
     }
-};
+  }
+
+  setToken(token: string) {
+    this.token = token;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('token', token);
+    }
+  }
+
+  clearToken() {
+    this.token = null;
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token');
+    }
+  }
+
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<ApiResponse<T>> {
+    const url = `${this.baseURL}${endpoint}`;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...((options.headers as Record<string, string>) || {}),
+    };
+
+    if (this.token) {
+      headers.Authorization = `Bearer ${this.token}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || data.message || 'An error occurred',
+        };
+      }
+
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error('API request failed:', error);
+      return {
+        success: false,
+        error: 'Network error occurred',
+      };
+    }
+  }
+
+  // Auth endpoints
+  async signup(userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone: string;
+    role: string;
+  }) {
+    return this.request('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async login(credentials: {
+    email: string;
+    password: string;
+    role: string;
+  }) {
+    return this.request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  }
+
+  async ownerSignup(userData: {
+    name: string;
+    email: string;
+    password: string;
+  }) {
+    return this.request('/auth/signup/owner', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  // User endpoints
+  async getUserProfile() {
+    return this.request('/users/profile');
+  }
+
+  async updateProfile(profileData: any) {
+    return this.request('/users/profile', {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  // Pitch endpoints
+  async getPitches() {
+    return this.request('/pitches');
+  }
+
+  async getOwnerPitches() {
+    return this.request('/pitches/owner');
+  }
+
+  async createPitch(pitchData: any) {
+    return this.request('/pitches', {
+      method: 'POST',
+      body: JSON.stringify(pitchData),
+    });
+  }
+
+  async updatePitch(pitchId: string, pitchData: any) {
+    return this.request(`/pitches/${pitchId}`, {
+      method: 'PUT',
+      body: JSON.stringify(pitchData),
+    });
+  }
+
+  async deletePitch(pitchId: string) {
+    return this.request(`/pitches/${pitchId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Booking endpoints
+  async getBookings() {
+    return this.request('/bookings');
+  }
+
+  async getOwnerBookings() {
+    return this.request('/bookings/owner');
+  }
+
+  async createBooking(bookingData: any) {
+    return this.request('/bookings', {
+      method: 'POST',
+      body: JSON.stringify(bookingData),
+    });
+  }
+
+  // Payment endpoints
+  async initializePayment(paymentData: any) {
+    return this.request('/payments/initialize', {
+      method: 'POST',
+      body: JSON.stringify(paymentData),
+    });
+  }
+
+  async verifyPayment(txRef: string) {
+    return this.request(`/payments/verify/${txRef}`, {
+      method: 'POST',
+    });
+  }
+
+  // Admin endpoints
+  async getAdminStats() {
+    return this.request('/admin/stats');
+  }
+
+  async getAdminUsers() {
+    return this.request('/admin/users');
+  }
+
+  async getAdminPitches() {
+    return this.request('/admin/pitches');
+  }
+
+  async getTrialOverview() {
+    return this.request('/admin/trial-overview');
+  }
+
+  async togglePitchStatus(pitchId: string) {
+    return this.request(`/admin/pitches/${pitchId}/toggle-status`, {
+      method: 'PATCH',
+    });
+  }
+}
+
+export const api = new ApiClient(API_BASE_URL);
+export default api;

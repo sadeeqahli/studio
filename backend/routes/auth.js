@@ -57,10 +57,10 @@ router.post('/signup', authLimiter, async (req, res) => {
             const currentOwnerCount = ownerCount[0].count;
 
             if (currentOwnerCount < 30) {
-                // First 30 owners get 3 months free trial
+                // First 30 owners get 90 days free trial
                 trialEndDate = new Date();
-                trialEndDate.setMonth(trialEndDate.getMonth() + 3);
-                trialType = '3_months_free';
+                trialEndDate.setDate(trialEndDate.getDate() + 90);
+                trialType = '90_days_free';
             } else if (currentOwnerCount < 50) {
                 // Next 20 owners get 30 days free trial
                 trialEndDate = new Date();
