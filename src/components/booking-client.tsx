@@ -20,6 +20,7 @@ import { format, addDays, setHours, setMinutes, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { addBooking, getUserById, updateUserBookingCount } from '@/app/actions';
 import { getCookie } from 'cookies-next';
 
