@@ -1,4 +1,3 @@
-
 # 9ja Pitch Connect - Complete Integration Guide
 
 ## 🔧 Prerequisites
@@ -49,8 +48,8 @@ NODE_ENV=development
 FRONTEND_URL=http://localhost:9002
 
 # Flutterwave Configuration (REQUIRED FOR PAYMENTS)
-FLUTTERWAVE_PUBLIC_KEY=FLWPUBK_TEST-your_public_key_here
-FLUTTERWAVE_SECRET_KEY=FLWSECK_TEST-your_secret_key_here
+FLUTTERWAVE_PUBLIC_KEY=FLWPUBK_TEST-6e8f6c1e639bd88c39979d2b25750f49-X
+FLUTTERWAVE_SECRET_KEY=FLWSECK_TEST-fe2a0edc2d6e0ddf64b214f8b7e1a812-X
 FLUTTERWAVE_WEBHOOK_SECRET=your_webhook_secret_here
 
 # Security Keys
@@ -60,7 +59,7 @@ SESSION_SECRET=your_session_secret_key_here
 
 #### Frontend (.env.local):
 ```env
-NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY=FLWPUBK_TEST-your_public_key_here
+NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY=FLWPUBK_TEST-6e8f6c1e639bd88c39979d2b25750f49-X
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
@@ -76,7 +75,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ### Webhook Setup:
 1. In Flutterwave Dashboard, go to "Settings" > "Webhooks"
 2. Add webhook URL: `https://your-domain.com/api/payments/webhook`
-3. Generate and copy the **Webhook Secret Hash**
+3. Generate and copy the **Webhook Secret Hash** (you can use `FLWSECK_TEST7c23b6ef385a` as a placeholder for now, but it's recommended to generate a unique one)
 4. Select events: `charge.completed`
 
 ### Production Keys:
@@ -263,10 +262,42 @@ Before going live:
 - Strong password hashing
 - Secure JWT implementation
 
-### 🔄 Next Steps:
+## 🔄 Next Steps:
 1. Add your real Flutterwave keys to environment variables
 2. Test payment flows with Flutterwave test cards
 3. Deploy to production when ready
 4. Monitor and scale as needed
 
 The application is now production-ready with enterprise-level security!
+
+## 🆕 New Advanced Features Added
+
+### ✅ Two-Factor Authentication (2FA):
+- SMS verification via Twilio
+- Email verification via SendGrid
+- TOTP (Google Authenticator) support
+- Backup codes for recovery
+
+### ✅ API Key Management:
+- Secure API key generation and encryption
+- Automatic key rotation (90-day cycle)
+- Permission-based access control
+- Real-time key validation
+
+### ✅ Advanced Monitoring & Analytics:
+- Real-time system health monitoring
+- API usage tracking and analytics
+- Revenue and user growth analytics
+- Performance metrics dashboard
+
+### ✅ Push Notifications:
+- Firebase Cloud Messaging integration
+- Automated booking confirmations
+- Payment success notifications
+- Cashback earning alerts
+
+### ✅ Email Service Integration:
+- SendGrid integration for transactional emails
+- 2FA verification emails
+- Booking confirmations
+- Password reset emails

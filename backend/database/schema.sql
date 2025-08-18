@@ -161,6 +161,80 @@ CREATE TABLE withdrawals (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- API Keys table
+CREATE TABLE api_keys (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    key_name VARCHAR(255) NOT NULL,
+    encrypted_key TEXT NOT NULL,
+    permissions JSON,
+    status ENUM('active', 'revoked', 'expired') DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Two-Factor Authentication table
+CREATE TABLE user_2fa (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    secret_key VARCHAR(255),
+    backup_codes JSON,
+    is_enabled BOOLEAN DEFAULT FALSE,
+    method ENUM('sms', 'email', 'totp') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- API Usage Logs table
+CREATE TABLE api_usage_logs (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36),
+    endpoint VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    status_code INT NOT NULL,
+    response_time_ms INT,
+    user_agent TEXT,
+    ip_address VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- FCM Tokens table
+CREATE TABLE user_fcm_tokens (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    fcm_token VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_token (user_id, fcm_token)
+);
+
+-- Notification Logs table
+CREATE TABLE notification_logs (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36),
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    data JSON,
+    success_count INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- System Health Metrics table
+CREATE TABLE system_metrics (
+    id VARCHAR(36) PRIMARY KEY,
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(15,2) NOT NULL,
+    metric_unit VARCHAR(50),
+    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes for better performance
 CREATE INDEX idx_bookings_date ON bookings(date);
 CREATE INDEX idx_bookings_user_id ON bookings(user_id);
@@ -168,3 +242,8 @@ CREATE INDEX idx_bookings_pitch_id ON bookings(pitch_id);
 CREATE INDEX idx_transactions_user_id ON transactions(user_id);
 CREATE INDEX idx_activities_user_id ON activities(user_id);
 CREATE INDEX idx_payouts_owner_id ON payouts(owner_id);
+CREATE INDEX idx_api_keys_user_id ON api_keys(user_id);
+CREATE INDEX idx_api_usage_logs_user_id ON api_usage_logs(user_id);
+CREATE INDEX idx_api_usage_logs_created_at ON api_usage_logs(created_at);
+CREATE INDEX idx_user_fcm_tokens_user_id ON user_fcm_tokens(user_id);
+CREATE INDEX idx_notification_logs_user_id ON notification_logs(user_id);
