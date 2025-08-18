@@ -47,14 +47,15 @@ function generateTimeSlots(pitch: Pitch, date: Date): string[] {
 }
 
 
-function PaymentDialog({
+function PaymentPage({
     totalPrice,
     pitch,
     owner,
     selectedDate,
     selectedSlots,
     currentUser,
-    onPaymentConfirmed
+    onPaymentConfirmed,
+    onBack
 }: {
     totalPrice: number;
     pitch: Pitch;
@@ -63,62 +64,119 @@ function PaymentDialog({
     selectedSlots: string[];
     currentUser: User;
     onPaymentConfirmed: (bookingId: string) => void;
+    onBack: () => void;
 }) {
     const { toast } = useToast();
     const [bookingStatus, setBookingStatus] = React.useState<BookingStatus>('idle');
     const [copied, setCopied] = React.useState(false);
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = React.useState<'card' | 'bank_transfer' | 'ussd'>('card');
+    const [cardDetails, setCardDetails] = React.useState({
+        number: '',
+        expiry: '',
+        cvv: '',
+        name: ''
+    });
 
-    // Simulate a unique virtual account number for each owner based on their ID
+    // Generate unique virtual account number and reference
     const virtualAccountNumber = `8${owner.id.replace(/\D/g, '').slice(0, 9)}`.padEnd(10, '0');
+    const paymentReference = `9JPC-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(virtualAccountNumber);
+    const handleCopy = (text: string, label: string) => {
+        navigator.clipboard.writeText(text);
         setCopied(true);
-        toast({ title: "Copied!", description: "Account number copied to clipboard." });
+        toast({ title: "Copied!", description: `${label} copied to clipboard.` });
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleConfirmPayment = async () => {
+    const handleFlutterwavePayment = async () => {
         setBookingStatus('confirming');
 
         const bookingId = `TXN-${pitch.id.slice(-4)}-${Date.now()}`;
-        const newBooking: Booking = {
-            id: bookingId,
-            pitchName: pitch.name,
-            date: format(selectedDate, 'yyyy-MM-dd'),
-            time: selectedSlots.join(', '),
-            amount: totalPrice,
-            status: 'Paid',
-            customerName: currentUser.name,
-            bookingType: 'Online',
-        };
-
+        
         try {
-            // Simulate payment processing
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // In a real implementation, you would initialize Flutterwave here
+            const flutterwaveConfig = {
+                public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY || 'FLWPUBK_TEST-xxx',
+                tx_ref: paymentReference,
+                amount: totalPrice,
+                currency: 'NGN',
+                payment_options: 'card,banktransfer,ussd',
+                customer: {
+                    email: currentUser.email || `${currentUser.id}@9japitchconnect.com`,
+                    phone_number: currentUser.phone || '08000000000',
+                    name: currentUser.name,
+                },
+                customizations: {
+                    title: '9ja Pitch Connect',
+                    description: `Booking payment for ${pitch.name}`,
+                    logo: 'https://9japitchconnect.com/logo.png',
+                },
+                split_payment: {
+                    id: 'SPLIT_001', // Your split payment configuration ID
+                    type: 'percentage',
+                    splits: [
+                        {
+                            type: 'flat',
+                            account: owner.flutterwaveSubaccountId || 'RS_XXXX', // Owner's subaccount
+                            amount: totalPrice * 0.95 // 95% to owner (5% commission)
+                        },
+                        {
+                            type: 'flat', 
+                            account: 'RS_ADMIN_ACCOUNT', // Platform admin account
+                            amount: totalPrice * 0.05 // 5% platform commission
+                        }
+                    ]
+                }
+            };
 
-            // Calculate commission split (starter plan: 5% platform commission)
-            const platformCommission = totalPrice * 0.05;
+            // Simulate payment processing delay
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            // Create booking record
+            const newBooking: Booking = {
+                id: bookingId,
+                pitchName: pitch.name,
+                date: format(selectedDate, 'yyyy-MM-dd'),
+                time: selectedSlots.join(', '),
+                amount: totalPrice,
+                status: 'Paid',
+                customerName: currentUser.name,
+                bookingType: 'Online',
+                paymentMethod: selectedPaymentMethod === 'card' ? 'Card' : selectedPaymentMethod === 'bank_transfer' ? 'Bank Transfer' : 'USSD',
+                paymentReference: paymentReference
+            };
+
+            // Calculate commission split and cashback
+            const platformCommission = totalPrice * 0.05; // 5% commission
             const ownerAmount = totalPrice - platformCommission;
+            const cashbackAmount = 30; // ₦30 cashback reward
+            const adminNetAmount = platformCommission - cashbackAmount;
 
             // Add booking
             await addBooking(newBooking);
 
             // Update owner's virtual account balance
-            const { updateOwnerBalance } = await import('@/app/actions');
+            const { updateOwnerBalance, updateUserRewards } = await import('@/app/actions');
             await updateOwnerBalance(owner.id, ownerAmount);
 
-            // Update user's total bookings
-            if (currentUser) {
-                await updateUserBookingCount(currentUser.id);
-            }
+            // Add cashback to user's rewards wallet
+            await updateUserRewards(currentUser.id, cashbackAmount, 'Booking Cashback');
+
+            // Update user's total bookings for loyalty tracking
+            await updateUserBookingCount(currentUser.id);
 
             setBookingStatus('success');
+            
+            // Show success message with cashback info
+            toast({
+                title: "Payment Successful!",
+                description: `Booking confirmed! You've earned ₦${cashbackAmount} cashback.`,
+            });
+
             onPaymentConfirmed(bookingId);
         } catch (error) {
             toast({
-                title: "Booking Failed",
+                title: "Payment Failed",
                 description: "Something went wrong. Please try again.",
                 variant: "destructive",
             });
@@ -127,65 +185,291 @@ function PaymentDialog({
     };
 
     return (
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Complete Your Payment</DialogTitle>
-                <DialogDescription>
-                    To finalize your booking, please transfer the total amount to the pitch owner's virtual account below.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-                <Card className="bg-muted/50">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Owner's Account Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Amount to Pay:</span>
-                            <span className="font-bold text-lg text-primary">₦{totalPrice.toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Bank Name:</span>
-                            <span className="font-semibold">9ja Pitch Connect (Virtual)</span>
-                        </div>
-                         <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Account Name:</span>
-                            <span className="font-semibold">{owner.name}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-muted-foreground">Account Number:</span>
-                            <div className="flex items-center gap-2">
-                                <span className="font-mono font-semibold">{virtualAccountNumber}</span>
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleCopy}>
-                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+        <div className="min-h-screen bg-background">
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="mb-6">
+                    <Button variant="ghost" onClick={onBack} className="mb-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Booking
+                    </Button>
+                    <h1 className="text-3xl font-bold">Complete Payment</h1>
+                    <p className="text-muted-foreground">Secure payment powered by Flutterwave</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Payment Methods */}
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Choose Payment Method</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div 
+                                        className={cn(
+                                            "border rounded-lg p-4 cursor-pointer transition-colors",
+                                            selectedPaymentMethod === 'card' ? "border-primary bg-primary/5" : "border-border"
+                                        )}
+                                        onClick={() => setSelectedPaymentMethod('card')}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                                                {selectedPaymentMethod === 'card' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">Debit/Credit Card</h3>
+                                                <p className="text-sm text-muted-foreground">Pay securely with your card</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div 
+                                        className={cn(
+                                            "border rounded-lg p-4 cursor-pointer transition-colors",
+                                            selectedPaymentMethod === 'bank_transfer' ? "border-primary bg-primary/5" : "border-border"
+                                        )}
+                                        onClick={() => setSelectedPaymentMethod('bank_transfer')}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                                                {selectedPaymentMethod === 'bank_transfer' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">Bank Transfer</h3>
+                                                <p className="text-sm text-muted-foreground">Transfer to our virtual account</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div 
+                                        className={cn(
+                                            "border rounded-lg p-4 cursor-pointer transition-colors",
+                                            selectedPaymentMethod === 'ussd' ? "border-primary bg-primary/5" : "border-border"
+                                        )}
+                                        onClick={() => setSelectedPaymentMethod('ussd')}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center">
+                                                {selectedPaymentMethod === 'ussd' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold">USSD</h3>
+                                                <p className="text-sm text-muted-foreground">Pay with your mobile banking</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Payment Details Form */}
+                        {selectedPaymentMethod === 'card' && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Card Details</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div>
+                                        <Label htmlFor="card-number">Card Number</Label>
+                                        <Input 
+                                            id="card-number"
+                                            placeholder="1234 5678 9012 3456"
+                                            value={cardDetails.number}
+                                            onChange={(e) => setCardDetails(prev => ({ ...prev, number: e.target.value }))}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label htmlFor="expiry">Expiry Date</Label>
+                                            <Input 
+                                                id="expiry"
+                                                placeholder="MM/YY"
+                                                value={cardDetails.expiry}
+                                                onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: e.target.value }))}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label htmlFor="cvv">CVV</Label>
+                                            <Input 
+                                                id="cvv"
+                                                placeholder="123"
+                                                value={cardDetails.cvv}
+                                                onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="name">Cardholder Name</Label>
+                                        <Input 
+                                            id="name"
+                                            placeholder="John Doe"
+                                            value={cardDetails.name}
+                                            onChange={(e) => setCardDetails(prev => ({ ...prev, name: e.target.value }))}
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {selectedPaymentMethod === 'bank_transfer' && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Bank Transfer Details</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Bank Name:</span>
+                                            <span className="font-semibold">Flutterwave (Providus Bank)</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Account Name:</span>
+                                            <span className="font-semibold">9ja Pitch Connect</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Account Number:</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono font-semibold">{virtualAccountNumber}</span>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(virtualAccountNumber, 'Account number')}>
+                                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm text-muted-foreground">Reference:</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono text-sm">{paymentReference}</span>
+                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleCopy(paymentReference, 'Payment reference')}>
+                                                    {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Alert>
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertTitle>Important!</AlertTitle>
+                                        <AlertDescription>
+                                            Please include the reference number when making your transfer. This helps us track your payment automatically.
+                                        </AlertDescription>
+                                    </Alert>
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {selectedPaymentMethod === 'ussd' && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>USSD Payment Codes</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-3">
+                                        <div className="bg-muted/50 p-3 rounded-lg">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-semibold">GTBank</span>
+                                                <span className="font-mono">*737*000*{totalPrice}*{virtualAccountNumber}#</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-muted/50 p-3 rounded-lg">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-semibold">Access Bank</span>
+                                                <span className="font-mono">*901*000*{totalPrice}*{virtualAccountNumber}#</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-muted/50 p-3 rounded-lg">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-semibold">Zenith Bank</span>
+                                                <span className="font-mono">*966*000*{totalPrice}*{virtualAccountNumber}#</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+
+                    {/* Order Summary */}
+                    <div className="space-y-6">
+                        <Card className="sticky top-6">
+                            <CardHeader>
+                                <CardTitle>Order Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center space-x-4">
+                                    <Image 
+                                        src={pitch.imageUrl}
+                                        alt={pitch.name}
+                                        width={80}
+                                        height={60}
+                                        className="object-cover rounded-lg"
+                                    />
+                                    <div>
+                                        <h3 className="font-semibold">{pitch.name}</h3>
+                                        <p className="text-sm text-muted-foreground">{pitch.location}</p>
+                                    </div>
+                                </div>
+                                
+                                <Separator />
+                                
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Date</span>
+                                        <span>{format(selectedDate, 'PPP')}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Time Slots</span>
+                                        <span>{selectedSlots.length} hour(s)</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Price per hour</span>
+                                        <span>₦{pitch.price.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                                
+                                <Separator />
+                                
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Subtotal</span>
+                                        <span>₦{totalPrice.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between text-green-600">
+                                        <span>Cashback Reward</span>
+                                        <span>+₦30</span>
+                                    </div>
+                                </div>
+                                
+                                <Separator />
+                                
+                                <div className="flex justify-between text-lg font-bold">
+                                    <span>Total</span>
+                                    <span className="text-primary">₦{totalPrice.toLocaleString()}</span>
+                                </div>
+                                
+                                <Button 
+                                    className="w-full" 
+                                    size="lg"
+                                    onClick={handleFlutterwavePayment}
+                                    disabled={bookingStatus === 'confirming'}
+                                >
+                                    {bookingStatus === 'confirming' ? (
+                                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing Payment...</>
+                                    ) : (
+                                        <>
+                                            <ShieldCheck className="mr-2 h-4 w-4" />
+                                            Pay ₦{totalPrice.toLocaleString()}
+                                        </>
+                                    )}
                                 </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Important!</AlertTitle>
-                    <AlertDescription>
-                        Once you have completed the transfer, click the button below to confirm your booking. Your slot will only be reserved after confirmation.
-                    </AlertDescription>
-                </Alert>
+                                
+                                <div className="text-xs text-center text-muted-foreground">
+                                    <p>🔒 Secured by Flutterwave</p>
+                                    <p>You'll earn ₦30 cashback on this booking</p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             </div>
-            <DialogFooter>
-                <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={handleConfirmPayment}
-                    disabled={bookingStatus === 'confirming'}
-                >
-                    {bookingStatus === 'confirming' ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Confirming...</>
-                    ) : (
-                        "I've Made This Transfer"
-                    )}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
+        </div>
     );
 }
 
@@ -197,6 +481,7 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
     const [selectedDate, setSelectedDate] = React.useState<Date | undefined>();
     const [selectedSlots, setSelectedSlots] = React.useState<string[]>([]);
     const [agreedToTerms, setAgreedToTerms] = React.useState(false);
+    const [showPaymentPage, setShowPaymentPage] = React.useState(false);
 
     React.useEffect(() => {
         // Set date on client mount to avoid hydration mismatch
@@ -276,6 +561,21 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
                     </CardFooter>
                 </Card>
             </div>
+        );
+    }
+
+    if (showPaymentPage && selectedDate && currentUser) {
+        return (
+            <PaymentPage
+                totalPrice={totalPrice}
+                pitch={pitch}
+                owner={owner}
+                selectedDate={selectedDate}
+                selectedSlots={selectedSlots}
+                currentUser={currentUser}
+                onPaymentConfirmed={handlePaymentConfirmed}
+                onBack={() => setShowPaymentPage(false)}
+            />
         );
     }
 
@@ -401,31 +701,20 @@ export function BookingClient({ pitch, owner, initialBookings }: BookingClientPr
                             </div>
                         </CardContent>
                         <CardFooter>
-                            <DialogTrigger asChild>
-                                <Button 
-                                    className="w-full" 
-                                    size="lg" 
-                                    disabled={selectedSlots.length === 0 || !agreedToTerms}
-                                >
-                                    <Banknote className="mr-2 h-4 w-4" />
-                                    Proceed to Pay
-                                </Button>
-                            </DialogTrigger>
+                            <Button 
+                                className="w-full" 
+                                size="lg" 
+                                disabled={selectedSlots.length === 0 || !agreedToTerms}
+                                onClick={() => setShowPaymentPage(true)}
+                            >
+                                <Banknote className="mr-2 h-4 w-4" />
+                                Proceed to Pay
+                            </Button>
                         </CardFooter>
                     </Card>
                 </div>
             </div>
-             {selectedDate && currentUser && (
-                 <PaymentDialog
-                    totalPrice={totalPrice}
-                    pitch={pitch}
-                    owner={owner}
-                    selectedDate={selectedDate}
-                    selectedSlots={selectedSlots}
-                    currentUser={currentUser}
-                    onPaymentConfirmed={handlePaymentConfirmed}
-                />
-            )}
+             
             <TermsDialogContent />
         </Dialog>
     );

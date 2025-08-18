@@ -493,16 +493,38 @@ export async function getUserByPitchName(pitchName: string): Promise<User | unde
 }
 
 export async function updateUserBookingCount(userId: string) {
-  const userIndex = placeholderCredentials.findIndex(u => u.id === userId);
-  if (userIndex !== -1) {
-    placeholderCredentials[userIndex].totalBookings = (placeholderCredentials[userIndex].totalBookings || 0) + 1;
+  try {
+    const users = (await import('@/lib/placeholder-data')).users;
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex].totalBookings = (users[userIndex].totalBookings || 0) + 1;
+    }
+  } catch (error) {
+    console.error('Error updating user booking count:', error);
   }
 }
 
 export async function updateOwnerBalance(ownerId: string, amount: number) {
-  const ownerIndex = placeholderCredentials.findIndex(u => u.id === ownerId && u.role === 'Owner');
-  if (ownerIndex !== -1) {
-    const currentBalance = placeholderCredentials[ownerIndex].virtualAccountBalance || 0;
-    placeholderCredentials[ownerIndex].virtualAccountBalance = currentBalance + amount;
+  try {
+    const users = (await import('@/lib/placeholder-data')).users;
+    const ownerIndex = users.findIndex(u => u.id === ownerId);
+    if (ownerIndex !== -1) {
+      users[ownerIndex].walletBalance = (users[ownerIndex].walletBalance || 0) + amount;
+    }
+  } catch (error) {
+    console.error('Error updating owner balance:', error);
+  }
+}
+
+export async function updateUserRewards(userId: string, amount: number, description: string) {
+  try {
+    const users = (await import('@/lib/placeholder-data')).users;
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex].rewardBalance = (users[userIndex].rewardBalance || 0) + amount;
+      // In a real app, you'd also log the reward transaction
+    }
+  } catch (error) {
+    console.error('Error updating user rewards:', error);
   }
 }
