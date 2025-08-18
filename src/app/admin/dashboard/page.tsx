@@ -31,6 +31,13 @@ export default function AdminDashboard() {
   const totalPitches = placeholderPitches.length;
   const totalBookings = placeholderBookings.length;
   const totalRevenue = placeholderPayouts.reduce((acc, payout) => acc + payout.commissionFee, 0);
+  
+  // Trial statistics
+  const totalOwners = placeholderCredentials.filter(user => user.role === 'Owner').length;
+  const ownersOnTrial = placeholderCredentials.filter(user => 
+    user.role === 'Owner' && user.trialEndDate && new Date(user.trialEndDate) > new Date()
+  ).length;
+  const ownersWithPitches = [...new Set(placeholderPitches.map(pitch => pitch.ownerId))].length;
 
   // --- Start of new MRR/ARR Calculation ---
   
@@ -62,6 +69,12 @@ export default function AdminDashboard() {
     { title: "Total Pitches", value: totalPitches.toString(), icon: <List className="h-4 w-4 text-muted-foreground" />, description: "Across all owners" },
     { title: "Total Bookings", value: totalBookings.toString(), icon: <CalendarCheck className="h-4 w-4 text-muted-foreground" />, description: "All-time bookings" },
   ];
+
+  const trialStats = [
+    { title: "Total Owners", value: totalOwners.toString(), icon: <Users className="h-4 w-4 text-muted-foreground" />, description: "Registered pitch owners" },
+    { title: "Owners on Trial", value: ownersOnTrial.toString(), icon: <Users className="h-4 w-4 text-green-600" />, description: "Currently on free trial" },
+    { title: "Owners with Pitches", value: ownersWithPitches.toString(), icon: <List className="h-4 w-4 text-muted-foreground" />, description: "Owners who listed pitches" },
+  ];
   
   const recurringRevenueStats = [
       { title: "Monthly Recurring Revenue", value: `₦${monthlyRecurringRevenue.toLocaleString()}`, icon: <DollarSign className="h-4 w-4 text-muted-foreground" />, description: "Subscriptions + recent commissions" },
@@ -89,6 +102,26 @@ export default function AdminDashboard() {
                 </Card>
             ))}
         </div>
+        
+        <div className="grid gap-4 md:grid-cols-3 md:gap-8 mt-8">
+            {trialStats.map((stat, index) => (
+                <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {stat.title}
+                    </CardTitle>
+                    {stat.icon}
+                    </CardHeader>
+                    <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {stat.description}
+                    </p>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+        
         <div className="grid gap-4 md:gap-8 lg:grid-cols-4 mt-8">
              {recurringRevenueStats.map((stat, index) => (
                 <Card key={index} className="lg:col-span-2">

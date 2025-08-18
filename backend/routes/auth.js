@@ -1,4 +1,3 @@
-
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -54,9 +53,9 @@ router.post('/signup', authLimiter, async (req, res) => {
             const [ownerCount] = await pool.execute(
                 'SELECT COUNT(*) as count FROM users WHERE role = "Owner"'
             );
-            
+
             const currentOwnerCount = ownerCount[0].count;
-            
+
             if (currentOwnerCount < 30) {
                 // First 30 owners get 3 months free trial
                 trialEndDate = new Date();
@@ -135,6 +134,69 @@ router.post('/login', authLimiter, async (req, res) => {
 
     } catch (error) {
         console.error('Login error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Owner signup
+router.post('/signup/owner', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        const [existingUser] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingUser.length > 0) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = uuidv4();
+
+        // Check how many owners have been registered to determine trial
+        const [ownerCount] = await pool.execute('SELECT COUNT(*) as count FROM users WHERE role = "Owner"');
+        const currentOwnerCount = ownerCount[0].count;
+
+        let trialEndDate = null;
+        let trialType = null;
+
+        if (currentOwnerCount < 30) {
+            // First 30 owners get 90 days free trial
+            trialEndDate = new Date();
+            trialEndDate.setDate(trialEndDate.getDate() + 90);
+            trialType = '90_days_free';
+        } else if (currentOwnerCount < 50) {
+            // Next 20 owners (31-50) get 30 days free trial
+            trialEndDate = new Date();
+            trialEndDate.setDate(trialEndDate.getDate() + 30);
+            trialType = '30_days_free';
+        }
+        // After 50 owners, no free trial (trialEndDate and trialType remain null)
+
+        // Insert user with trial information
+        await pool.execute(
+            'INSERT INTO users (id, name, email, password, role, trial_end_date, trial_type) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [userId, name, email, hashedPassword, 'Owner', trialEndDate, trialType]
+        );
+
+        // Generate token
+        const token = jwt.sign({ userId, role: 'Owner' }, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+        res.status(201).json({
+            message: 'Owner account created successfully',
+            token,
+            user: { 
+                id: userId, 
+                name, 
+                email, 
+                role: 'Owner',
+                trialEndDate,
+                trialType,
+                trialMessage: trialType ? `Congratulations! You've received a ${trialType === '90_days_free' ? '90' : '30'} day free trial!` : 'Welcome! Start with our Starter plan.'
+            }
+        });
+    } catch (error) {
+        console.error('Owner signup error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

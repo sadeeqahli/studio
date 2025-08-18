@@ -1,4 +1,3 @@
-
 const express = require('express');
 const Flutterwave = require('flutterwave-node-v3');
 const { v4: uuidv4 } = require('uuid');
@@ -55,7 +54,7 @@ router.post('/initialize', paymentLimiter, authenticateToken, validatePaymentDat
 
         // Create pending booking
         const bookingId = `BK-${Date.now()}-${uuidv4().slice(0, 8)}`;
-        
+
         await pool.execute(`
             INSERT INTO bookings (
                 id, pitch_id, pitch_name, user_id, customer_name, 
@@ -101,9 +100,23 @@ router.post('/initialize', paymentLimiter, authenticateToken, validatePaymentDat
 
         // Add subaccount for revenue split if owner has one
         if (owner && owner.flutterwave_subaccount_id) {
-            const commissionRate = owner.subscription_plan === 'Plus' ? 0.05 : 
-                                 owner.subscription_plan === 'Pro' ? 0.03 : 0.10;
-            
+            // Check if owner is still on trial
+            const [ownerTrial] = await pool.execute(
+                'SELECT trial_end_date FROM users WHERE id = ? AND role = "Owner"',
+                [pitch.owner_id]
+            );
+
+            let commissionRate = 0;
+            let commissionFee = 0;
+
+            // Only charge commission if trial has expired
+            if (!ownerTrial[0]?.trial_end_date || new Date() > new Date(ownerTrial[0].trial_end_date)) {
+                commissionRate = 0.05; // 5% commission after trial
+                commissionFee = amount * commissionRate;
+            }
+
+            const netPayout = amount - commissionFee;
+
             payload.subaccounts = [{
                 id: owner.flutterwave_subaccount_id,
                 transaction_split_ratio: (1 - commissionRate) * 100
@@ -125,7 +138,7 @@ router.post('/initialize', paymentLimiter, authenticateToken, validatePaymentDat
         } else {
             // Delete pending booking if payment initialization fails
             await pool.execute('DELETE FROM bookings WHERE id = ?', [bookingId]);
-            
+
             res.status(400).json({
                 status: 'error',
                 message: 'Payment initialization failed',
@@ -270,11 +283,23 @@ async function processCommissionAndPayouts(booking, transaction) {
         if (ownerRows.length === 0) return;
 
         const owner = ownerRows[0];
-        const commissionRate = owner.subscription_plan === 'Plus' ? 0.05 : 
-                             owner.subscription_plan === 'Pro' ? 0.03 : 0.10;
         
-        const commissionAmount = booking.amount * commissionRate;
-        const netPayout = booking.amount - commissionAmount;
+        // Check if owner is still on trial
+        const [ownerTrial] = await pool.execute(
+            'SELECT trial_end_date FROM users WHERE id = ? AND role = "Owner"',
+            [owner.id]
+        );
+
+        let commissionRate = 0;
+        let commissionFee = 0;
+
+        // Only charge commission if trial has expired
+        if (!ownerTrial[0]?.trial_end_date || new Date() > new Date(ownerTrial[0].trial_end_date)) {
+            commissionRate = 0.05; // 5% commission after trial
+            commissionFee = booking.amount * commissionRate;
+        }
+
+        const netPayout = booking.amount - commissionFee;
 
         // Create payout record
         await pool.execute(`
@@ -289,7 +314,7 @@ async function processCommissionAndPayouts(booking, transaction) {
             booking.customer_name,
             booking.amount,
             commissionRate * 100,
-            commissionAmount,
+            commissionFee,
             netPayout
         ]);
 
@@ -322,27 +347,40 @@ async function processCommissionAndPayouts(booking, transaction) {
 // Helper function to add cashback reward
 async function addCashbackReward(userId, bookingAmount, bookingId) {
     try {
-        const cashbackAmount = bookingAmount * 0.02; // 2% cashback
-
-        // Add reward transaction
-        await pool.execute(`
-            INSERT INTO reward_transactions (
-                id, user_id, type, amount, description, 
-                related_booking_id, status
-            ) VALUES (?, ?, 'Cashback', ?, ?, ?, 'Active')
-        `, [
-            uuidv4(),
-            userId,
-            cashbackAmount,
-            `Cashback from booking ${bookingId}`,
-            bookingId
-        ]);
-
-        // Update user reward balance
-        await pool.execute(
-            'UPDATE users SET reward_balance = reward_balance + ? WHERE id = ?',
-            [cashbackAmount, userId]
+        // Get pitch owner ID from booking
+        const [bookingOwner] = await pool.execute(
+            'SELECT p.owner_id FROM bookings b JOIN pitches p ON b.pitch_id = p.id WHERE b.id = ?',
+            [bookingId]
         );
+
+        if (bookingOwner.length === 0) {
+            console.error('Owner not found for booking:', bookingId);
+            return;
+        }
+
+        const ownerId = bookingOwner[0].owner_id;
+
+        // Check if pitch owner is still on trial before giving cashback
+        const [ownerTrialStatus] = await pool.execute(
+            'SELECT trial_end_date FROM users WHERE id = ?',
+            [ownerId]
+        );
+
+        // Only give cashback if owner's trial has expired
+        if (!ownerTrialStatus[0]?.trial_end_date || new Date() > new Date(ownerTrialStatus[0].trial_end_date)) {
+            // Add cashback for player (30 Naira)
+            const cashbackAmount = 30;
+            await pool.execute(
+                'UPDATE users SET reward_balance = reward_balance + ? WHERE id = ?',
+                [cashbackAmount, userId]
+            );
+
+            // Record cashback transaction
+            await pool.execute(
+                'INSERT INTO reward_transactions (id, user_id, type, amount, description, related_booking_id) VALUES (?, ?, ?, ?, ?, ?)',
+                [uuidv4(), userId, 'Cashback', cashbackAmount, `Cashback for booking ${bookingId}`, bookingId]
+            );
+        }
 
     } catch (error) {
         console.error('Cashback processing error:', error);
