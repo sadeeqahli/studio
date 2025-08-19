@@ -292,9 +292,13 @@ export async function getPayoutsByOwner(ownerName: string) {
   }
 }
 
-export async function getOwnerWithdrawals(ownerName: string) {
+export async function getOwnerWithdrawals(ownerName?: string) {
   try {
-    const response = await fetch(`${API_BASE_URL}/withdrawals/owner/${encodeURIComponent(ownerName)}`, {
+    const endpoint = ownerName 
+      ? `${API_BASE_URL}/withdrawals/owner/${encodeURIComponent(ownerName)}`
+      : `${API_BASE_URL}/admin/withdrawals`;
+    
+    const response = await fetch(endpoint, {
       headers: getAuthHeaders()
     });
     if (!response.ok) throw new Error('Failed to fetch withdrawals');
@@ -375,64 +379,174 @@ export async function updatePitch(pitchId: string, pitchData: any) {
   }
 }
 
-// Owner Withdrawals Function
-export async function getOwnerWithdrawals() {
+// Additional function implementations
+export async function updateUserProfile(profileData: any) {
   try {
-    const response = await fetch(`${API_BASE_URL}/admin/withdrawals`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(profileData)
     });
-    if (!response.ok) throw new Error('Failed to fetch owner withdrawals');
+    if (!response.ok) throw new Error('Failed to update profile');
     return await response.json();
   } catch (error) {
-    console.error('Error fetching owner withdrawals:', error);
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+}
+
+export async function updateUserPassword(passwordData: any) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(passwordData)
+    });
+    if (!response.ok) throw new Error('Failed to update password');
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating password:', error);
+    throw error;
+  }
+}
+
+export async function updateUserPin(pinData: any) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/pin`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(pinData)
+    });
+    if (!response.ok) throw new Error('Failed to update pin');
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating pin:', error);
+    throw error;
+  }
+}
+
+export async function addPitch(pitchData: any) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pitches`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(pitchData)
+    });
+    if (!response.ok) throw new Error('Failed to add pitch');
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding pitch:', error);
+    throw error;
+  }
+}
+
+export async function getBookings() {
+  try {
+    const response = await api.getBookings();
+    if (response.success) {
+      return response.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Failed to fetch bookings:', error);
     return [];
   }
 }
 
-// Placeholder functions from original code that might be missing implementation
-// These are kept to maintain the structure if they were intended to be used elsewhere
-async function updateUserProfile() { return {}; }
-async function updateUserPassword() { return {}; }
-async function updateUserPin() { return {}; }
-async function addPitch(pitchData: any) { return {}; }
-async function getBookings() { return []; }
-async function addAdminWithdrawal() { return {}; }
-async function getAdminWithdrawals() { return []; }
-async function getPayouts() { return []; }
+export async function addAdminWithdrawal(withdrawalData: any) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/withdrawals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(withdrawalData)
+    });
+    if (!response.ok) throw new Error('Failed to add admin withdrawal');
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding admin withdrawal:', error);
+    throw error;
+  }
+}
+
+export async function getAdminWithdrawals() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/withdrawals`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch admin withdrawals');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching admin withdrawals:', error);
+    return [];
+  }
+}
+
+export async function getPayouts() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/payouts`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch payouts');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching payouts:', error);
+    return [];
+  }
+}
+
+export async function deletePitch(pitchId: string) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pitches/${pitchId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to delete pitch');
+    return await response.json();
+  } catch (error) {
+    console.error('Error deleting pitch:', error);
+    throw error;
+  }
+}
+
+export async function initializePayment(paymentData: any) {
+  try {
+    const response = await api.initializePayment(paymentData);
+    if (response.success) {
+      return response.data;
+    }
+    throw new Error(response.error);
+  } catch (error) {
+    console.error('Error initializing payment:', error);
+    throw error;
+  }
+}
+
+export async function verifyPayment(txRef: string) {
+  try {
+    const response = await api.verifyPayment(txRef);
+    if (response.success) {
+      return response.data;
+    }
+    throw new Error(response.error);
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    throw error;
+  }
+}
 
 
-// Export all functions
-export {
-  // User functions
-  getUsers,
-  getUserProfile,
-  updateUserProfile,
-  updateUserPassword,
-  updateUserPin,
-
-  // Pitch functions
-  getPitches,
-  getPitchesByOwner,
-  addPitch,
-  updatePitch,
-  deletePitch,
-
-  // Booking functions
-  getBookings,
-  getBookingsByUser,
-  getBookingsByOwner,
-
-  // Admin functions
-  getAdminStats,
-  getTrialOverview,
-
-  // Payment functions
-  initializePayment,
-  verifyPayment,
-
-  // Payout functions
-  getPayouts,
-  addAdminWithdrawal,
-  getAdminWithdrawals
-};
