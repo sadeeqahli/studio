@@ -356,6 +356,40 @@ export async function generateReferralCode() {
   }
 }
 
+// Update Pitch Function
+export async function updatePitch(pitchId: string, pitchData: any) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/pitches/${pitchId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders()
+      },
+      body: JSON.stringify(pitchData)
+    });
+    if (!response.ok) throw new Error('Failed to update pitch');
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating pitch:', error);
+    throw error;
+  }
+}
+
+// Owner Withdrawals Function
+export async function getOwnerWithdrawals() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/withdrawals`, {
+      method: 'GET',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to fetch owner withdrawals');
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching owner withdrawals:', error);
+    return [];
+  }
+}
+
 // Placeholder functions from original code that might be missing implementation
 // These are kept to maintain the structure if they were intended to be used elsewhere
 async function updateUserProfile() { return {}; }
