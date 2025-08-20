@@ -5,7 +5,7 @@ import { User, Pitch, Booking } from '@/lib/types';
 
 // Mock API_URL and getAuthToken for demonstration purposes.
 // In a real application, these would be imported or defined appropriately.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9002/api';
 const getAuthToken = () => {
   // Replace with actual token retrieval logic (e.g., from cookies, session)
   return 'mock-auth-token';
@@ -25,7 +25,7 @@ export async function getUsers(): Promise<User[]> {
   try {
     const response = await api.getAdminUsers();
     if (response.success) {
-      return response.data;
+      return response.data as User[];
     }
     return [];
   } catch (error) {
@@ -38,7 +38,7 @@ export async function getPitches(): Promise<Pitch[]> {
   try {
     const response = await api.getPitches();
     if (response.success) {
-      return response.data;
+      return response.data as Pitch[];
     }
     return [];
   } catch (error) {
@@ -51,7 +51,7 @@ export async function getPitchesByOwner(ownerId: string): Promise<Pitch[]> {
   try {
     const response = await api.getOwnerPitches();
     if (response.success) {
-      return response.data;
+      return response.data as Pitch[];
     }
     return [];
   } catch (error) {
@@ -64,7 +64,7 @@ export async function getBookingsByOwner(ownerId: string): Promise<Booking[]> {
   try {
     const response = await api.getOwnerBookings();
     if (response.success) {
-      return response.data;
+      return response.data as Booking[];
     }
     return [];
   } catch (error) {
@@ -77,7 +77,7 @@ export async function getBookingsByUser(userId: string): Promise<Booking[]> {
   try {
     const response = await api.getBookings();
     if (response.success) {
-      return response.data;
+      return response.data as Booking[];
     }
     return [];
   } catch (error) {
@@ -90,20 +90,20 @@ export async function getUserProfile(): Promise<User | null> {
   try {
     const response = await api.getUserProfile();
     if (response.success) {
-      return response.data;
+      return response.data as User;
     }
-    return null;
+    return null; // Ensure null is returned if the response is not successful
   } catch (error) {
     console.error('Failed to fetch user profile:', error);
-    return null;
+    return null; // Return null in case of an error
   }
 }
 
-export async function getAdminStats() {
+export async function getAdminStats(): Promise<{ [key: string]: number }> {
   try {
     const response = await api.getAdminStats();
     if (response.success) {
-      return response.data;
+      return response.data as { [key: string]: number };
     }
     return {
       totalUsers: 0,
@@ -112,7 +112,7 @@ export async function getAdminStats() {
       totalRevenue: 0,
       totalOwners: 0,
       ownersOnTrial: 0,
-      ownersWithPitches: 0
+      ownersWithPitches: 0,
     };
   } catch (error) {
     console.error('Failed to fetch admin stats:', error);
@@ -123,17 +123,16 @@ export async function getAdminStats() {
       totalRevenue: 0,
       totalOwners: 0,
       ownersOnTrial: 0,
-      ownersWithPitches: 0
+      ownersWithPitches: 0,
     };
   }
 }
 
-export async function getTrialOverview() {
+export async function getTrialOverview(): Promise<any> {
   try {
     const response = await fetch(`${API_URL}/admin/trial-overview`, {
       headers: {
-        'Authorization': `Bearer ${getAuthToken()}`,
-        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -224,11 +223,8 @@ export async function addBooking(bookingData: any) {
   try {
     const response = await fetch(`${API_BASE_URL}/bookings`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
-      },
-      body: JSON.stringify(bookingData)
+      headers: getAuthHeaders(),
+      body: JSON.stringify(bookingData),
     });
     if (!response.ok) throw new Error('Failed to add booking');
     return await response.json();
@@ -310,10 +306,9 @@ export async function addOwnerWithdrawal(withdrawalData: any) {
     const response = await fetch(`${API_BASE_URL}/withdrawals/owner`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
+        ...getAuthHeaders(),
       },
-      body: JSON.stringify(withdrawalData)
+      body: JSON.stringify(withdrawalData),
     });
     if (!response.ok) throw new Error('Failed to add withdrawal');
     return await response.json();
@@ -329,10 +324,9 @@ export async function addReferral(referralData: any) {
     const response = await fetch(`${API_BASE_URL}/referrals`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        ...getAuthHeaders()
+        ...getAuthHeaders(),
       },
-      body: JSON.stringify(referralData)
+      body: JSON.stringify(referralData),
     });
     if (!response.ok) throw new Error('Failed to add referral');
     return await response.json();
@@ -366,39 +360,22 @@ async function getBookings() { return []; }
 async function addAdminWithdrawal() { return {}; }
 async function getAdminWithdrawals() { return []; }
 async function getPayouts() { return []; }
-
+async function updatePitch(pitchData: any) {
+  console.warn('updatePitch is not implemented');
+  return {};
+}
+async function deletePitch(pitchId: string) {
+  console.warn('deletePitch is not implemented');
+  return {};
+}
+async function initializePayment(paymentData: any) {
+  console.warn('initializePayment is not implemented');
+  return {};
+}
+async function verifyPayment(paymentId: string) {
+  console.warn('verifyPayment is not implemented');
+  return {};
+}
 
 // Export all functions
-export {
-  // User functions
-  getUsers,
-  getUserProfile,
-  updateUserProfile,
-  updateUserPassword,
-  updateUserPin,
-
-  // Pitch functions
-  getPitches,
-  getPitchesByOwner,
-  addPitch,
-  updatePitch,
-  deletePitch,
-
-  // Booking functions
-  getBookings,
-  getBookingsByUser,
-  getBookingsByOwner,
-
-  // Admin functions
-  getAdminStats,
-  getTrialOverview,
-
-  // Payment functions
-  initializePayment,
-  verifyPayment,
-
-  // Payout functions
-  getPayouts,
-  addAdminWithdrawal,
-  getAdminWithdrawals
-};
+// Removed redundant export block to avoid redeclaration errors.
