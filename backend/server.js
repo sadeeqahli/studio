@@ -1,9 +1,15 @@
 require('dotenv').config();
+
+// Verify Flutterwave configuration
+if (!process.env.FLUTTERWAVE_PUBLIC_KEY || !process.env.FLUTTERWAVE_SECRET_KEY) {
+    console.error('Flutterwave API keys are not set in environment variables');
+    process.exit(1);
+}
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
 
 const { testConnection } = require('./config/database');
 const { sanitizeInput, validateNoSQLInjection } = require('./middleware/security');

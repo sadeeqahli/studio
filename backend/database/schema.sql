@@ -1,4 +1,3 @@
-
 -- 9ja Pitch Connect Database Schema
 
 CREATE DATABASE IF NOT EXISTS pitch_connect_db;
@@ -247,3 +246,5 @@ CREATE INDEX idx_api_usage_logs_user_id ON api_usage_logs(user_id);
 CREATE INDEX idx_api_usage_logs_created_at ON api_usage_logs(created_at);
 CREATE INDEX idx_user_fcm_tokens_user_id ON user_fcm_tokens(user_id);
 CREATE INDEX idx_notification_logs_user_id ON notification_logs(user_id);
+
+mysql -u root -p pitch_connect_db < backend\database\schema.sql

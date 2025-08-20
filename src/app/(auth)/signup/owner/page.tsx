@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link"
@@ -31,34 +30,6 @@ export default function OwnerSignupForm() {
     const [nin, setNin] = React.useState('');
     const [addressProof, setAddressProof] = React.useState<File | null>(null);
     const [isUploading, setIsUploading] = React.useState(false);
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            // Validate file type (accept images and PDFs)
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-            if (!allowedTypes.includes(file.type)) {
-                toast({
-                    title: "Invalid File Type",
-                    description: "Please upload a JPEG, PNG, or PDF file.",
-                    variant: "destructive",
-                });
-                return;
-            }
-            
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast({
-                    title: "File Too Large",
-                    description: "Please upload a file smaller than 5MB.",
-                    variant: "destructive",
-                });
-                return;
-            }
-            
-            setAddressProof(file);
-        }
-    };
 
     const handleSignup = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -226,7 +197,12 @@ export default function OwnerSignupForm() {
                 type="file" 
                 accept=".jpg,.jpeg,.png,.pdf"
                 required 
-                onChange={handleFileChange}
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                        setAddressProof(file);
+                    }
+                }}
                 className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
               />
               {addressProof && (

@@ -150,6 +150,7 @@ export async function getTrialOverview(): Promise<any> {
 // User Management Functions
 export async function addUser(userData: any) {
   try {
+    console.log('Attempting to add user with data:', userData);
     const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: {
@@ -157,8 +158,16 @@ export async function addUser(userData: any) {
       },
       body: JSON.stringify(userData)
     });
-    if (!response.ok) throw new Error('Failed to add user');
-    return await response.json();
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Server response:', errorData);
+      throw new Error(errorData.message || 'Failed to add user');
+    }
+    
+    const data = await response.json();
+    console.log('User added successfully:', data);
+    return data;
   } catch (error) {
     console.error('Error adding user:', error);
     throw error;

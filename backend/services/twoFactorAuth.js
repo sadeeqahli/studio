@@ -6,7 +6,14 @@ const QRCode = require('qrcode');
 const crypto = require('crypto');
 
 // Initialize services
-const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_ACCOUNT_SID.startsWith('AC')) {
+    throw new Error('Invalid or missing TWILIO_ACCOUNT_SID in environment variables');
+}
+
+const twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+);
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 class TwoFactorAuthService {

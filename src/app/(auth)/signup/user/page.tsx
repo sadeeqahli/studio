@@ -126,7 +126,7 @@ export default function UserSignupForm() {
       }
 
       // Generate referral code for the new user
-      await generateReferralCode(newUser.id);
+      await generateReferralCode();
 
       toast({
         title: "Account created successfully!",

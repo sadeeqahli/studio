@@ -8,6 +8,14 @@ interface ApiResponse<T = any> {
   message?: string;
 }
 
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  role: 'Player' | 'Owner' | 'Admin';
+  referralCode?: string;
+}
+
 class ApiClient {
   private baseURL: string;
   private token: string | null = null;
@@ -18,6 +26,13 @@ class ApiClient {
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('token');
     }
+  }
+
+  async register(data: RegisterData): Promise<ApiResponse> {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 
   setToken(token: string) {
